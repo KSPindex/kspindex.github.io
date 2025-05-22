@@ -1,408 +1,198 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>청소년 센터 쾌적 환경 개선 심층 보고서</title>
+    <title>Welcome to the IndexSpace</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getAuth, signInAnonymously, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc, updateDoc, increment, setDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+        // Global variables for Firebase config (provided by Canvas environment)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+        let db;
+        let auth;
+        let userId;
+
+        // Smooth scroll function
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return;
+                }
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    const headerOffset = document.querySelector('header').offsetHeight;
+                    const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+                    const offsetPosition = elementPosition - headerOffset;
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth"
+                    });
+                }
+            });
+        });
+
+        document.querySelector('main a[href^="#"]').addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                const headerOffset = document.querySelector('header').offsetHeight;
+                const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+                const offsetPosition = elementPosition - headerOffset;
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+        });
+
+        // Firebase Initialization and Click Tracking Logic
+        window.onload = async () => {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Sign in anonymously if no initial auth token, otherwise use custom token
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                userId = auth.currentUser?.uid || crypto.randomUUID();
+                document.getElementById('userIdDisplay').textContent = `사용자 ID: ${userId}`;
+
+                const clickCountRef = doc(db, `artifacts/${appId}/public/data/site_analytics/indexspace_clicks`);
+                let currentClicks = 0;
+
+                // Fetch initial click count
+                try {
+                    const docSnap = await getDoc(clickCountRef);
+                    if (docSnap.exists()) {
+                        currentClicks = docSnap.data().count || 0;
+                    } else {
+                        // If document doesn't exist, create it with initial count 0
+                        await setDoc(clickCountRef, { count: 0 });
+                    }
+                } catch (error) {
+                    console.error("Error fetching initial click count:", error);
+                    currentClicks = 0; // Fallback if fetch fails
+                }
+                document.getElementById('clickCountDisplay').textContent = `클릭 수: ${currentClicks}명`;
+
+                // Click event listener for the rectangle
+                const clickTrackerDiv = document.getElementById('clickTracker');
+                if (clickTrackerDiv) {
+                    clickTrackerDiv.addEventListener('click', async () => {
+                        try {
+                            await updateDoc(clickCountRef, {
+                                count: increment(1)
+                            });
+                            currentClicks++; // Optimistically update UI
+                            document.getElementById('clickCountDisplay').textContent = `클릭 수: ${currentClicks}명`;
+                        } catch (error) {
+                            console.error("Error updating click count:", error);
+                        }
+                    });
+                } else {
+                    console.error("Click tracker element not found.");
+                }
+
+            } catch (error) {
+                console.error("Firebase initialization or authentication failed:", error);
+                document.getElementById('userIdDisplay').textContent = `사용자 ID: 오류 발생`;
+                document.getElementById('clickCountDisplay').textContent = `클릭 수: 로딩 실패`;
+            }
+        };
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a; /* 어두운 회색 또는 검은색 */
+            color: #e0e0e0; /* 밝은 회색 텍스트 */
+            min-height: 100vh;
         }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 350px;
-        }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 350px;
-                max-height: 400px;
-            }
-        }
-        .stat-card h3 {
-            color: #007BFF;
-        }
-        .flowchart-step {
-            border: 2px solid #007BFF;
-            background-color: #FFFFFF;
-            color: #212529;
-        }
-        .flowchart-arrow {
-            color: #007BFF;
-        }
+        /* 색상 팔레트 (Brilliant Blues 기반) - 어두운 배경에 맞게 조정 */
+        .primary-blue { color: #007BFF; }
+        .secondary-blue { color: #50AEFF; }
+        .accent-teal { color: #08C5BA; }
+        .bg-primary-blue { background-color: #007BFF; }
+        .bg-secondary-blue { background-color: #50AEFF; }
+        .bg-accent-teal { background-color: #08C5BA; }
+        .text-primary-blue { color: #007BFF; }
+        .text-secondary-blue { color: #50AEFF; }
+        .text-accent-teal { color: #08C5BA; }
+        .hover\:text-highlight-yellow:hover { color: #FFD700; }
+        .bg-dark-body { background-color: #1a1a1a; } /* 검은색 배경 */
+        .text-light-gray { color: #e0e0e0; } /* 밝은 텍스트 */
+        .text-muted-light-gray { color: #a0a0a0; } /* 뮤트된 밝은 텍스트 */
     </style>
 </head>
-<body class="bg-[#F8F9FA] text-[#212529]">
-    <header class="bg-[#007BFF] text-white py-8 text-center">
-        <h1 class="text-4xl font-bold">청소년 센터 쾌적 환경 개선 심층 보고서</h1>
-        <p class="mt-2 text-lg">청소년의 건강과 발달을 위한 최적의 실내 환경 조성 방안</p>
+<body class="bg-dark-body text-light-gray">
+    <header class="bg-primary-blue text-white py-4 sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
+            <a href="#home" class="text-3xl font-bold mb-2 md:mb-0 hover:text-highlight-yellow transition duration-300">나의 발표함</a>
+            <nav>
+                <ul class="flex flex-wrap justify-center space-x-4 text-lg">
+                    <li><a href="#home" class="hover:text-highlight-yellow transition duration-300">홈</a></li>
+                    <li><a href="#contact" class="hover:text-highlight-yellow transition duration-300">연락처</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
 
     <main class="container mx-auto px-4 py-8">
-        
-        <section id="unmet-need" class="mb-12">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-3xl font-semibold text-[#007BFF] mb-4 text-center">1. 청소년 센터 실내 환경 현황 및 문제 제기</h2>
-                <p class="text-lg text-[#6C757D] mb-6 text-center">
-                    현재 다수의 청소년 센터는 여름철 고온다습한 환경에 직면해 있으며, 실내 습도가 60%에서 80%를 오가는 상황에서도 에어컨 사용은 최대 26°C로 제한되는 경우가 빈번합니다. 이러한 환경은 청소년의 건강과 활동에 필수적인 쾌적한 공간을 제공하지 못하는 심각한 문제로 인식되어야 합니다.
+        <section id="home" class="mb-12 min-h-screen flex items-center justify-center text-center bg-gradient-to-br from-[#000000] to-[#333333] text-white rounded-lg shadow-lg p-8">
+            <div>
+                <h2 class="text-6xl md:text-7xl font-extrabold mb-6 tracking-tight">Welcome to the IndexSpace</h2>
+                <p class="text-xl md:text-2xl mb-8 leading-relaxed text-gray-200">
+                    만나서 반갑습니다! 이곳은 KSP가 직접 만들고 관리하는 특별한 공간입니다.<br>
+                    다양한 아이디어와 프로젝트, 그리고 제가 탐구한 흥미로운 이야기들을<br>
+                    여러분과 함께 나누기 위해 이 공간을 열었습니다.<br>
+                    아직은 시작 단계이지만, 앞으로 저의 성장과 함께<br>
+                    새로운 내용들로 가득 채워질 예정이니 많은 기대 부탁드립니다.<br>
+                    궁금한 점이나 나누고 싶은 이야기가 있다면 언제든지 환영합니다.<br>
+                    이곳에서 여러분에게 유익하고 즐거운 경험을 선사할 수 있기를 바랍니다.<br>
+                    저의 작은 우주에 오신 것을 다시 한번 환영합니다!<br>
+                    함께 새로운 지식과 영감을 탐험해 보아요.<br>
+                    방문해 주셔서 진심으로 감사합니다.
                 </p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                    <div class="text-center bg-red-100 p-6 rounded-lg border border-red-300">
-                        <h3 class="text-2xl font-bold text-red-700 mb-2">현재 환경 조건: 온도 26°C, 습도 60-80%</h3>
-                        <p class="text-5xl font-extrabold text-red-600 my-4">평균 불쾌지수: <span class="block">약 75.4</span></p>
-                        <p class="text-xl text-red-700 font-semibold">(절반 이상이 불쾌감을 느끼는 '높음' 단계)</p>
-                        <p class="text-sm text-[#6C757D] mt-2">(26°C, 70% 습도 기준 단순 계산 시)</p>
-                    </div>
-                    <div class="text-left text-[#212529]">
-                        <h4 class="text-xl font-semibold mb-2 text-[#007BFF]">문제의 심각성 및 영향:</h4>
-                        <ul class="list-disc list-inside space-y-1">
-                            <li>청소년의 신체적, 정신적 건강에 직접적인 위협</li>
-                            <li>학습 및 활동 집중력 저하와 효율성 감소</li>
-                            <li>센터 이용 만족도 저하 및 참여율 감소</li>
-                            <li>에너지 절약 명분 하에 청소년의 쾌적 환경권 침해</li>
-                        </ul>
-                        <p class="mt-4 text-[#6C757D]">이러한 환경은 청소년 센터가 본연의 기능을 수행하는 데 중대한 제약으로 작용하며, 청소년의 기본적인 건강권과 쾌적한 환경에서 성장할 권리를 보장하기 위한 시급한 개선이 요구됩니다.</p>
-                    </div>
+                <p class="text-lg text-gray-400 mt-10">KSP가 썼음</p>
+
+                <div id="clickTracker" class="bg-accent-teal text-white py-6 px-8 mt-12 rounded-xl shadow-lg cursor-pointer hover:bg-[#06A29A] transition duration-300 transform hover:scale-105">
+                    <p class="text-xl md:text-2xl font-bold">이 사각형을 클릭해서 이 사이트에 접속함을 알리세요!</p>
                 </div>
+                <p id="clickCountDisplay" class="text-lg text-gray-400 mt-4">클릭 수: 로딩 중...</p>
+                <p id="userIdDisplay" class="text-sm text-gray-500 mt-2">사용자 ID: 로딩 중...</p>
             </div>
         </section>
 
-        <section id="impact-analysis" class="mb-12">
+        <section id="contact" class="mb-12 pt-16">
             <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-3xl font-semibold text-[#007BFF] mb-4 text-center">2. 고온다습 환경이 청소년 건강 및 학습에 미치는 영향 분석</h2>
-                <p class="text-lg text-[#6C757D] mb-8 text-center">
-                    고온다습한 환경은 청소년의 신체적, 정신적 건강뿐만 아니라 학습 및 활동 참여에도 광범위하고 부정적인 영향을 미칩니다. 이는 청소년의 전인적인 발달을 저해하는 요인으로 작용합니다.
+                <h2 class="text-3xl font-semibold text-primary-blue mb-4 text-center">연락처</h2>
+                <p class="text-lg text-muted-light-gray mb-6 text-center">
+                    궁금한 점이 있으시면 아래 정보를 통해 연락해 주세요.
                 </p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="stat-card text-center p-4 border border-gray-200 rounded-lg">
-                        <h3 class="text-xl font-semibold mb-3">신체 건강 악영향</h3>
-                        <div class="chart-container mx-auto h-64 md:h-72">
-                            <canvas id="physicalHealthImpactChart"></canvas>
-                        </div>
-                        <p class="mt-3 text-sm text-[#6C757D]">온열질환 위험 증가 (열사병, 열탈진 등), 피부 질환 악화 (땀띠, 아토피) 및 심뇌혈관 질환 발생 위험 증가.</p>
-                    </div>
-                    <div class="stat-card text-center p-4 border border-gray-200 rounded-lg">
-                        <h3 class="text-xl font-semibold mb-3">정신 건강 및 인지 능력 저하</h3>
-                        <div class="chart-container mx-auto h-64 md:h-72">
-                            <canvas id="cognitiveImpactChart"></canvas>
-                        </div>
-                        <p class="mt-3 text-sm text-[#6C757D]">불쾌감 증가로 인한 정서적 불안정, 집중력·기억력·문제 해결력 및 자기 통제력 저하, 피로감 가중.</p>
-                    </div>
-                    <div class="stat-card text-center p-4 border border-gray-200 rounded-lg">
-                        <h3 class="text-xl font-semibold mb-3">학습 효율성 및 활동 참여도 저해</h3>
-                        <div class="chart-container mx-auto h-64 md:h-72">
-                            <canvas id="learningImpactChart"></canvas>
-                        </div>
-                        <p class="mt-3 text-sm text-[#6C757D]">학습 효율성 감소 및 학업 성취도 저하, 다양한 프로그램에 대한 참여 의욕 감소 및 만족도 저하.</p>
-                    </div>
-                </div>
-                 <p class="mt-6 text-center text-[#6C757D]">위 차트들은 고온다습 환경이 각 영역에 미치는 부정적 영향의 심각성을 시각적으로 표현한 것입니다. (예: 70%는 '높은 수준의 부정적 영향'을 의미하며, 이는 실제 청소년들이 겪는 불편함을 반영합니다.)</p>
-            </div>
-        </section>
-
-        <section id="market-optimal" class="mb-12">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-3xl font-semibold text-[#007BFF] mb-4 text-center">3. 청소년을 위한 쾌적 실내 환경의 과학적 근거</h2>
-                <p class="text-lg text-[#6C757D] mb-8 text-center">
-                    과학적 연구와 기관의 권고는 청소년의 집중력 향상과 쾌적한 환경 유지를 위한 최적의 온도 및 습도 범위를 명확히 제시합니다. 현재 청소년 센터의 환경은 이러한 과학적 기준에 크게 미달하고 있어 개선의 필요성이 더욱 강조됩니다.
-                </p>
-                <div class="chart-container">
-                    <canvas id="envComparisonChart"></canvas>
-                </div>
-                <p class="mt-6 text-center text-[#6C757D]">위 그래프는 현재 청소년 센터의 평균 환경(온도 26°C, 습도 60-80%)과 기상청 및 보건복지부에서 권장하는 최적 환경(온도 23-25°C, 습도 40-50%)을 비교하여 보여줍니다. 이 명확한 격차는 청소년을 위한 쾌적 환경 조성의 시급성을 시사합니다. 특히 습도 조절은 체감 온도를 크게 낮추고 세균 번식을 억제하여 건강에 매우 중요합니다.</p>
-            </div>
-        </section>
-
-        <section id="solutions" class="mb-12">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-3xl font-semibold text-[#007BFF] mb-4 text-center">4. 쾌적 환경 조성을 위한 핵심 전략</h2>
-                <p class="text-lg text-[#6C757D] mb-8 text-center">
-                    청소년 센터의 환경 개선은 단순한 온도 조정을 넘어, 습도 관리와 주기적인 환기를 포함하는 통합적인 접근이 필수적입니다. 이는 청소년의 건강과 학습 효율을 극대화하기 위한 핵심 요소입니다.
-                </p>
-                <div class="flex flex-col md:flex-row justify-around items-center space-y-4 md:space-y-0 md:space-x-4">
-                    <div class="flowchart-step p-4 rounded-lg text-center shadow">
-                        <span class="text-4xl">🌡️</span>
-                        <h4 class="text-lg font-semibold mt-2">온도 조절</h4>
-                        <p class="text-sm">23-25°C 유지</p>
-                    </div>
-                    <div class="flowchart-arrow text-4xl font-bold hidden md:block">&rarr;</div>
-                    <div class="flowchart-arrow text-4xl font-bold md:hidden">&darr;</div>
-                    <div class="flowchart-step p-4 rounded-lg text-center shadow">
-                        <span class="text-4xl">💧</span>
-                        <h4 class="text-lg font-semibold mt-2">습도 관리</h4>
-                        <p class="text-sm">40-50% 목표</p>
-                    </div>
-                    <div class="flowchart-arrow text-4xl font-bold hidden md:block">&rarr;</div>
-                    <div class="flowchart-arrow text-4xl font-bold md:hidden">&darr;</div>
-                    <div class="flowchart-step p-4 rounded-lg text-center shadow">
-                        <span class="text-4xl">🌬️</span>
-                        <h4 class="text-lg font-semibold mt-2">주기적 환기</h4>
-                        <p class="text-sm">신선한 공기 공급</p>
-                    </div>
-                    <div class="flowchart-arrow text-4xl font-bold hidden md:block">&rarr;</div>
-                     <div class="flowchart-arrow text-4xl font-bold md:hidden">&darr;</div>
-                    <div class="bg-[#08C5BA] text-white p-6 rounded-lg text-center shadow-lg">
-                        <span class="text-4xl">쾌적!</span>
-                        <h4 class="text-lg font-semibold mt-2">최적 환경 달성</h4>
-                        <p class="text-sm">건강 및 학습 효율 증진</p>
-                    </div>
-                </div>
-                <p class="mt-8 text-center text-[#6C757D]">이러한 통합적 솔루션은 에너지 효율성을 고려한 스마트 시스템 도입과 함께 추진될 때 더욱 효과적이며, 지속 가능한 시설 운영 모델을 구축하는 데 기여할 것입니다.</p>
-            </div>
-        </section>
-
-        <section id="regulatory-landscape" class="mb-12">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-3xl font-semibold text-[#007BFF] mb-4 text-center">5. 현행 공공기관 냉방 기준 및 청소년 시설의 특수성</h2>
-                <p class="text-lg text-[#6C757D] mb-8 text-center">
-                    청소년 센터의 에어컨 온도 조정은 단순히 규정의 예외를 요구하는 것이 아니라, 기존 법규와 정책의 취지 및 선례에 부합하는 합리적인 정책 결정입니다. 「공공기관 에너지이용 합리화 추진에 관한 규정」에는 학교, 도서관, 아동 관련 시설 등 다수가 이용하거나 적정 온도 관리가 필요한 시설에 대한 냉방 온도 예외 조항이 명시되어 있습니다.
-                </p>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white border border-gray-300">
-                        <thead class="bg-[#50AEFF] text-white">
-                            <tr>
-                                <th class="py-3 px-4 border-b text-left">구분</th>
-                                <th class="py-3 px-4 border-b text-left">냉방 온도 기준</th>
-                                <th class="py-3 px-4 border-b text-left">특징 및 근거</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="hover:bg-gray-50">
-                                <td class="py-3 px-4 border-b">일반 공공기관</td>
-                                <td class="py-3 px-4 border-b">28°C 이상</td>
-                                <td class="py-3 px-4 border-b">에너지 절약 우선</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="py-3 px-4 border-b">학교 (학교보건법)</td>
-                                <td class="py-3 px-4 border-b">26~28°C</td>
-                                <td class="py-3 px-4 border-b">학생 건강 및 학습 고려</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="py-3 px-4 border-b">에너지 규정상 예외 시설<br><small>(아동/노인시설, 도서관 등)</small></td>
-                                <td class="py-3 px-4 border-b">자체 위원회 결정 (탄력적)</td>
-                                <td class="py-3 px-4 border-b">취약계층 보호, 다수 이용 특수성</td>
-                            </tr>
-                            <tr class="bg-[#E0F2FE] hover:bg-[#B9E0FD]">
-                                <td class="py-3 px-4 border-b font-semibold text-[#007BFF]">청소년 센터 (제안)</td>
-                                <td class="py-3 px-4 border-b font-semibold text-[#007BFF]">23~25°C (권장)</td>
-                                <td class="py-3 px-4 border-b font-semibold text-[#007BFF]">청소년 건강/학습/활동 최우선, 교육 및 복지시설 특수성 반영</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <p class="mt-6 text-center text-[#6C757D]">청소년 센터는 「청소년활동 진흥법」에 따라 청소년의 수련, 교류, 문화 활동을 지원하는 시설로서, 학교, 도서관, 사회복지시설, 아동 관련 시설의 복합적인 성격을 띠고 있습니다. 따라서 청소년 센터 또한 이러한 예외 조항의 취지에 부합하여 청소년의 건강과 쾌적성을 우선시하는 온도 조절이 가능해야 합니다.</p>
-            </div>
-        </section>
-
-        <section id="roi" class="mb-12">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-3xl font-semibold text-[#007BFF] mb-4 text-center">6. 쾌적 환경 조성을 통한 기대 효과 및 정책 제언</h2>
-                <p class="text-lg text-[#6C757D] mb-8 text-center">
-                    청소년 센터의 실내 환경 개선은 단순한 비용 지출이 아닌, 미래 세대의 건강한 성장과 발달을 위한 필수적인 투자입니다. 이는 청소년 개인의 삶의 질 향상뿐만 아니라, 사회 전체의 지속 가능한 발전에 기여할 것입니다.
-                </p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
-                    <div class="p-6 bg-green-100 rounded-lg shadow">
-                        <span class="text-5xl">🌱</span>
-                        <h4 class="text-xl font-semibold mt-3 text-green-700">신체 및 정신 건강 증진</h4>
-                        <p class="text-sm text-green-600 mt-1">온열질환 예방, 스트레스 감소, 정서적 안정감 증대.</p>
-                    </div>
-                    <div class="p-6 bg-blue-100 rounded-lg shadow">
-                        <span class="text-5xl">🧠</span>
-                        <h4 class="text-xl font-semibold mt-3 text-blue-700">학습 집중력 및 인지 능력 향상</h4>
-                        <p class="text-sm text-blue-600 mt-1">기억력, 문제 해결 능력 개선, 학업 성과 증진.</p>
-                    </div>
-                    <div class="p-6 bg-yellow-100 rounded-lg shadow">
-                        <span class="text-5xl">🎨</span>
-                        <h4 class="text-xl font-semibold mt-3 text-yellow-700">활동 참여도 및 만족도 증가</h4>
-                        <p class="text-sm text-yellow-600 mt-1">다양한 프로그램에 대한 적극적 참여, 센터 이용 경험의 질 향상.</p>
-                    </div>
-                     <div class="p-6 bg-purple-100 rounded-lg shadow">
-                        <span class="text-5xl">🌟</span>
-                        <h4 class="text-xl font-semibold mt-3 text-purple-700">사회적 역량 강화 및 미래 경쟁력 확보</h4>
-                        <p class="text-sm text-purple-600 mt-1">건강한 사회 구성원 양성, 국가의 교육 경쟁력 제고.</p>
-                    </div>
-                </div>
-                <div class="mt-10 text-center">
-                    <a href="#" class="bg-[#08C5BA] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#06A29A] transition duration-300 text-lg">
-                        청소년의 건강한 미래를 위한 정책적 결단을 촉구합니다!
-                    </a>
-                    <p class="mt-4 text-[#6C757D]">쾌적한 환경은 청소년의 기본적인 권리이자, 우리 사회의 지속 가능한 발전을 위한 필수적인 투자입니다.</p>
+                <div class="text-center py-8">
+                    <p class="text-xl font-semibold mb-2">이메일: <a href="mailto:your.email@example.com" class="text-primary-blue hover:underline">your.email@example.com</a></p>
+                    <p class="text-xl font-semibold">SNS: arsode8.tot@gmail.com</p>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="bg-[#212529] text-white py-6 text-center">
-        <p>&copy; 2025 청소년 센터 쾌적 환경 개선을 위해서. All Rights Reserved.</p>
-        <p class="text-sm text-gray-400 mt-1">본 보고서는 과학적 근거와 정책 분석을 기반으로 제작되었습니다.</p>
+    <footer class="bg-[#212121] text-white py-6 text-center">
+        <p>&copy; 2025 나의 발표함. All Rights Reserved.</p>
     </footer>
-
-    <script>
-        const primaryColor = '#007BFF';
-        const secondaryColor = '#50AEFF';
-        const accentColor = '#08C5BA';
-        const highlightYellow = '#FFD700';
-        const textColor = '#212529';
-        const mutedTextColor = '#6C757D';
-
-        function processLabels(labels) {
-            return labels.map(label => {
-                if (typeof label === 'string' && label.length > 16) {
-                    const words = label.split(' ');
-                    const lines = [];
-                    let currentLine = '';
-                    for (const word of words) {
-                        if ((currentLine + word).length > 16 && currentLine.length > 0) {
-                            lines.push(currentLine.trim());
-                            currentLine = word + ' ';
-                        } else {
-                            currentLine += word + ' ';
-                        }
-                    }
-                    lines.push(currentLine.trim());
-                    return lines;
-                }
-                return label;
-            });
-        }
-        
-        const tooltipTitleCallback = function(tooltipItems) {
-            const item = tooltipItems[0];
-            let label = item.chart.data.labels[item.dataIndex];
-            if (Array.isArray(label)) {
-              return label.join(' ');
-            } else {
-              return label;
-            }
-        };
-
-        const impactChartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '70%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        title: function(tooltipItems) {
-                             return tooltipItems[0].label;
-                        },
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (context.parsed !== null) {
-                                label += context.parsed + '% 부정적 영향';
-                            }
-                            return label;
-                        }
-                    }
-                }
-            }
-        };
-
-        new Chart(document.getElementById('physicalHealthImpactChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['높은 부정적 영향', '나머지'],
-                datasets: [{
-                    label: '신체 건강 악영향',
-                    data: [75, 25],
-                    backgroundColor: [primaryColor, '#E0E0E0'],
-                    borderColor: ['#FFFFFF'],
-                    borderWidth: 2
-                }]
-            },
-            options: impactChartOptions
-        });
-
-        new Chart(document.getElementById('cognitiveImpactChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['높은 부정적 영향', '나머지'],
-                datasets: [{
-                    label: '정신/인지 능력 저하',
-                    data: [70, 30],
-                    backgroundColor: [secondaryColor, '#E0E0E0'],
-                    borderColor: ['#FFFFFF'],
-                    borderWidth: 2
-                }]
-            },
-            options: impactChartOptions
-        });
-
-        new Chart(document.getElementById('learningImpactChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['높은 부정적 영향', '나머지'],
-                datasets: [{
-                    label: '학습/활동 효율 저하',
-                    data: [65, 35],
-                    backgroundColor: [accentColor, '#E0E0E0'],
-                    borderColor: ['#FFFFFF'],
-                    borderWidth: 2
-                }]
-            },
-            options: impactChartOptions
-        });
-        
-        const envComparisonLabels = processLabels(['현재 센터 환경', '과학적 권장 환경']);
-        new Chart(document.getElementById('envComparisonChart'), {
-            type: 'bar',
-            data: {
-                labels: envComparisonLabels,
-                datasets: [
-                    {
-                        label: '온도 (°C)',
-                        data: [26, 24],
-                        backgroundColor: primaryColor,
-                        borderColor: primaryColor,
-                        borderWidth: 1
-                    },
-                    {
-                        label: '습도 (%)',
-                        data: [70, 45],
-                        backgroundColor: secondaryColor,
-                        borderColor: secondaryColor,
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: '수치' }
-                    },
-                    x: {
-                         ticks: {
-                            callback: function(value, index, ticks) {
-                                const label = this.getLabelForValue(value);
-                                return label;
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    title: { display: true, text: '청소년 센터 환경 비교: 현재 vs. 권장', font: { size: 16 } },
-                    legend: { position: 'top' },
-                    tooltip: {
-                        callbacks: {
-                             title: tooltipTitleCallback
-                        }
-                    }
-                }
-            }
-        });
-    </script>
 </body>
 </html>
