@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>보관함 내용</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* 검은색 배경 */
+            color: #ffffff; /* 흰색 텍스트 */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .bg-primary-dark { background-color: #1a1a1a; }
+        .text-light { color: #ffffff; }
+        .text-muted-light { color: #aaaaaa; }
+        .border-thin-white { border: 1px solid rgba(255, 255, 255, 0.3); }
+        .shadow-dark { box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); }
+        .button-style {
+            background-color: #444444;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        .button-style:hover {
+            background-color: #666666;
+        }
+    </style>
+</head>
+<body class="bg-black text-light">
+    <div class="bg-primary-dark rounded-lg shadow-dark p-8 border-thin-white text-center">
+        <h1 class="text-3xl font-bold mb-6">보관함 내용</h1>
+        <p class="text-lg text-muted-light mb-6">이곳에 보관함의 내용이 추가될 예정입니다.</p>
+        <p class="text-xl font-semibold text-white">나중에 여기에 멋진 자료들을 채워 넣어 보세요!</p>
+        <button onclick="window.history.back()" class="button-style font-semibold mt-8">뒤로가기</button>
+    </div>
+
+    <script>
+        // 비밀번호 없이 직접 접근하는 경우 리다이렉트
+        window.onload = () => {
+            if (sessionStorage.getItem('archive_access_granted') !== 'true') {
+                window.location.href = 'archive.html'; // 접근 권한 없으면 비밀번호 페이지로
+            }
+            // 접근 후에는 세션 플래그 제거 (뒤로가기 후 다시 접근 시 비밀번호 요구)
+            // 또는 세션 유지 (뒤로가기 후에도 비밀번호 요구 안 함) - 여기서는 유지하도록 함
+            // sessionStorage.removeItem('archive_access_granted'); // 이 줄을 추가하면 뒤로가기 후 다시 비밀번호 요구
+        };
+    </script>
+</body>
+</html>
