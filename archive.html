@@ -110,7 +110,7 @@
             const errorMessage = document.getElementById('errorMessage');
 
             if (passwordInput === correctPassword) {
-                sessionStorage.setItem('indexspace_archive_access', 'true');
+                sessionStorage.setItem('indexspace_archive_access', 'true'); 
                 window.location.href = 'archive_content.html';
             } else {
                 errorMessage.textContent = '비밀번호가 올바르지 않습니다.';
