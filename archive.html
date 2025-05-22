@@ -8,8 +8,8 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #000000; /* 검은색 배경 */
-            color: #ffffff; /* 흰색 텍스트 */
+            background-color: #000000;
+            color: #ffffff;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -27,6 +27,11 @@
             padding: 10px;
             border-radius: 8px;
             outline: none;
+            width: 100%;
+            max-width: 300px;
+        }
+        .input-style:focus {
+            border-color: #ffffff;
         }
         .button-style {
             background-color: #444444;
@@ -57,26 +62,61 @@
     </div>
 
     <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'F12') {
+                event.preventDefault();
+            }
+        });
+
+        let devtoolsAreOpen = false;
+        const threshold = 160;
+
+        const checkDevTools = () => {
+            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+
+            if (widthThreshold || heightThreshold) {
+                if (!devtoolsAreOpen) {
+                    devtoolsAreOpen = true;
+                }
+            } else {
+                devtoolsAreOpen = false;
+            }
+        };
+
+        setInterval(checkDevTools, 500);
+
+        const _p1 = [108, 101, 111, 106, 105];
+        const _p2 = [108, 101, 117, 106, 105];
+        const _p3 = [118, 97, 108, 117, 101];
+        const _p4 = [50, 51, 50, 50, 33];
+
+        const _getPasswordParts = (a, b, c, d) => [...a, ...b, ...c, ...d];
+
+        const getCorrectPassword = () => {
+            const allChars = _getPasswordParts(_p1, _p2, _p3, _p4);
+            return String.fromCharCode(...allChars);
+        };
+        const correctPassword = getCorrectPassword();
+
         document.getElementById('backButton').addEventListener('click', () => {
-            window.location.href = 'index.html'; // 메인 페이지로 돌아가기
+            window.location.href = 'index.html';
         });
 
         document.getElementById('accessButton').addEventListener('click', () => {
             const passwordInput = document.getElementById('passwordInput').value;
             const errorMessage = document.getElementById('errorMessage');
 
-            // 비밀번호를 직접 문자열로 설정하여 혼동 방지
-            const correctPassword = 'leojileujivalue2322!'; // 사용자님이 입력할 비밀번호
-
             if (passwordInput === correctPassword) {
-                sessionStorage.setItem('indexspace_archive_access', 'true'); // 접근 권한 부여
-                window.location.href = 'archive_content.html'; // 다음 페이지로 이동
+                sessionStorage.setItem('indexspace_archive_access', 'true');
+                window.location.href = 'archive_content.html';
             } else {
                 errorMessage.textContent = '비밀번호가 올바르지 않습니다.';
             }
         });
 
-        // 엔터 키로 접속하기 버튼 클릭
         document.getElementById('passwordInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 document.getElementById('accessButton').click();
