@@ -31,27 +31,62 @@
             });
         });
 
-        // Simple Click Tracking Logic using localStorage
+        // Simple Click Tracking Logic using localStorage and Particle Effect
         window.onload = () => {
-            const clickCountDisplay = document.getElementById('clickCountDisplay');
-            let currentClicks = parseInt(localStorage.getItem('indexspace_clicks') || '0', 10);
+            const clickMessageDisplay = document.getElementById('clickMessageDisplay');
             
-            // Display initial count
-            clickCountDisplay.textContent = `클릭 수: ${currentClicks}명`;
-
             const homeSection = document.getElementById('home');
             if (homeSection) {
-                // Ensure click is only counted once per user session
                 let hasClickedSession = sessionStorage.getItem('indexspace_clicked_this_session');
                 
                 if (!hasClickedSession) {
                     homeSection.classList.add('cursor-pointer'); // Add cursor pointer to indicate clickability
-                    homeSection.addEventListener('click', () => {
-                        currentClicks++; // Increment count
-                        localStorage.setItem('indexspace_clicks', currentClicks); // Save to local storage
-                        clickCountDisplay.textContent = `클릭 수: ${currentClicks}명`; // Update display
-                        sessionStorage.setItem('indexspace_clicked_this_session', 'true'); // Mark as clicked for this session
-                        homeSection.classList.remove('cursor-pointer'); // Remove cursor after click
+                    homeSection.addEventListener('click', (event) => {
+                        // Only count if not already clicked in this session
+                        if (!sessionStorage.getItem('indexspace_clicked_this_session')) {
+                            sessionStorage.setItem('indexspace_clicked_this_session', 'true'); // Mark as clicked for this session
+                            homeSection.classList.remove('cursor-pointer'); // Remove cursor after click
+                            
+                            // Change message and color
+                            clickMessageDisplay.textContent = '도움을 주셔서 감사합니다!';
+                            clickMessageDisplay.classList.remove('text-gray-500');
+                            clickMessageDisplay.classList.add('text-yellow-400', 'font-bold');
+
+                            // Particle effect
+                            const numParticles = 15;
+                            for (let i = 0; i < numParticles; i++) {
+                                const particle = document.createElement('div');
+                                particle.classList.add('absolute', 'bg-yellow-300', 'rounded-full', 'opacity-0');
+                                
+                                // Random size
+                                const size = Math.random() * 8 + 4; // 4px to 12px
+                                particle.style.width = `${size}px`;
+                                particle.style.height = `${size}px`;
+
+                                // Position near click
+                                particle.style.left = `${event.clientX}px`;
+                                particle.style.top = `${event.clientY}px`;
+                                particle.style.transform = 'translate(-50%, -50%)'; // Center particle on click point
+                                
+                                document.body.appendChild(particle);
+
+                                // Animate particles
+                                const angle = Math.random() * Math.PI * 2; // Random angle
+                                const distance = Math.random() * 100 + 50; // 50px to 150px
+                                const duration = Math.random() * 0.8 + 0.5; // 0.5s to 1.3s
+
+                                particle.animate([
+                                    { transform: `translate(-50%, -50%) scale(1)`, opacity: 1 },
+                                    { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`, opacity: 0 }
+                                ], {
+                                    duration: duration * 1000,
+                                    easing: 'ease-out',
+                                    fill: 'forwards'
+                                }).onfinish = () => {
+                                    particle.remove(); // Remove particle after animation
+                                };
+                            }
+                        }
                     }, { once: true }); // Ensure it only fires once per page load
                 }
             } else {
@@ -79,12 +114,34 @@
         .bg-gradient-home {
             background-image: linear-gradient(to bottom right, #000000, #333333);
         }
+
+        /* 폰트 크기 조정 (기존 200% 느낌에서 좀 더 일반적인 크기로) */
+        .text-6xl { font-size: 4rem; /* 8rem -> 4rem */ }
+        .text-7xl { font-size: 5rem; /* 9rem -> 5rem */ }
+        .text-xl { font-size: 1.25rem; /* 1.75rem -> 1.25rem */ }
+        .text-2xl { font-size: 1.5rem; /* 2.25rem -> 1.5rem */ }
+        .text-base { font-size: 1rem; /* 1.25rem -> 1rem */ }
+        .text-lg { font-size: 1.125rem; /* 1.5rem -> 1.125rem */ }
+        .text-sm { font-size: 0.875rem; /* 1.125rem -> 0.875rem */ }
+        .leading-relaxed { line-height: 1.8; /* 줄 간격 2.2 -> 1.8 */ }
+
+        /* 모바일 환경에서는 폰트 크기 조정 (반응형) - 기존 Tailwind 기본값에 가깝게 */
+        @media (max-width: 767px) { /* md breakpoint 이하 */
+            .text-6xl { font-size: 3rem; }
+            .text-7xl { font-size: 4rem; }
+            .text-xl { font-size: 1.125rem; }
+            .text-2xl { font-size: 1.25rem; }
+            .text-base { font-size: 0.875rem; }
+            .text-lg { font-size: 1rem; }
+            .text-sm { font-size: 0.75rem; }
+            .leading-relaxed { line-height: 1.6; }
+        }
     </style>
 </head>
 <body class="bg-black text-light">
     <header class="bg-primary-dark text-light py-4 sticky top-0 z-50 shadow-md">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
-            <a href="#home" class="text-3xl font-bold mb-2 md:mb-0 hover:text-accent-white transition duration-300">나의 발표함</a>
+            <a href="#home" class="text-3xl font-thin mb-2 md:mb-0 hover:text-accent-white transition duration-300">indexSpace</a>
             <nav>
                 <ul class="flex flex-wrap justify-center space-x-4 text-lg">
                     <li><a href="#home" class="hover:text-accent-white transition duration-300">홈</a></li>
@@ -113,8 +170,7 @@
                 <p class="text-lg text-gray-500 mt-10">KSP가 썼음</p>
 
                 <div class="mt-12">
-                    <p id="clickCountDisplay" class="text-2xl font-bold text-white">클릭 수: 0명</p>
-                    <p class="text-base text-gray-500 mt-2">이 페이지를 클릭하면 방문 기록이 남습니다. (이 브라우저 기준)</p>
+                    <p id="clickMessageDisplay" class="text-2xl font-bold text-gray-500 mt-2">클릭해서 도움을 주세요!</p>
                 </div>
             </div>
         </section>
@@ -126,15 +182,44 @@
                     궁금한 점이 있으시면 아래 정보를 통해 연락해 주세요.
                 </p>
                 <div class="text-center py-8">
-                    <p class="text-xl font-semibold mb-2">이메일: <a href="mailto:your.email@example.com" class="text-white hover:underline">your.email@example.com</a></p>
+                    <p class="text-xl font-semibold mb-2">이메일: <a href="mailto:arsode8.tot@gmail.com" class="text-white hover:underline">arsode8.tot@gmail.com</a></p>
                     <p class="text-xl font-semibold">SNS: @your_social_media (예정)</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="values" class="mb-12 pt-16">
+            <div class="bg-section-dark rounded-lg shadow-dark p-6 border-thin-white">
+                <h2 class="text-3xl font-semibold text-light mb-8 text-center">IndexSpace가 추구하는 가치들</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <div class="p-6 rounded-lg border border-gray-700 bg-gray-800">
+                        <span class="text-6xl mb-4 block">🕊️</span>
+                        <h3 class="text-2xl font-semibold text-white mb-2">자유 (Freedom)</h3>
+                        <p class="text-muted-light text-base">
+                            사고의 제약 없이, 표현의 경계 없이, 탐구의 한계 없이. IndexSpace는 모든 아이디어가 자유롭게 숨 쉬고, 창조의 날개를 펼칠 수 있는 무한한 가능성의 공간입니다. 이곳에서 당신의 잠재력을 마음껏 발휘하세요.
+                        </p>
+                    </div>
+                    <div class="p-6 rounded-lg border border-gray-700 bg-gray-800">
+                        <span class="text-6xl mb-4 block">⚖️</span>
+                        <h3 class="text-2xl font-semibold text-white mb-2">평등 (Equality)</h3>
+                        <p class="text-muted-light text-base">
+                            누구나 동등한 기회 속에서 존중받는 곳. IndexSpace는 배경, 지식, 경험에 관계없이 모든 목소리가 경청되고, 공정한 교류를 통해 함께 성장하는 평등한 지식의 장을 만듭니다.
+                        </p>
+                    </div>
+                    <div class="p-6 rounded-lg border border-gray-700 bg-gray-800">
+                        <span class="text-6xl mb-4 block">🗳️</span>
+                        <h3 class="text-2xl font-semibold text-white mb-2">민주주의 (Democracy)</h3>
+                        <p class="text-muted-light text-base">
+                            다양한 의견이 충돌하고 융합하며, 합리적인 토론을 통해 더 나은 미래를 향해 나아가는 곳. IndexSpace는 모두의 참여와 소통이 존중되는, 살아 숨 쉬는 민주적 지성의 광장입니다.
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
 
     <footer class="bg-primary-dark text-white py-6 text-center">
-        <p>&copy; 2025 나의 발표함. All Rights Reserved.</p>
+        <p>&copy; 2025 IndexSpace. All Rights Reserved.</p>
     </footer>
 </body>
 </html>
