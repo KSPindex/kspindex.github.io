@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>보관함 내용</title>
+    <title>IndexSpace 보관함</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -11,45 +11,80 @@
             background-color: #000000; /* 검은색 배경 */
             color: #ffffff; /* 흰색 텍스트 */
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
+            display: flex; /* Flexbox를 사용하여 콘텐츠 중앙 정렬 */
+            flex-direction: column; /* 세로 방향 정렬 */
+            justify-content: center; /* 수직 중앙 정렬 */
+            align-items: center; /* 수평 중앙 정렬 */
         }
-        .bg-primary-dark { background-color: #1a1a1a; }
-        .text-light { color: #ffffff; }
-        .text-muted-light { color: #aaaaaa; }
-        .border-thin-white { border: 1px solid rgba(255, 255, 255, 0.3); }
-        .shadow-dark { box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); }
-        .button-style {
-            background-color: #444444;
-            color: #ffffff;
-            padding: 10px 20px;
-            border-radius: 8px;
-            transition: background-color 0.3s ease;
+        /* index.html과 동일한 색상/그림자/테두리 클래스 사용 */
+        .bg-primary-dark { background-color: #1a1a1a; } /* 헤더/푸터 등 */
+        .bg-section-dark { background-color: #2a2a2a; } /* 섹션 배경 */
+        .text-light { color: #ffffff; } /* 기본 밝은 텍스트 */
+        .text-muted-light { color: #aaaaaa; } /* 뮤트된 밝은 텍스트 */
+        .border-thin-white { border: 1px solid rgba(255, 255, 255, 0.3); } /* 얇은 흰색 테두리 */
+        .hover\:text-accent-white:hover { color: #ffffff; } /* 호버 시 흰색 강조 */
+        .shadow-dark { box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); } /* 밝은 그림자 */
+
+        /* 메인 섹션 그라데이션 - index.html과 동일 */
+        .bg-gradient-home {
+            background-image: linear-gradient(to bottom right, #000000, #333333);
         }
-        .button-style:hover {
-            background-color: #666666;
+
+        /* 폰트 크기 조정 - index.html과 동일하게 */
+        .text-6xl { font-size: 4rem; }
+        .text-7xl { font-size: 5rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-sm { font-size: 0.875rem; }
+        .leading-relaxed { line-height: 1.8; }
+
+        /* 모바일 환경에서는 폰트 크기 조정 (반응형) - index.html과 동일 */
+        @media (max-width: 767px) {
+            .text-6xl { font-size: 3rem; }
+            .text-7xl { font-size: 4rem; }
+            .text-xl { font-size: 1.125rem; }
+            .text-2xl { font-size: 1.25rem; }
+            .text-base { font-size: 0.875rem; }
+            .text-lg { font-size: 1rem; }
+            .text-sm { font-size: 0.75rem; }
+            .leading-relaxed { line-height: 1.6; }
         }
     </style>
 </head>
 <body class="bg-black text-light">
-    <div class="bg-primary-dark rounded-lg shadow-dark p-8 border-thin-white text-center">
-        <h1 class="text-3xl font-bold mb-6">보관함 내용</h1>
-        <p class="text-lg text-muted-light mb-6">이곳에 보관함의 내용이 추가될 예정입니다.</p>
-        <p class="text-xl font-semibold text-white">나중에 여기에 멋진 자료들을 채워 넣어 보세요!</p>
-        <button onclick="window.history.back()" class="button-style font-semibold mt-8">뒤로가기</button>
+    <div class="w-full py-4 px-4 absolute top-0 left-0">
+        <a href="index.html" class="text-3xl font-thin text-white hover:text-accent-white transition duration-300">indexSpace</a>
     </div>
+
+    <main class="container mx-auto px-4 py-8">
+        <section id="content" class="mb-12 min-h-screen flex items-center justify-center text-center bg-gradient-home text-light rounded-lg shadow-dark p-8 border-thin-white">
+            <div>
+                <h2 class="text-6xl md:text-7xl font-extrabold mb-6 tracking-tight">IndexSpace 보관함</h2>
+                <p class="text-xl md:text-2xl mb-8 leading-relaxed text-muted-light">
+                    비밀번호를 통해 접근하신 것을 환영합니다.<br>
+                    이곳은 IndexSpace의 특별한 자료들이 보관될 공간입니다.<br>
+                    아직은 비어있지만, 곧 흥미로운 내용들로 채워질 예정이니<br>
+                    많은 기대와 관심 부탁드립니다.<br>
+                    당신의 방문이 이곳의 역사를 만들어갑니다.
+                </p>
+                <p class="text-lg text-gray-500 mt-10">KSP가 썼음</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-primary-dark text-white py-6 text-center w-full">
+        <p>&copy; 2025 IndexSpace. All Rights Reserved.</p>
+    </footer>
 
     <script>
         // 비밀번호 없이 직접 접근하는 경우 리다이렉트
         window.onload = () => {
-            if (sessionStorage.getItem('archive_access_granted') !== 'true') {
+            if (sessionStorage.getItem('indexspace_archive_access') !== 'true') {
                 window.location.href = 'archive.html'; // 접근 권한 없으면 비밀번호 페이지로
             }
-            // 접근 후에는 세션 플래그 제거 (뒤로가기 후 다시 접근 시 비밀번호 요구)
-            // 또는 세션 유지 (뒤로가기 후에도 비밀번호 요구 안 함) - 여기서는 유지하도록 함
-            // sessionStorage.removeItem('archive_access_granted'); // 이 줄을 추가하면 뒤로가기 후 다시 비밀번호 요구
+            // 접근 후에는 세션 플래그를 제거하지 않음 (뒤로가기 후에도 비밀번호 요구 안 함)
         };
     </script>
 </body>
