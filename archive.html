@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>보관함 - 비밀번호 입력</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* 검은색 배경 */
+            color: #ffffff; /* 흰색 텍스트 */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .bg-primary-dark { background-color: #1a1a1a; }
+        .text-light { color: #ffffff; }
+        .text-muted-light { color: #aaaaaa; }
+        .border-thin-white { border: 1px solid rgba(255, 255, 255, 0.3); }
+        .shadow-dark { box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); }
+        .input-field {
+            background-color: #333333;
+            color: #ffffff;
+            border: 1px solid #555555;
+            padding: 10px 15px;
+            border-radius: 8px;
+            outline: none;
+            width: 100%;
+            max-width: 300px;
+        }
+        .input-field:focus {
+            border-color: #ffffff;
+        }
+        .button-style {
+            background-color: #444444;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        .button-style:hover {
+            background-color: #666666;
+        }
+    </style>
+</head>
+<body class="bg-black text-light">
+    <div class="bg-primary-dark rounded-lg shadow-dark p-8 border-thin-white text-center">
+        <h1 class="text-3xl font-bold mb-6">보관함 접근</h1>
+        <p class="text-lg text-muted-light mb-6">보관함에 접근하려면 비밀번호를 입력하세요.</p>
+        <input type="password" id="passwordInput" class="input-field mb-4" placeholder="비밀번호를 입력하세요">
+        <button id="submitBtn" class="button-style font-semibold mb-4">입력</button>
+        <p id="errorMessage" class="text-red-500 text-sm mt-2 hidden">비밀번호가 올바르지 않습니다.</p>
+        <button onclick="window.history.back()" class="button-style font-semibold mt-4">뒤로가기</button>
+    </div>
+
+    <script>
+        // 비밀번호 난독화 (아주 기본적인 수준)
+        // 실제 보안을 위해서는 서버 측 검증이 필수입니다.
+        const getObfuscatedPassword = () => {
+            const parts = ['!2232', 'eulav', 'ijelj', 'oel']; // 'leojileujivalue2322!'를 역순으로 쪼갠 것
+            return parts.reverse().join(''); // 다시 합치면 원래 비밀번호가 됩니다.
+        };
+        const correctPassword = getObfuscatedPassword(); // 'leojileujivalue2322!'
+
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            const inputPassword = document.getElementById('passwordInput').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (inputPassword === correctPassword) {
+                // 비밀번호가 맞으면 세션 스토리지에 플래그 저장 후 다음 페이지로 이동
+                sessionStorage.setItem('archive_access_granted', 'true');
+                window.location.href = 'archive_content.html';
+            } else {
+                errorMessage.classList.remove('hidden');
+            }
+        });
+
+        // 엔터 키로도 제출 가능하게
+        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('submitBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>
