@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndexSpace 공지사항</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* 검은색 배경 */
+            color: #ffffff; /* 흰색 텍스트 */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .bg-primary-dark { background-color: #1a1a1a; }
+        .bg-section-dark { background-color: #2a2a2a; }
+        .text-light { color: #ffffff; }
+        .text-muted-light { color: #aaaaaa; }
+        .border-thin-white { border: 1px solid rgba(255, 255, 255, 0.3); }
+        .shadow-dark { box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); }
+        .bg-gradient-home {
+            background-image: linear-gradient(to bottom right, #000000, #333333);
+        }
+        .text-6xl { font-size: 4rem; }
+        .text-7xl { font-size: 5rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-sm { font-size: 0.875rem; }
+        .leading-relaxed { line-height: 1.8; }
+        @media (max-width: 767px) {
+            .text-6xl { font-size: 3rem; }
+            .text-7xl { font-size: 4rem; }
+            .text-xl { font-size: 1.125rem; }
+            .text-2xl { font-size: 1.25rem; }
+            .text-base { font-size: 0.875rem; }
+            .text-lg { font-size: 1.125rem; }
+            .text-sm { font-size: 0.75rem; }
+            .leading-relaxed { line-height: 1.6; }
+        }
+    </style>
+</head>
+<body class="bg-black text-light">
+    <div class="w-full py-4 px-4 absolute top-0 left-0 bg-primary-dark shadow-md z-10">
+        <a href="index.html" class="text-3xl font-thin text-white hover:text-accent-white transition duration-300">indexSpace 돌아가기</a>
+    </div>
+
+    <main class="container mx-auto px-4 py-8 mt-20"> <section id="announcements-content" class="mb-12 min-h-screen flex flex-col items-center justify-start text-center bg-section-dark rounded-lg shadow-dark p-8 border-thin-white">
+            <h2 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight">공지사항 / 전달사항</h2>
+            <p class="text-xl md:text-2xl mb-8 leading-relaxed text-muted-light">
+                IndexSpace의 중요한 소식들을 이곳에서 확인하세요.
+            </p>
+
+            <div class="space-y-6 text-left w-full max-w-4xl">
+                <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+                    <h3 class="text-2xl font-semibold text-white mb-2">IndexSpace에 오신 것을 환영합니다!</h3>
+                    <p class="text-muted-light text-base leading-relaxed">
+                        IndexSpace에 오신 것을 환영합니다! 앞으로도 여러 발전이 있을 예정입니다 :)<br>
+                        이곳은 KSP가 직접 만들고 관리하는 특별한 공간으로, 다양한 아이디어와 프로젝트, 그리고 제가 탐구한 흥미로운 이야기들을 여러분과 함께 나누기 위해 열렸습니다.
+                        지속적인 업데이트와 새로운 콘텐츠로 여러분의 방문을 더욱 가치 있게 만들겠습니다.
+                        많은 기대와 관심 부탁드립니다!
+                    </p>
+                    <p class="text-sm text-gray-500 mt-4 text-right">작성자: KSP</p>
+                </div>
+
+                <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 opacity-70">
+                    <h3 class="text-2xl font-semibold text-gray-400 mb-2">새로운 공지사항 제목 (예정)</h3>
+                    <p class="text-muted-light text-base leading-relaxed">
+                        이곳에 새로운 공지사항이나 전달사항이 추가될 예정입니다.
+                        방문자들에게 중요한 소식들을 이곳을 통해 알려드릴 수 있습니다.
+                    </p>
+                    <p class="text-sm text-gray-500 mt-4 text-right">작성자: KSP</p>
+                </div>
+            </div>
+
+            <p class="text-base text-gray-500 mt-10">KSP가 썼음</p>
+        </section>
+    </main>
+
+    <footer class="bg-primary-dark text-white py-6 text-center w-full">
+        <p>&copy; 2025 IndexSpace. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>
