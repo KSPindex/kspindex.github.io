@@ -13,7 +13,7 @@
             min-height: 100vh;
             display: flex; /* Flexbox를 사용하여 콘텐츠 중앙 정렬 */
             flex-direction: column; /* 세로 방향 정렬 */
-            justify-content: center; /* 수직 중앙 정렬 */
+            justify-content: flex-start; /* 상단부터 정렬 */
             align-items: center; /* 수평 중앙 정렬 */
         }
         /* index.html과 동일한 색상/그림자/테두리 클래스 사용 */
@@ -46,8 +46,8 @@
             .text-7xl { font-size: 4rem; }
             .text-xl { font-size: 1.125rem; }
             .text-2xl { font-size: 1.25rem; }
-            .text-base { font-size: 0.875rem; }
-            .text-lg { font-size: 1rem; }
+            .text-base { font-size: 1rem; }
+            .text-lg { font-size: 1.125rem; }
             .text-sm { font-size: 0.75rem; }
             .leading-relaxed { line-height: 1.6; }
         }
@@ -90,6 +90,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap; /* 내용이 많을 때 줄 바꿈 */
         }
         .file-list-item .delete-btn {
             background-color: #dc2626; /* Red-600 */
@@ -99,9 +100,20 @@
             cursor: pointer;
             font-size: 0.8rem;
             transition: background-color 0.2s ease;
+            flex-shrink: 0; /* 버튼이 줄어들지 않도록 */
         }
-        .file-list-item .delete-btn:hover {
-            background-color: #b91c1c; /* Red-700 */
+        .file-list-item .file-info {
+            display: flex;
+            align-items: center;
+            flex-grow: 1; /* 파일 이름이 공간을 차지하도록 */
+            min-width: 0; /* 텍스트 넘칠 때 줄 바꿈 */
+        }
+        .file-preview {
+            max-width: 60px; /* 미리보기 이미지/비디오 최대 너비 */
+            max-height: 60px; /* 미리보기 이미지/비디오 최대 높이 */
+            object-fit: contain; /* 비율 유지하며 컨테이너에 맞춤 */
+            margin-right: 10px; /* 파일 이름과의 간격 */
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -130,22 +142,19 @@
             <div id="content-photo" class="tab-content w-full max-w-4xl bg-gray-800 p-6 rounded-lg border border-gray-700">
                 <h3 class="text-2xl font-semibold mb-4 text-white">사진 목록</h3>
                 <div id="photo-list" class="text-left space-y-2">
-                    <p class="text-muted-light">이곳에 사진 파일 목록이 표시됩니다.</p>
-                </div>
+                    </div>
             </div>
 
             <div id="content-video" class="tab-content hidden w-full max-w-4xl bg-gray-800 p-6 rounded-lg border border-gray-700">
                 <h3 class="text-2xl font-semibold mb-4 text-white">영상 목록</h3>
                 <div id="video-list" class="text-left space-y-2">
-                    <p class="text-muted-light">이곳에 영상 파일 목록이 표시됩니다.</p>
-                </div>
+                    </div>
             </div>
 
             <div id="content-file" class="tab-content hidden w-full max-w-4xl bg-gray-800 p-6 rounded-lg border border-gray-700">
                 <h3 class="text-2xl font-semibold mb-4 text-white">파일 목록</h3>
                 <div id="file-list" class="text-left space-y-2">
-                    <p class="text-muted-light">이곳에 모든 종류의 파일 목록이 표시됩니다.</p>
-                </div>
+                    </div>
             </div>
 
             <p class="text-base text-gray-500 mt-10">KSP가 썼음</p>
@@ -163,17 +172,16 @@
             if (sessionStorage.getItem('indexspace_archive_access') !== 'true') {
                 window.location.href = 'archive.html'; // 접근 권한 없으면 비밀번호 페이지로
             }
-            // 접근 후에는 세션 플래그를 제거하지 않음 (뒤로가기 후에도 비밀번호 요구 안 함)
             
             // 탭 초기화 및 로컬 스토리지에서 파일 목록 로드
             showTab('photo');
             loadFilesFromLocalStorage();
         };
 
-        // 탭 기능
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
         const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('fileInput');
 
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -188,13 +196,11 @@
 
             document.getElementById(`tab-${tabId}`).classList.add('active');
             document.getElementById(`content-${tabId}`).classList.remove('hidden');
-            uploadBtn.dataset.currentTab = tabId; // 업로드 버튼에 현재 탭 정보 저장
+            uploadBtn.dataset.currentTab = tabId;
         }
 
-        // 파일 업로드 기능
-        const fileInput = document.getElementById('fileInput');
         uploadBtn.addEventListener('click', () => {
-            fileInput.click(); // 숨겨진 파일 입력 필드 클릭
+            fileInput.click();
         });
 
         fileInput.addEventListener('change', (event) => {
@@ -221,7 +227,7 @@
             // 'file' 탭은 모든 파일 허용
 
             if (isValid) {
-                addFileToList(file.name, currentTab);
+                addFileToList(file, currentTab); // 파일 객체 자체를 전달
             } else {
                 alert(errorMessage); // 사용자에게 오류 메시지 알림
             }
@@ -229,13 +235,22 @@
             fileInput.value = ''; // 파일 입력 필드 초기화 (동일 파일 재선택 가능하게)
         });
 
-        function addFileToList(fileName, tabId) {
-            const listElement = document.getElementById(`${tabId}-list`);
-            
-            // 로컬 스토리지에 파일 이름 저장
+        function addFileToList(file, tabId) {
             let files = JSON.parse(localStorage.getItem(`indexspace_${tabId}_files`) || '[]');
-            if (!files.includes(fileName)) { // 중복 방지
-                files.push(fileName);
+            
+            // 중복 방지를 위해 파일 이름만으로 비교
+            const isDuplicate = files.some(item => item.name === file.name);
+
+            if (!isDuplicate) {
+                // 파일 자체를 저장하는 대신, 파일 이름과 미리보기 URL 저장
+                const fileRecord = {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    // 이미지/비디오 파일만 미리보기 URL 생성
+                    url: (file.type.startsWith('image/') || file.type.startsWith('video/')) ? URL.createObjectURL(file) : null
+                };
+                files.push(fileRecord);
                 localStorage.setItem(`indexspace_${tabId}_files`, JSON.stringify(files));
             }
             
@@ -253,12 +268,29 @@
                 return;
             }
 
-            files.forEach(fileName => {
+            files.forEach(fileRecord => {
                 const listItem = document.createElement('div');
                 listItem.classList.add('file-list-item');
+                
+                let previewHtml = '';
+                if (fileRecord.url) {
+                    if (fileRecord.type.startsWith('image/')) {
+                        previewHtml = `<img src="${fileRecord.url}" alt="${fileRecord.name}" class="file-preview">`;
+                    } else if (fileRecord.type.startsWith('video/')) {
+                        // 비디오는 autoplay를 끄고 controls를 추가하여 재생 가능하게
+                        previewHtml = `<video src="${fileRecord.url}" controls class="file-preview"></video>`;
+                    }
+                } else {
+                    // 일반 파일 아이콘 또는 기본 아이콘
+                    previewHtml = `<span class="text-lg mr-2">📄</span>`; // 기본 파일 아이콘
+                }
+
                 listItem.innerHTML = `
-                    <span class="text-white">${fileName}</span>
-                    <button class="delete-btn" data-file-name="${fileName}" data-tab-id="${tabId}">삭제</button>
+                    <div class="file-info">
+                        ${previewHtml}
+                        <span class="text-white break-all">${fileRecord.name}</span>
+                    </div>
+                    <button class="delete-btn" data-file-name="${fileRecord.name}" data-tab-id="${tabId}">삭제</button>
                 `;
                 listElement.appendChild(listItem);
             });
@@ -275,7 +307,14 @@
 
         function deleteFileFromList(fileName, tabId) {
             let files = JSON.parse(localStorage.getItem(`indexspace_${tabId}_files`) || '[]');
-            files = files.filter(name => name !== fileName);
+            
+            // 삭제할 레코드 찾아서 URL.revokeObjectURL 호출
+            const fileToDeleteRecord = files.find(item => item.name === fileName);
+            if (fileToDeleteRecord && fileToDeleteRecord.url) {
+                URL.revokeObjectURL(fileToDeleteRecord.url); // 메모리 해제
+            }
+
+            files = files.filter(item => item.name !== fileName);
             localStorage.setItem(`indexspace_${tabId}_files`, JSON.stringify(files));
             renderFileList(tabId); // 목록 다시 그리기
         }
@@ -291,6 +330,14 @@
                 case 'photo': return '사진';
                 case 'video': return '영상';
                 case 'file': return '파일';
+                default: return '';
+            }
+        }
+        function getTabPlaceholderMessage(tabId) { // Renamed for clarity in its purpose
+            switch(tabId) {
+                case 'photo': return '이곳에 추가된 사진 파일들이 표시됩니다.';
+                case 'video': return '이곳에 추가된 영상 파일들이 표시됩니다.';
+                case 'file': return '이곳에 추가된 모든 종류의 파일 목록이 표시됩니다.';
                 default: return '';
             }
         }
