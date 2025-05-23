@@ -105,7 +105,7 @@
             color: #ffffff; /* 흰색 텍스트 */
             min-height: 100vh;
         }
-        /* 흑백/회색 테마에 맞게 색상 조정 */
+        /* 흑백/회색 테마 일관성 유지 */
         .bg-primary-dark { background-color: #1a1a1a; } /* 헤더/푸터 등 */
         .bg-section-dark { background-color: #2a2a2a; } /* 섹션 배경 */
         .text-light { color: #ffffff; } /* 기본 밝은 텍스트 */
@@ -119,18 +119,18 @@
             background-image: linear-gradient(to bottom right, #000000, #333333);
         }
 
-        /* 폰트 크기 조정 (기존 200% 느낌에서 좀 더 일반적인 크기로) */
-        .text-6xl { font-size: 4rem; /* 8rem -> 4rem */ }
-        .text-7xl { font-size: 5rem; /* 9rem -> 5rem */ }
-        .text-xl { font-size: 1.25rem; /* 1.75rem -> 1.25rem */ }
-        .text-2xl { font-size: 1.5rem; /* 2.25rem -> 1.5rem */ }
-        .text-base { font-size: 1rem; /* 1.25rem -> 1rem */ }
-        .text-lg { font-size: 1.125rem; /* 1.5rem -> 1.125rem */ }
-        .text-sm { font-size: 0.875rem; /* 1.125rem -> 0.875rem */ }
-        .leading-relaxed { line-height: 1.8; /* 줄 간격 2.2 -> 1.8 */ }
+        /* 폰트 크기 조정 (일반적인 크기로) */
+        .text-6xl { font-size: 4rem; }
+        .text-7xl { font-size: 5rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-sm { font-size: 0.875rem; }
+        .leading-relaxed { line-height: 1.8; }
 
-        /* 모바일 환경에서는 폰트 크기 조정 (반응형) - 기존 Tailwind 기본값에 가깝게 */
-        @media (max-width: 767px) { /* md breakpoint 이하 */
+        /* 모바일 환경 폰트 크기 조정 (반응형) */
+        @media (max-width: 767px) {
             .text-6xl { font-size: 3rem; }
             .text-7xl { font-size: 4rem; }
             .text-xl { font-size: 1.125rem; }
@@ -151,12 +151,15 @@
                 <a href="archive.html" class="text-xl font-thin hover:text-accent-white transition duration-300">보관함</a>
                 <span class="text-white text-3xl font-thin mx-2">/</span>
                 <a href="announcements.html" class="text-xl font-thin hover:text-accent-white transition duration-300">공지사항/전달사항</a>
+                <span class="text-white text-3xl font-thin mx-2">/</span>
+                <a href="portfolio.html" class="text-xl font-thin hover:text-accent-white transition duration-300">포트폴리오</a>
             </div>
             <nav>
                 <ul class="flex flex-wrap justify-center space-x-4 text-lg">
                     <li><a href="#home" class="hover:text-accent-white transition duration-300">홈</a></li>
                     <li><a href="#history" class="hover:text-accent-white transition duration-300">연도표</a></li>
                     <li><a href="announcements.html" class="hover:text-accent-white transition duration-300">공지사항</a></li>
+                    <li><a href="portfolio.html" class="hover:text-accent-white transition duration-300">포트폴리오</a></li>
                     <li><a href="#contact" class="hover:text-accent-white transition duration-300">연락처</a></li>
                 </ul>
             </nav>
@@ -204,7 +207,9 @@
             <div class="bg-section-dark rounded-lg shadow-dark p-6 border-thin-white">
                 <h2 class="text-3xl font-semibold text-light mb-8 text-center">IndexSpace 연도표</h2>
                 <div class="relative pl-8 md:pl-16">
-                    <div class="absolute left-0 top-0 h-full w-0.5 bg-gray-700"></div> <div class="mb-8 relative pb-4">
+                    <div class="absolute left-0 top-0 h-full w-0.5 bg-gray-700"></div>
+                    
+                    <div class="mb-8 relative pb-4">
                         <div class="absolute left-0 top-0 w-4 h-4 bg-white rounded-full -ml-2.5 border-2 border-gray-700"></div>
                         <h3 class="text-2xl font-semibold text-white mb-2 ml-4">2025. 5. 22</h3>
                         <p class="text-lg text-muted-light ml-4">
@@ -245,21 +250,21 @@
             <div class="bg-section-dark rounded-lg shadow-dark p-6 border-thin-white">
                 <h2 class="text-3xl font-semibold text-light mb-8 text-center">IndexSpace가 추구하는 가치들</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                    <div class="p-6 rounded-lg border border-gray-700 bg-gray-800">
+                    <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
                         <span class="text-6xl mb-4 block">🕊️</span>
                         <h3 class="text-2xl font-semibold text-white mb-2">자유 (Freedom)</h3>
                         <p class="text-muted-light text-base">
                             사고의 제약 없이, 표현의 경계 없이, 탐구의 한계 없이. IndexSpace는 모든 아이디어가 자유롭게 숨 쉬고, 창조의 날개를 펼칠 수 있는 무한한 가능성의 공간입니다. 이곳에서 당신의 잠재력을 마음껏 발휘하세요.
                         </p>
                     </div>
-                    <div class="p-6 rounded-lg border border-gray-700 bg-gray-800">
+                    <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
                         <span class="text-6xl mb-4 block">⚖️</span>
                         <h3 class="text-2xl font-semibold text-white mb-2">평등 (Equality)</h3>
                         <p class="text-muted-light text-base">
                             누구나 동등한 기회 속에서 존중받는 곳. IndexSpace는 배경, 지식, 경험에 관계없이 모든 목소리가 경청되고, 공정한 교류를 통해 함께 성장하는 평등한 지식의 장을 만듭니다.
                         </p>
                     </div>
-                    <div class="p-6 rounded-lg border border-gray-700 bg-gray-800">
+                    <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
                         <span class="text-6xl mb-4 block">🗳️</span>
                         <h3 class="text-2xl font-semibold text-white mb-2">민주주의 (Democracy)</h3>
                         <p class="text-muted-light text-base">
