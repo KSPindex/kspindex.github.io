@@ -114,6 +114,65 @@
             object-fit: contain; /* 비율 유지하며 컨테이너에 맞춤 */
             margin-right: 10px; /* 파일 이름과의 간격 */
             border-radius: 4px;
+            cursor: pointer; /* 클릭 가능하도록 커서 변경 */
+        }
+
+        /* 모달 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .modal-content img, .modal-content video {
+            max-width: 100%;
+            max-height: 80vh; /* 뷰포트 높이의 80% */
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+        .modal-close-btn:hover {
+            background-color: #b91c1c;
         }
     </style>
 </head>
@@ -122,7 +181,8 @@
         <a href="index.html" class="text-3xl font-thin text-white hover:text-accent-white transition duration-300">indexSpace 돌아가기</a>
     </div>
 
-    <main class="container mx-auto px-4 py-8 mt-20"> <section id="archive-content" class="mb-12 min-h-screen flex flex-col items-center justify-start text-center bg-section-dark rounded-lg shadow-dark p-8 border-thin-white">
+    <main class="container mx-auto px-4 py-8 mt-20">
+        <section id="archive-content" class="mb-12 min-h-screen flex flex-col items-center justify-start text-center bg-section-dark rounded-lg shadow-dark p-8 border-thin-white">
             <h2 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight">IndexSpace 보관함</h2>
             <p class="text-xl md:text-2xl mb-8 leading-relaxed text-muted-light">
                 이곳에 추가하는 파일은 다른 사람과 공유되지 않습니다.<br>
@@ -135,8 +195,7 @@
                     <button id="tab-video" class="tab-button" data-tab="video">영상 탭</button>
                     <button id="tab-file" class="tab-button" data-tab="file">파일 탭</button>
                 </div>
-                <input type="file" id="fileInput" class="hidden">
-                <button id="uploadBtn" class="upload-button" data-current-tab="photo">+</button>
+                <input type="file" id="fileInput" class="hidden" multiple> <button id="uploadBtn" class="upload-button" data-current-tab="photo">+</button>
             </div>
 
             <div id="content-photo" class="tab-content w-full max-w-4xl bg-gray-800 p-6 rounded-lg border border-gray-700">
@@ -166,6 +225,15 @@
         <p>&copy; 2025 IndexSpace. All Rights Reserved.</p>
     </footer>
 
+    <div id="previewModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" id="closeModalBtn">&times;</button>
+            <img id="modalImage" src="" alt="미리보기" class="hidden">
+            <video id="modalVideo" src="" controls class="hidden"></video>
+            <p id="modalFileName" class="text-lg text-white mt-2 break-all"></p>
+        </div>
+    </div>
+
     <script>
         // 비밀번호 없이 직접 접근하는 경우 리다이렉트
         window.onload = () => {
@@ -173,7 +241,6 @@
                 window.location.href = 'archive.html'; // 접근 권한 없으면 비밀번호 페이지로
             }
             
-            // 탭 초기화 및 로컬 스토리지에서 파일 목록 로드
             showTab('photo');
             loadFilesFromLocalStorage();
         };
@@ -182,6 +249,11 @@
         const tabContents = document.querySelectorAll('.tab-content');
         const uploadBtn = document.getElementById('uploadBtn');
         const fileInput = document.getElementById('fileInput');
+        const previewModal = document.getElementById('previewModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalImage = document.getElementById('modalImage');
+        const modalVideo = document.getElementById('modalVideo');
+        const modalFileName = document.getElementById('modalFileName');
 
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -204,32 +276,36 @@
         });
 
         fileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
+            const files = event.target.files; // 여러 파일 선택 가능
+            if (!files.length) return;
 
             const currentTab = uploadBtn.dataset.currentTab;
-            const fileType = file.type;
-            let isValid = true;
-            let errorMessage = '';
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileType = file.type;
+                let isValid = true;
+                let errorMessage = '';
 
-            // 파일 유효성 검사
-            if (currentTab === 'photo') {
-                if (!fileType.startsWith('image/jpeg') && !fileType.startsWith('image/png')) {
-                    isValid = false;
-                    errorMessage = '사진 탭에는 JPG, JPEG, PNG 파일만 업로드할 수 있습니다.';
+                // 파일 유효성 검사
+                if (currentTab === 'photo') {
+                    if (!fileType.startsWith('image/jpeg') && !fileType.startsWith('image/png')) {
+                        isValid = false;
+                        errorMessage = '사진 탭에는 JPG, JPEG, PNG 파일만 업로드할 수 있습니다.';
+                    }
+                } else if (currentTab === 'video') {
+                    if (!fileType.startsWith('video/mp4') && !fileType.startsWith('video/mov') && !fileType.startsWith('video/avi') && !fileType.startsWith('video/webm')) {
+                        isValid = false;
+                        errorMessage = '영상 탭에는 MP4, MOV, AVI, WEBM 파일만 업로드할 수 있습니다.';
+                    }
                 }
-            } else if (currentTab === 'video') {
-                if (!fileType.startsWith('video/mp4') && !fileType.startsWith('video/mov') && !fileType.startsWith('video/avi') && !fileType.startsWith('video/webm')) {
-                    isValid = false;
-                    errorMessage = '영상 탭에는 MP4, MOV, AVI, WEBM 파일만 업로드할 수 있습니다.';
-                }
-            }
-            // 'file' 탭은 모든 파일 허용
+                // 'file' 탭은 모든 파일 허용
 
-            if (isValid) {
-                addFileToList(file, currentTab); // 파일 객체 자체를 전달
-            } else {
-                alert(errorMessage); // 사용자에게 오류 메시지 알림
+                if (isValid) {
+                    addFileToList(file, currentTab); // 파일 객체 자체를 전달
+                } else {
+                    alert(errorMessage); // 사용자에게 오류 메시지 알림
+                }
             }
 
             fileInput.value = ''; // 파일 입력 필드 초기화 (동일 파일 재선택 가능하게)
@@ -264,7 +340,7 @@
             let files = JSON.parse(localStorage.getItem(`indexspace_${tabId}_files`) || '[]');
 
             if (files.length === 0) {
-                listElement.innerHTML = `<p class="text-muted-light">이곳에 ${getTabName(tabId)} 파일 목록이 표시됩니다.</p>`;
+                listElement.innerHTML = `<p class="text-muted-light">${getTabPlaceholderMessage(tabId)}</p>`;
                 return;
             }
 
@@ -275,10 +351,10 @@
                 let previewHtml = '';
                 if (fileRecord.url) {
                     if (fileRecord.type.startsWith('image/')) {
-                        previewHtml = `<img src="${fileRecord.url}" alt="${fileRecord.name}" class="file-preview">`;
+                        previewHtml = `<img src="${fileRecord.url}" alt="${fileRecord.name}" class="file-preview" data-file-url="${fileRecord.url}" data-file-type="${fileRecord.type}" data-file-name="${fileRecord.name}">`;
                     } else if (fileRecord.type.startsWith('video/')) {
                         // 비디오는 autoplay를 끄고 controls를 추가하여 재생 가능하게
-                        previewHtml = `<video src="${fileRecord.url}" controls class="file-preview"></video>`;
+                        previewHtml = `<video src="${fileRecord.url}" controls class="file-preview" data-file-url="${fileRecord.url}" data-file-type="${fileRecord.type}" data-file-name="${fileRecord.name}"></video>`;
                     }
                 } else {
                     // 일반 파일 아이콘 또는 기본 아이콘
@@ -293,6 +369,17 @@
                     <button class="delete-btn" data-file-name="${fileRecord.name}" data-tab-id="${tabId}">삭제</button>
                 `;
                 listElement.appendChild(listItem);
+            });
+
+            // 미리보기 클릭 이벤트 리스너 추가
+            listElement.querySelectorAll('.file-preview').forEach(previewElement => {
+                previewElement.addEventListener('click', (e) => {
+                    const url = e.target.dataset.fileUrl;
+                    const type = e.target.dataset.fileType;
+                    const name = e.target.dataset.fileName;
+                    
+                    showPreviewModal(url, type, name);
+                });
             });
 
             // 삭제 버튼 이벤트 리스너 추가
@@ -333,7 +420,8 @@
                 default: return '';
             }
         }
-        function getTabPlaceholderMessage(tabId) { // Renamed for clarity in its purpose
+
+        function getTabPlaceholderMessage(tabId) {
             switch(tabId) {
                 case 'photo': return '이곳에 추가된 사진 파일들이 표시됩니다.';
                 case 'video': return '이곳에 추가된 영상 파일들이 표시됩니다.';
@@ -341,6 +429,38 @@
                 default: return '';
             }
         }
+
+        // 모달 관련 함수
+        function showPreviewModal(url, type, name) {
+            modalImage.classList.add('hidden');
+            modalVideo.classList.add('hidden');
+
+            if (type.startsWith('image/')) {
+                modalImage.src = url;
+                modalImage.classList.remove('hidden');
+            } else if (type.startsWith('video/')) {
+                modalVideo.src = url;
+                modalVideo.classList.remove('hidden');
+            }
+            modalFileName.textContent = name;
+            previewModal.classList.add('active');
+        }
+
+        closeModalBtn.addEventListener('click', () => {
+            previewModal.classList.remove('active');
+            modalImage.src = ''; // 이미지/비디오 소스 초기화
+            modalVideo.src = '';
+            modalVideo.pause(); // 비디오 재생 중지
+        });
+
+        previewModal.addEventListener('click', (e) => {
+            if (e.target === previewModal) { // 오버레이 자체를 클릭했을 때만 닫기
+                previewModal.classList.remove('active');
+                modalImage.src = '';
+                modalVideo.src = '';
+                modalVideo.pause();
+            }
+        });
     </script>
 </body>
 </html>
