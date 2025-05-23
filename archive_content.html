@@ -51,26 +51,105 @@
             .text-sm { font-size: 0.75rem; }
             .leading-relaxed { line-height: 1.6; }
         }
+
+        /* 탭 관련 스타일 */
+        .tab-button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            background-color: #333333;
+            color: #aaaaaa;
+            font-weight: 600;
+        }
+        .tab-button.active {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .upload-button {
+            background-color: #444444; /* 회색 */
+            color: #ffffff;
+            font-size: 1.5rem; /* + 기호 크기 */
+            width: 40px;
+            height: 40px;
+            border-radius: 50%; /* 원형 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .upload-button:hover {
+            background-color: #666666;
+        }
+        .file-list-item {
+            padding: 8px 12px;
+            background-color: #333333;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-list-item .delete-btn {
+            background-color: #dc2626; /* Red-600 */
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.2s ease;
+        }
+        .file-list-item .delete-btn:hover {
+            background-color: #b91c1c; /* Red-700 */
+        }
     </style>
 </head>
 <body class="bg-black text-light">
-    <div class="w-full py-4 px-4 absolute top-0 left-0">
-        <a href="index.html" class="text-3xl font-thin text-white hover:text-accent-white transition duration-300">indexSpace</a>
+    <div class="w-full py-4 px-4 absolute top-0 left-0 bg-primary-dark shadow-md z-10">
+        <a href="index.html" class="text-3xl font-thin text-white hover:text-accent-white transition duration-300">indexSpace 돌아가기</a>
     </div>
 
-    <main class="container mx-auto px-4 py-8">
-        <section id="content" class="mb-12 min-h-screen flex items-center justify-center text-center bg-gradient-home text-light rounded-lg shadow-dark p-8 border-thin-white">
-            <div>
-                <h2 class="text-6xl md:text-7xl font-extrabold mb-6 tracking-tight">IndexSpace 보관함</h2>
-                <p class="text-xl md:text-2xl mb-8 leading-relaxed text-muted-light">
-                    비밀번호를 통해 접근하신 것을 환영합니다.<br>
-                    이곳은 IndexSpace의 특별한 자료들이 보관될 공간입니다.<br>
-                    아직은 비어있지만, 곧 흥미로운 내용들로 채워질 예정이니<br>
-                    많은 기대와 관심 부탁드립니다.<br>
-                    당신의 방문이 이곳의 역사를 만들어갑니다.
-                </p>
-                <p class="text-lg text-gray-500 mt-10">KSP가 썼음</p>
+    <main class="container mx-auto px-4 py-8 mt-20"> <section id="archive-content" class="mb-12 min-h-screen flex flex-col items-center justify-start text-center bg-section-dark rounded-lg shadow-dark p-8 border-thin-white">
+            <h2 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight">IndexSpace 보관함</h2>
+            <p class="text-xl md:text-2xl mb-8 leading-relaxed text-muted-light">
+                이곳에 추가하는 파일은 다른 사람과 공유되지 않습니다.<br>
+                이 보관함은 사진이나 영상 파일을 넣고 정리하고 나중에 다시 확인하기 위함입니다.
+            </p>
+
+            <div class="flex items-center justify-center space-x-4 mb-8 w-full max-w-2xl">
+                <div class="flex-grow flex justify-center space-x-2">
+                    <button id="tab-photo" class="tab-button active" data-tab="photo">사진 탭</button>
+                    <button id="tab-video" class="tab-button" data-tab="video">영상 탭</button>
+                    <button id="tab-file" class="tab-button" data-tab="file">파일 탭</button>
+                </div>
+                <input type="file" id="fileInput" class="hidden">
+                <button id="uploadBtn" class="upload-button" data-current-tab="photo">+</button>
             </div>
+
+            <div id="content-photo" class="tab-content w-full max-w-4xl bg-gray-800 p-6 rounded-lg border border-gray-700">
+                <h3 class="text-2xl font-semibold mb-4 text-white">사진 목록</h3>
+                <div id="photo-list" class="text-left space-y-2">
+                    <p class="text-muted-light">이곳에 사진 파일 목록이 표시됩니다.</p>
+                </div>
+            </div>
+
+            <div id="content-video" class="tab-content hidden w-full max-w-4xl bg-gray-800 p-6 rounded-lg border border-gray-700">
+                <h3 class="text-2xl font-semibold mb-4 text-white">영상 목록</h3>
+                <div id="video-list" class="text-left space-y-2">
+                    <p class="text-muted-light">이곳에 영상 파일 목록이 표시됩니다.</p>
+                </div>
+            </div>
+
+            <div id="content-file" class="tab-content hidden w-full max-w-4xl bg-gray-800 p-6 rounded-lg border border-gray-700">
+                <h3 class="text-2xl font-semibold mb-4 text-white">파일 목록</h3>
+                <div id="file-list" class="text-left space-y-2">
+                    <p class="text-muted-light">이곳에 모든 종류의 파일 목록이 표시됩니다.</p>
+                </div>
+            </div>
+
+            <p class="text-base text-gray-500 mt-10">KSP가 썼음</p>
+            <p class="text-sm text-gray-600 mt-2">참고: 파일 업로드 기능은 클라이언트 측에서만 작동하며, 실제 파일 저장은 서버가 필요합니다.</p>
         </section>
     </main>
 
@@ -85,7 +164,136 @@
                 window.location.href = 'archive.html'; // 접근 권한 없으면 비밀번호 페이지로
             }
             // 접근 후에는 세션 플래그를 제거하지 않음 (뒤로가기 후에도 비밀번호 요구 안 함)
+            
+            // 탭 초기화 및 로컬 스토리지에서 파일 목록 로드
+            showTab('photo');
+            loadFilesFromLocalStorage();
         };
+
+        // 탭 기능
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+                showTab(tabId);
+            });
+        });
+
+        function showTab(tabId) {
+            tabButtons.forEach(button => button.classList.remove('active'));
+            tabContents.forEach(content => content.classList.add('hidden'));
+
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+            uploadBtn.dataset.currentTab = tabId; // 업로드 버튼에 현재 탭 정보 저장
+        }
+
+        // 파일 업로드 기능
+        const fileInput = document.getElementById('fileInput');
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click(); // 숨겨진 파일 입력 필드 클릭
+        });
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const currentTab = uploadBtn.dataset.currentTab;
+            const fileType = file.type;
+            let isValid = true;
+            let errorMessage = '';
+
+            // 파일 유효성 검사
+            if (currentTab === 'photo') {
+                if (!fileType.startsWith('image/jpeg') && !fileType.startsWith('image/png')) {
+                    isValid = false;
+                    errorMessage = '사진 탭에는 JPG, JPEG, PNG 파일만 업로드할 수 있습니다.';
+                }
+            } else if (currentTab === 'video') {
+                if (!fileType.startsWith('video/mp4') && !fileType.startsWith('video/mov') && !fileType.startsWith('video/avi') && !fileType.startsWith('video/webm')) {
+                    isValid = false;
+                    errorMessage = '영상 탭에는 MP4, MOV, AVI, WEBM 파일만 업로드할 수 있습니다.';
+                }
+            }
+            // 'file' 탭은 모든 파일 허용
+
+            if (isValid) {
+                addFileToList(file.name, currentTab);
+            } else {
+                alert(errorMessage); // 사용자에게 오류 메시지 알림
+            }
+
+            fileInput.value = ''; // 파일 입력 필드 초기화 (동일 파일 재선택 가능하게)
+        });
+
+        function addFileToList(fileName, tabId) {
+            const listElement = document.getElementById(`${tabId}-list`);
+            
+            // 로컬 스토리지에 파일 이름 저장
+            let files = JSON.parse(localStorage.getItem(`indexspace_${tabId}_files`) || '[]');
+            if (!files.includes(fileName)) { // 중복 방지
+                files.push(fileName);
+                localStorage.setItem(`indexspace_${tabId}_files`, JSON.stringify(files));
+            }
+            
+            renderFileList(tabId); // 목록 다시 그리기
+        }
+
+        function renderFileList(tabId) {
+            const listElement = document.getElementById(`${tabId}-list`);
+            listElement.innerHTML = ''; // 기존 목록 지우기
+
+            let files = JSON.parse(localStorage.getItem(`indexspace_${tabId}_files`) || '[]');
+
+            if (files.length === 0) {
+                listElement.innerHTML = `<p class="text-muted-light">이곳에 ${getTabName(tabId)} 파일 목록이 표시됩니다.</p>`;
+                return;
+            }
+
+            files.forEach(fileName => {
+                const listItem = document.createElement('div');
+                listItem.classList.add('file-list-item');
+                listItem.innerHTML = `
+                    <span class="text-white">${fileName}</span>
+                    <button class="delete-btn" data-file-name="${fileName}" data-tab-id="${tabId}">삭제</button>
+                `;
+                listElement.appendChild(listItem);
+            });
+
+            // 삭제 버튼 이벤트 리스너 추가
+            listElement.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const fileNameToDelete = e.target.dataset.fileName;
+                    const tabIdToDelete = e.target.dataset.tabId;
+                    deleteFileFromList(fileNameToDelete, tabIdToDelete);
+                });
+            });
+        }
+
+        function deleteFileFromList(fileName, tabId) {
+            let files = JSON.parse(localStorage.getItem(`indexspace_${tabId}_files`) || '[]');
+            files = files.filter(name => name !== fileName);
+            localStorage.setItem(`indexspace_${tabId}_files`, JSON.stringify(files));
+            renderFileList(tabId); // 목록 다시 그리기
+        }
+
+        function loadFilesFromLocalStorage() {
+            renderFileList('photo');
+            renderFileList('video');
+            renderFileList('file');
+        }
+
+        function getTabName(tabId) {
+            switch(tabId) {
+                case 'photo': return '사진';
+                case 'video': return '영상';
+                case 'file': return '파일';
+                default: return '';
+            }
+        }
     </script>
 </body>
 </html>
