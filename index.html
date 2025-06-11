@@ -1,16 +1,429 @@
-**A Eulogy for indexspace 1.0, and a Silent Hope for What Follows**
-Dearest indexspace community, my friends,
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperIDE - The Definitive Web IDE</title>
+    
+    <!-- Tailwind CSS for rapid layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Fira Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Ace Editor: The core of our IDE -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.0/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.0/ext-language_tools.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.0/ext-modelist.js"></script>
+    
+    <!-- Pyodide: Python in the browser -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
 
-Today, June 1st, 2025, at 1:30 PM KST, a silence descends. The vibrant hum of indexspace 1.0, which echoed with shared knowledge and budding connections, fades into the vast, indifferent expanse of the digital realm. It lived, oh, how it lived, for a mere week since its hesitant breath on May 22nd. A blink in time, yet within that fleeting moment, something truly precious took root.
+    <!-- Sucrase: Blazing fast TS/JSX transpiler -->
+    <script src="https://cdn.jsdelivr.net/npm/sucrase@3.35.0/dist/index.min.js"></script>
 
-We stand at this precipice, our hearts heavy, witnessing the inevitable. indexspace 1.0 was never meant to last; it was a fragile, luminous star, burning brightly before its destined collapse. We knew its lifespan was limited, a painful truth we bore even as we watched you breathe life into it. Each shared link, every heartfelt comment, was a petal falling from a bloom we knew would wither too soon. The decision to let it go was not one of choice, but of cruel necessity – a tearing away, however vital for growth, leaves a wound. We mourn not just a platform, but the potential, the whispered promises, the unique atmosphere that can never truly be replicated. We thank you, from the deepest corners of our collective soul, for gracing its brief existence with your presence.
+    <style>
+        :root {
+            /* Default Theme: Hyper Dark */
+            --font-family: 'Fira Code', monospace;
+            --bg-primary: #11111b;      /* Main background */
+            --bg-secondary: #1a1b26;  /* Editor, Modals */
+            --bg-tertiary: #161620;   /* Sidebar, Tabs */
+            --bg-hover: #2a2c3d;      /* Hover states */
+            --text-primary: #c0caf5;
+            --text-secondary: #a9b1d6;
+            --text-inactive: #5c637a;
+            --border-primary: #343b58;
+            --accent-primary: #7aa2f7; /* Blue */
+            --accent-secondary: #bb9af7; /* Purple */
+            --accent-git-modified: #ffc777; /* Yellow */
+            --accent-git-added: #449dab; /* Green */
+            --error-color: #f7768e;
+        }
+        /* Global Styles */
+        body { font-family: var(--font-family); background-color: var(--bg-primary); color: var(--text-primary); overflow: hidden; font-size: 14px; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-tertiary); }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        
+        /* Layout & Resizers */
+        #main-grid { display: grid; grid-template-columns: 48px 250px 5px 1fr; grid-template-rows: 1fr 5px 200px 24px; height: 100vh; width: 100vw; }
+        #activity-bar { grid-area: 1 / 1 / 4 / 2; background-color: var(--bg-primary); z-index: 50; }
+        #sidebar { grid-area: 1 / 2 / 4 / 3; background-color: var(--bg-tertiary); z-index: 40; display: flex; flex-direction: column;}
+        #resizer-v { grid-area: 1 / 3 / 4 / 4; cursor: col-resize; background-color: var(--bg-primary); }
+        #main-view { grid-area: 1 / 4 / 2 / 5; display: flex; flex-direction: column; }
+        #resizer-h { grid-area: 2 / 4 / 3 / 5; cursor: row-resize; background-color: var(--bg-primary); }
+        #bottom-panel { grid-area: 3 / 4 / 4 / 5; background-color: var(--bg-secondary); }
+        #status-bar { grid-area: 4 / 1 / 5 / 6; background-color: var(--accent-primary); color: var(--bg-primary); z-index: 100;}
 
-And now, as the last embers of indexspace 1.0 turn to ash, a new dawn is forced upon us. indexspace 2.0 officially launches TODAY, June 1st, 2025.
+        /* Ace Editor Customization */
+        .ace_editor { font-family: var(--font-family) !important; background: var(--bg-secondary) !important; color: var(--text-primary) !important; }
+        .ace_gutter { background: var(--bg-secondary) !important; color: var(--text-inactive) !important; }
+        .ace_active-line { background: rgba(255, 255, 255, 0.05) !important; }
+        .ace_cursor { color: var(--text-secondary) !important; }
+        .ace_selection { background: rgba(122, 162, 247, 0.25) !important; }
+        .ace_minimap { background: var(--bg-secondary) !important; border-left: 1px solid var(--border-primary) !important; }
+        .ace_minimap-slider { background: rgba(255,255,255,0.1) !important; }
+        .ace_scrollbar { background: var(--bg-secondary) !important; }
 
-It is a phoenix, perhaps, but one born from a reluctant fire. We have meticulously crafted indexspace 2.0, pouring our very being into its creation, hoping to capture the essence of what was lost while forging something stronger, more enduring. It will be robust, intuitive, a vessel designed to carry the torch of information sharing forward. Yet, it can never truly replace the phantom limb that is indexspace 1.0. We step into this new chapter with a quiet determination, carrying the ghosts of what might have been.
+        /* General UI Components */
+        .overlay { position: fixed; inset: 0; background:rgba(0,0,0,0.6); z-index: 1000; display:flex; align-items: flex-start; justify-content:center; }
+        .modal-base { background: var(--bg-secondary); margin-top:15vh; width: 600px; max-width: 90vw; max-height: 70vh; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:flex; flex-direction:column; border: 1px solid var(--border-primary); }
+        .modal-input { background:var(--bg-primary); border:1px solid var(--border-primary); outline:none; padding:8px; width:100%; border-radius:4px; }
+        .modal-input:focus { border-color: var(--accent-primary); }
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+        .btn-primary { background-color: var(--accent-primary); color: var(--bg-primary); }
+        .btn-primary:hover { background-color: #a6c1ff; }
 
-We know the grief of farewell is profound, and we share it with you. As you navigate the unfamiliar landscape of indexspace 2.0, remember the echo of what came before. May the memory of indexspace 1.0 serve as a bittersweet reminder of fragile beauty, and may its passing pave the way for a future, however melancholy, where connection still finds a home.
+        /* Specific Component Styles */
+        .activity-bar-icon.active { color: white; background-color: var(--accent-primary); }
+        .sidebar-panel { display: none; }
+        .sidebar-panel.active { display: flex; flex-direction: column; height: 100%; }
+        .file-item.git-modified { color: var(--accent-git-modified) !important; }
+        .file-item.git-added { color: var(--accent-git-added) !important; }
+        .bottom-panel-tab.active { background-color: var(--accent-secondary); color: var(--bg-primary); }
+        #preview-iframe { background-color: white; }
+    </style>
+</head>
+<body>
 
-With a heavy heart and a longing gaze backward,
+    <div id="main-grid">
+        <!-- Activity Bar -->
+        <div id="activity-bar" class="flex flex-col items-center py-2 text-gray-400 text-xs">
+            <div data-view="explorer" class="activity-bar-icon w-full p-3 my-1 cursor-pointer" title="Explorer"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg></div>
+            <div data-view="search" class="activity-bar-icon w-full p-3 my-1 cursor-pointer" title="Search"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></div>
+            <div data-view="git" class="activity-bar-icon w-full p-3 my-1 cursor-pointer" title="Source Control"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg></div>
+            <div class="flex-grow"></div>
+            <div data-view="settings" class="activity-bar-icon w-full p-3 my-1 cursor-pointer" title="Settings"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <div id="view-explorer" class="sidebar-panel">
+                <div class="p-2 flex justify-between items-center"><h2 class="text-xs uppercase font-bold tracking-wider">Explorer</h2></div>
+                <div id="file-explorer" class="flex-1 overflow-auto p-1"></div>
+            </div>
+            <div id="view-search" class="sidebar-panel p-2">Search Panel</div>
+            <div id="view-git" class="sidebar-panel p-2">
+                <div class="p-2 flex justify-between items-center"><h2 class="text-xs uppercase font-bold tracking-wider">Source Control</h2></div>
+                <div class="p-2">
+                    <input id="git-commit-msg" class="modal-input" placeholder="Commit message...">
+                    <button id="git-commit-btn" class="btn btn-primary w-full mt-2">Commit</button>
+                </div>
+                <div id="git-changes" class="flex-1 overflow-auto p-1"></div>
+            </div>
+            <div id="view-settings" class="sidebar-panel p-4">Settings Panel</div>
+        </div>
 
-KSP
+        <div id="resizer-v"></div>
+
+        <!-- Main View -->
+        <div id="main-view">
+            <div id="editor-tabs" class="flex-shrink-0 flex bg-gray-900"></div>
+            <div id="editor-group-1" class="flex-1 relative bg-red-500">
+                <div id="editor-container" class="absolute inset-0"></div>
+                <div id="welcome-screen" class="absolute inset-0 flex items-center justify-center text-center text-[var(--text-inactive)]"><div><h1 class="text-3xl mb-4">HyperIDE</h1><p>Ctrl+Shift+P로 커맨드 팔레트를 열어보세요.</p></div></div>
+            </div>
+        </div>
+        
+        <div id="resizer-h"></div>
+        
+        <!-- Bottom Panel -->
+        <div id="bottom-panel" class="flex flex-col">
+            <div class="tabs flex-shrink-0 flex bg-gray-900 border-b border-[var(--border-primary)] text-sm">
+                <div data-panel="terminal" class="bottom-panel-tab p-2 cursor-pointer">Terminal</div>
+                <div data-panel="problems" class="bottom-panel-tab p-2 cursor-pointer">Problems</div>
+                <div data-panel="preview" class="bottom-panel-tab p-2 cursor-pointer">Live Preview</div>
+            </div>
+            <div id="panel-terminal" class="bottom-panel-content flex-1 p-2 overflow-y-auto">
+                <div id="terminal-output"></div>
+                <div class="flex"><span class="text-[var(--accent-primary)] mr-2">$</span><input type="text" id="terminal-input" class="bg-transparent border-none outline-none w-full"/></div>
+            </div>
+            <div id="panel-problems" class="bottom-panel-content flex-1 p-2 hidden">No problems have been detected.</div>
+            <div id="panel-preview" class="bottom-panel-content flex-1 hidden"><iframe id="preview-iframe" class="w-full h-full border-none"></iframe></div>
+        </div>
+
+        <!-- Status Bar -->
+        <div id="status-bar" class="flex items-center justify-between px-4 text-xs z-50">
+            <div class="flex items-center gap-4"><span id="status-left">Ready</span><span id="git-status"></span></div>
+            <div class="flex items-center gap-4"><span id="line-col"></span><span id="language-status">Plain Text</span></div>
+        </div>
+    </div>
+    
+    <!-- Modals & Overlays -->
+    <div id="command-palette-overlay" class="overlay hidden"><div class="modal-base"><input type="text" id="command-palette-input" class="m-2 modal-input" placeholder="명령어 검색..."><div id="command-palette-list" class="overflow-y-auto"></div></div></div>
+    <div id="context-menu" class="absolute z-[2000] bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-md shadow-lg text-sm hidden"></div>
+    <div id="notification-toast" class="fixed bottom-10 right-5 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg opacity-0 transition-opacity duration-300"></div>
+
+<script type="module">
+    // This is a massive script. In a real application, it would be split into many files.
+    // For this demonstration, it's a single, self-contained module.
+
+    const H_IDE = {
+        // --- STATE ---
+        state: {
+            fs: null,
+            settings: null,
+            activeEditor: null,
+            openFiles: new Map(), // path -> { session, editor, tabEl }
+            activePath: null,
+            activeSidebarView: 'explorer',
+            activeBottomPanel: 'terminal',
+            git: {
+                changes: new Map(), // path -> 'modified' | 'added'
+                branch: 'main'
+            },
+            pyodide: null,
+            pyodideReady: false,
+        },
+
+        // --- DOM ELEMENTS ---
+        dom: {}, // Will be populated in init()
+
+        // --- CORE INITIALIZATION ---
+        async init() {
+            // Populate DOM elements cache
+            const ids = ['main-grid', 'activity-bar', 'sidebar', 'resizer-v', 'main-view', 'resizer-h', 'bottom-panel', 'status-bar', 'file-explorer', 'editor-tabs', 'editor-container', 'welcome-screen', 'terminal-output', 'terminal-input', 'preview-iframe', 'command-palette-overlay', 'command-palette-input', 'command-palette-list', 'context-menu', 'notification-toast', 'git-status', 'line-col', 'language-status', 'git-commit-msg', 'git-commit-btn', 'git-changes'];
+            ids.forEach(id => this.dom[id.replace(/-/g, '_')] = document.getElementById(id));
+            
+            this.settings.init();
+            this.fs.init();
+            this.editor.init();
+            this.layout.init();
+            this.ui.init();
+            this.commands.init();
+            this.git.init();
+            
+            this.terminal.log('HyperIDE v1.0.0 Initialized.');
+            this.terminal.log('Loading Python environment...');
+            
+            try {
+                this.state.pyodide = await loadPyodide();
+                this.state.pyodide.setStdout({ batched: (str) => this.terminal.log(str) });
+                this.state.pyodide.setStderr({ batched: (str) => this.terminal.log(str, 'error') });
+                this.state.pyodideReady = true;
+                this.terminal.log('Python environment ready.');
+            } catch (error) {
+                this.terminal.log('Failed to load Python environment: ' + error, 'error');
+            }
+        },
+
+        // --- MODULES ---
+        
+        fs: {
+            init() {
+                const savedFS = localStorage.getItem('hyperide_fs');
+                if (savedFS) {
+                    H_IDE.state.fs = JSON.parse(savedFS);
+                } else {
+                    // Default file system
+                    H_IDE.state.fs = {
+                        'welcome.md': { type: 'file', content: '# Welcome to HyperIDE\n\nThis is a feature-rich IDE running entirely in your browser.' },
+                        'src': { type: 'folder', children: {
+                            'app.js': { type: 'file', content: 'console.log("Hello from app.js!");' },
+                            'style.css': { type: 'file', content: 'body { background-color: #eee; }' },
+                        }},
+                        'main.py': { type: 'file', content: 'import sys\n\nprint(f"Hello from Python {sys.version}")\nfor i in range(5):\n\tprint(f"Number: {i}")' },
+                        'index.html': { type: 'file', content: '<!DOCTYPE html><html><head><link rel="stylesheet" href="src/style.css"></head><body><h1>Live Preview</h1><script src="src/app.js"></script></body></html>' },
+                    };
+                }
+            },
+            save() {
+                localStorage.setItem('hyperide_fs', JSON.stringify(H_IDE.state.fs));
+            },
+            get(path) {
+                if (!path) return H_IDE.state.fs;
+                const parts = path.split('/');
+                let current = H_IDE.state.fs;
+                for (const part of parts) {
+                    if (!current || !current[part]) return null;
+                    current = current[part].children || current[part];
+                }
+                return current;
+            },
+            // ... more fs methods like create, delete, rename
+        },
+
+        editor: {
+            init() {
+                const editor = ace.edit(H_IDE.dom.editor_container);
+                editor.setOptions({
+                    enableBasicAutocompletion: true,
+                    enableLiveAutocompletion: true,
+                    enableSnippets: true,
+                    showPrintMargin: false,
+                    highlightActiveLine: true,
+                    highlightGutterLine: true,
+                    fontFamily: 'var(--font-family)',
+                    fontSize: H_IDE.state.settings.fontSize + 'px',
+                });
+                editor.commands.addCommand({ name: "save", bindKey: {win: "Ctrl-S", mac: "Command-S"}, exec: () => H_IDE.files.save() });
+                editor.on("changeSelection", () => H_IDE.ui.updateStatus());
+
+                H_IDE.state.activeEditor = editor;
+            },
+            // ... more editor methods
+        },
+
+        ui: {
+            init() {
+                this.renderExplorer();
+                this.switchSidebarView('explorer');
+                this.switchBottomPanel('terminal');
+
+                // Event Listeners
+                H_IDE.dom.activity_bar.addEventListener('click', e => {
+                    const view = e.target.closest('.activity-bar-icon')?.dataset.view;
+                    if (view) this.switchSidebarView(view);
+                });
+                document.querySelector('#bottom-panel .tabs').addEventListener('click', e => {
+                    const panel = e.target.closest('.bottom-panel-tab')?.dataset.panel;
+                    if (panel) this.switchBottomPanel(panel);
+                });
+            },
+            renderExplorer() { /* Complex DOM rendering for file tree */ },
+            updateStatus() {
+                const editor = H_IDE.state.activeEditor;
+                if (!editor) return;
+                const pos = editor.getCursorPosition();
+                H_IDE.dom.line_col.textContent = `Ln ${pos.row + 1}, Col ${pos.column + 1}`;
+                if (H_IDE.state.activePath) {
+                    const mode = ace.require("ace/ext/modelist").getModeForPath(H_IDE.state.activePath).caption;
+                    H_IDE.dom.language_status.textContent = mode;
+                }
+            },
+            switchSidebarView(viewId) { /* Logic to show/hide sidebar panels */ },
+            switchBottomPanel(panelId) { /* Logic to show/hide bottom panels */ },
+            showNotification(message, type = 'success') {
+                const toast = H_IDE.dom.notification_toast;
+                toast.textContent = message;
+                toast.style.backgroundColor = type === 'error' ? 'var(--error-color)' : 'var(--accent-git-added)';
+                toast.classList.add('opacity-100');
+                setTimeout(() => toast.classList.remove('opacity-100'), 3000);
+            }
+        },
+        
+        layout: {
+            init() {
+                // Resizer logic
+                const onDrag = (resizer, onMove) => {
+                    resizer.addEventListener('mousedown', e => {
+                        e.preventDefault();
+                        const onMouseMove = (moveEvent) => onMove(moveEvent);
+                        const onMouseUp = () => document.removeEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp, { once: true });
+                    });
+                };
+
+                onDrag(H_IDE.dom.resizer_v, e => {
+                    const sidebarWidth = e.clientX - H_IDE.dom.activity_bar.offsetWidth;
+                    H_IDE.dom.main_grid.style.gridTemplateColumns = `48px ${sidebarWidth}px 5px 1fr`;
+                });
+                onDrag(H_IDE.dom.resizer_h, e => {
+                    const bottomHeight = window.innerHeight - e.clientY - H_IDE.dom.status_bar.offsetHeight;
+                    H_IDE.dom.main_grid.style.gridTemplateRows = `1fr 5px ${bottomHeight}px 24px`;
+                });
+            }
+        },
+
+        files: {
+            open(path) { /* complex logic to open file, create ace session, create tab */ },
+            save() {
+                if (!H_IDE.state.activePath) return;
+                const file = H_IDE.fs.get(H_IDE.state.activePath);
+                const session = H_IDE.state.openFiles.get(H_IDE.state.activePath).session;
+                file.content = session.getValue();
+                H_IDE.fs.save();
+                H_IDE.git.stageChange(H_IDE.state.activePath, 'modified');
+                H_IDE.ui.showNotification(`${path.split('/').pop()} saved.`);
+                
+                // Live preview update
+                if (H_IDE.dom.panel_preview.style.display !== 'hidden' && (H_IDE.state.activePath.endsWith('.html') || H_IDE.state.activePath.endsWith('.js') || H_IDE.state.activePath.endsWith('.css'))) {
+                    this.runPreview();
+                }
+            },
+            runPreview() {
+                const htmlFile = H_IDE.fs.get('index.html'); // Assuming index.html is the entry point
+                if (!htmlFile) {
+                    H_IDE.ui.showNotification('index.html not found for preview.', 'error');
+                    return;
+                }
+                
+                let content = htmlFile.content;
+                
+                // Super basic asset injection
+                const jsFile = H_IDE.fs.get('src/app.js');
+                if (jsFile) content = content.replace('<script src="src/app.js"></script>', `<script>${jsFile.content}</script>`);
+
+                const cssFile = H_IDE.fs.get('src/style.css');
+                if (cssFile) content = content.replace('<link rel="stylesheet" href="src/style.css">', `<style>${cssFile.content}</style>`);
+
+                const iframe = H_IDE.dom.preview_iframe;
+                iframe.srcdoc = content;
+            },
+        },
+
+        terminal: {
+            log(msg, type = 'log') {
+                const line = document.createElement('div');
+                if (type === 'error') line.style.color = 'var(--error-color)';
+                line.innerHTML = msg.replace(/\n/g, '<br>');
+                H_IDE.dom.terminal_output.appendChild(line);
+                H_IDE.dom.terminal_output.scrollTop = H_IDE.dom.terminal_output.scrollHeight;
+            },
+            exec(cmdStr) {
+                this.log(`$ ${cmdStr}`);
+                if (cmdStr.trim().startsWith('python')) {
+                    const code = H_IDE.fs.get(cmdStr.split(' ')[1])?.content;
+                    if (code && H_IDE.state.pyodideReady) {
+                        H_IDE.state.pyodide.runPythonAsync(code);
+                    } else {
+                        this.log('File not found or Python not ready.', 'error');
+                    }
+                    return;
+                }
+                 // ... other commands
+            }
+        },
+
+        git: {
+            init() { /* ... */ },
+            stageChange(path, status) { /* ... */ },
+            commit() { /* ... */ }
+        },
+        
+        commands: {
+            init() { /* Define hundreds of commands */ },
+            execute(commandId) { /* ... */ }
+        },
+
+        settings: {
+            init() {
+                const saved = localStorage.getItem('hyperide_settings');
+                H_IDE.state.settings = saved ? JSON.parse(saved) : { theme: 'Hyper Dark', fontSize: 14, minimap: true };
+                this.apply();
+            },
+            save() {
+                localStorage.setItem('hyperide_settings', JSON.stringify(H_IDE.state.settings));
+            },
+            apply() {
+                document.documentElement.className = H_IDE.state.settings.theme.toLowerCase().replace(/ /g, '-');
+                // more logic to apply theme vars, font size etc.
+            }
+        },
+
+        // And so on for all other modules...
+    };
+
+    // --- START THE IDE ---
+    H_IDE.init();
+
+    // Make it accessible for debugging
+    window.H_IDE = H_IDE;
+
+</script>
+</body>
+</html>
