@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperIDE - The Ultimate IDE [v9.2] - Fixed</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Ace Editor and extensions -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.0/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.0/ext-language_tools.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.0/ext-modelist.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.0/ext-emmet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.0/ext-beautify.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.0/keybinding-vscode.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.0/keybinding-sublime.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.33.0/keybinding-vim.js"></script>
+
+    <!-- Runtimes and Tools -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
+    <script src="https://unpkg.com/prettier@2.8.8/parser-babel.js"></script>
+    <script src="https://unpkg.com/prettier@2.8.8/parser-python.js"></script>
+    <script src="https://unpkg.com/fengari-web/dist/fengari-web.js"></script>
+
+    <!-- Utility libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        /* 기본 스타일은 원본과 동일하게 유지됩니다. */
+        :root {
+            --font-family: 'Fira Code', monospace;
+            --bg-primary: #11111b; --bg-secondary: #1a1b26; --bg-tertiary: #161620; --bg-hover: #2a2c3d;
+            --text-primary: #c0caf5; --text-secondary: #a9b1d6; --text-inactive: #5c637a;
+            --border-primary: #343b58; --accent-primary: #7aa2f7; --accent-secondary: #bb9af7; --error-color: #f7768e;
+            --warning-color: #e0af68;
+            --minimap-bg: rgba(22, 22, 32, 0.7);
+        }
+        body { font-family: var(--font-family); background-color: var(--bg-primary); color: var(--text-primary); overflow: hidden; font-size: 14px; user-select: none;}
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-tertiary); }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        
+        #main-grid { display: grid; grid-template-columns: 48px 250px 5px 1fr; grid-template-rows: 35px 1fr 5px 200px 24px; height: 100vh; width: 100vw; }
+        #top-bar { grid-area: 1 / 1 / 2 / 6; background-color: var(--bg-tertiary); display: flex; align-items: center; padding: 0 10px; z-index: 60; }
+        #activity-bar { grid-area: 2 / 1 / 5 / 2; background-color: var(--bg-primary); z-index: 50; border-right: 1px solid var(--border-primary); }
+        #sidebar { grid-area: 2 / 2 / 5 / 3; background-color: var(--bg-tertiary); z-index: 40; display: flex; flex-direction: column;}
+        #resizer-v { grid-area: 2 / 3 / 5 / 4; cursor: col-resize; z-index: 99; }
+        #main-view { grid-area: 2 / 4 / 3 / 5; display: flex; flex-direction: column; overflow: hidden; }
+        #resizer-h { grid-area: 3 / 4 / 4 / 5; cursor: row-resize; z-index: 99; }
+        #bottom-panel { grid-area: 4 / 4 / 5 / 5; background-color: var(--bg-secondary); }
+        #status-bar { grid-area: 5 / 1 / 6 / 6; background-color: var(--accent-primary); color: var(--bg-primary); z-index: 100;}
+
+        /* Ace Editor Customization */
+        .ace_editor { font-family: var(--font-family) !important; background: var(--bg-secondary) !important; color: var(--text-primary) !important; width: 100% !important; height: 100% !important;}
+        .ace_gutter { background: var(--bg-secondary) !important; color: var(--text-inactive) !important; }
+        .ace_active-line { background: rgba(255, 255, 255, 0.05) !important; }
+        .ace_cursor { color: var(--text-secondary) !important; }
+        .ace_selection { background: rgba(122, 162, 247, 0.25) !important; }
+        .ace_minimap { background: var(--minimap-bg); border-left: 1px solid var(--border-primary); }
+        .ace_minimap_slider { background: rgba(122, 162, 247, 0.2); border: 1px solid var(--accent-primary); }
+        .ace_error, .ace_warning { text-decoration: underline; text-decoration-style: wavy; }
+        .ace_error { text-decoration-color: var(--error-color); }
+        .ace_warning { text-decoration-color: var(--warning-color); }
+        .ace_gutter-cell.ace_breakpoint { background-image: none !important; position: relative; }
+        .ace_gutter-cell.ace_breakpoint::before { content: "●"; color: var(--error-color); position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);}
+        
+        .overlay { position: fixed; inset: 0; background:rgba(0,0,0,0.6); z-index: 1000; display:flex; align-items: flex-start; justify-content:center; }
+        .modal-base { background: var(--bg-secondary); margin-top:15vh; width: 600px; max-width: 90vw; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:flex; flex-direction:column; border: 1px solid var(--border-primary); }
+        .modal-input { background:var(--bg-primary); border:1px solid var(--border-primary); outline:none; padding:8px; width:100%; border-radius:4px; }
+        .context-menu-item:hover, .command-palette-item.active { background-color: var(--bg-hover); }
+
+        .activity-bar-icon.active { color: white; box-shadow: inset 2px 0 0 var(--accent-primary); }
+        .sidebar-panel, .bottom-panel-content { display: none; }
+        .sidebar-panel.active, .bottom-panel-content.active { display: flex; flex-direction: column; height: 100%; }
+        .bottom-panel-tab.active { background-color: var(--accent-secondary); color: var(--bg-primary); }
+        .editor-tab { position: relative; }
+        .editor-tab.active { background-color: var(--bg-secondary); border-top: 1px solid var(--accent-primary); }
+        .editor-tab.modified .tab-name::after { content: " ●"; color: var(--text-primary); font-size: 10px; vertical-align: middle; }
+        
+        #editor-groups-container { display: grid; grid-template-columns: 1fr; width: 100%; height: 100%; }
+        #editor-groups-container.split { grid-template-columns: 1fr 5px 1fr; }
+        .editor-group { display: flex; flex-direction: column; overflow: hidden; }
+        .editor-pane { flex-grow: 1; position: relative; }
+        #editor-resizer-v { cursor: col-resize; background-color: var(--border-primary); }
+    </style>
+</head>
+<body>
+
+    <!-- HTML 구조는 원본과 동일합니다 -->
+    <div id="main-grid">
+        <div id="top-bar">
+            <button id="back-btn" title="Back" class="p-1.5 rounded hover:bg-[var(--bg-hover)] disabled:text-[var(--text-inactive)] disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+            </button>
+            <button id="forward-btn" title="Forward" class="p-1.5 rounded hover:bg-[var(--bg-hover)] disabled:text-[var(--text-inactive)] disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+            </button>
+            <div class="w-px h-5 bg-gray-600 mx-2"></div>
+            <button id="run-btn" title="Run Code (F5)" class="p-1.5 rounded hover:bg-[var(--bg-hover)] disabled:text-[var(--text-inactive)] disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+            </button>
+            <button id="split-view-btn" title="Toggle Split View" class="p-1.5 rounded hover:bg-[var(--bg-hover)]">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="3" x2="12" y2="21"></line></svg>
+            </button>
+            <button id="export-zip-btn" title="Export Project as ZIP" class="p-1.5 rounded hover:bg-[var(--bg-hover)] ml-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+            </button>
+        </div>
+
+        <div id="activity-bar" class="flex flex-col items-center py-2 text-gray-400 text-xs">
+            <div data-view="explorer" class="activity-bar-icon w-full p-3 my-1 cursor-pointer" title="Explorer (Ctrl+Shift+E)"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg></div>
+            <div data-view="search" class="activity-bar-icon w-full p-3 my-1 cursor-pointer" title="Search (Ctrl+Shift+F)"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
+            <div data-view="git" class="activity-bar-icon w-full p-3 my-1 cursor-pointer" title="Source Control (Ctrl+Shift+G)"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.792V6.208a2 2 0 00-2-2h-6.29a2 2 0 00-1.414.586l-2 2A2 2 0 014.293 8H2.5A2.5 2.5 0 000 10.5v8A2.5 2.5 0 002.5 21h8.5a2.5 2.5 0 002.5-2.5v-2.083" /><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 10.5a2.25 2.25 0 114.5 0 2.25 2.25 0 01-4.5 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 16.5a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 4.5v1.233m0 4.534v2.466" /></svg></div>
+            <div data-view="debug" class="activity-bar-icon w-full p-3 my-1 cursor-pointer" title="Run and Debug (Ctrl+Shift+D)"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22a10 10 0 100-20 10 10 0 000 20z" /><path d="M16 12l-4 4-4-4" /><path d="M12 8v8" /></svg></div>
+            <div class="flex-grow"></div>
+            <div data-view="settings" class="activity-bar-icon w-full p-3 my-1 cursor-pointer" title="Settings"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z" /><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></div>
+        </div>
+        
+        <div id="sidebar">
+            <div id="view-explorer" class="sidebar-panel">
+                <div class="p-2 flex justify-between items-center"><h2 class="text-xs uppercase font-bold tracking-wider">Explorer</h2><div class="flex items-center"><button id="new-untitled-file-global" class="p-1 hover:bg-[var(--bg-hover)] rounded" title="New Untitled File"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" /></svg></button><button id="new-folder-global" class="p-1 hover:bg-[var(--bg-hover)] rounded" title="New Folder"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" /></svg></button></div></div>
+                <div class="p-1"><input type="text" id="explorer-search" class="modal-input w-full text-xs" placeholder="Search files..."></div>
+                <div id="file-explorer" class="flex-1 overflow-auto p-1"></div>
+            </div>
+            <div id="view-search" class="sidebar-panel p-2">
+                <h2 class="text-xs uppercase font-bold tracking-wider mb-2">Search</h2>
+                <input type="text" id="search-input" class="modal-input text-xs" placeholder="Search in all files...">
+                <div id="search-results" class="flex-1 overflow-auto mt-2 text-sm"></div>
+            </div>
+            <div id="view-git" class="sidebar-panel p-2">
+                <h2 class="text-xs uppercase font-bold tracking-wider mb-2">Source Control</h2>
+                <div class="flex items-center mb-2">
+                    <input type="text" id="git-commit-msg" class="modal-input text-xs flex-grow" placeholder="Commit message">
+                    <button id="git-commit-btn" class="p-2 ml-2 rounded bg-[var(--accent-primary)] text-[var(--bg-primary)] hover:opacity-80" title="Commit (Ctrl+Alt+C)">✓</button>
+                </div>
+                <p class="text-xs font-bold my-2">Changes (<span id="git-changes-count">0</span>)</p>
+                <div id="git-changes" class="flex-1 overflow-auto"></div>
+            </div>
+            <div id="view-debug" class="sidebar-panel p-2">
+                 <h2 class="text-xs uppercase font-bold tracking-wider mb-2">Run and Debug</h2>
+                 <div class="flex items-center space-x-2 p-2 bg-[var(--bg-primary)] rounded">
+                     <button id="debug-start-btn" title="Start Debugging" class="p-1.5 rounded hover:bg-[var(--bg-hover)]"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg></button>
+                     <button id="debug-step-btn" title="Step Over (F10)" class="p-1.5 rounded hover:bg-[var(--bg-hover)]"><svg xmlns="http="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 12h14" /></svg></button>
+                     <button id="debug-stop-btn" title="Stop" class="p-1.5 rounded hover:bg-[var(--bg-hover)]"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
+                 </div>
+                 <p class="text-xs font-bold my-2">Variables</p>
+                 <div id="debug-variables" class="flex-1 overflow-auto text-sm"></div>
+                 <p class="text-xs font-bold my-2">Call Stack</p>
+                 <div id="debug-call-stack" class="flex-1 overflow-auto text-sm"></div>
+            </div>
+            <div id="view-settings" class="sidebar-panel p-4 overflow-y-auto">
+                <h2 class="text-lg font-bold mb-4">Settings</h2>
+                <div class="space-y-6">
+                    <div>
+                        <label for="setting-theme" class="block text-sm font-medium mb-1">Theme</label>
+                        <select id="setting-theme" class="modal-input"></select>
+                    </div>
+                    <div>
+                        <label for="setting-fontsize" class="block text-sm font-medium mb-1">Font Size</label>
+                        <input type="number" id="setting-fontsize" class="modal-input w-24" min="8" max="24">
+                    </div>
+                     <div>
+                        <label for="setting-keymap" class="block text-sm font-medium mb-1">Key Binds</label>
+                        <select id="setting-keymap" class="modal-input">
+                            <option value="default">Default</option>
+                            <option value="vscode">VS Code</option>
+                            <option value="sublime">Sublime</option>
+                            <option value="vim">Vim</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="setting-linenumbers" class="text-sm font-medium">Show Line Numbers</label>
+                        <input type="checkbox" id="setting-linenumbers" class="h-4 w-4 rounded accent-[var(--accent-primary)]">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="setting-minimap" class="text-sm font-medium">Show Minimap</label>
+                        <input type="checkbox" id="setting-minimap" class="h-4 w-4 rounded accent-[var(--accent-primary)]">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="setting-wordwrap" class="text-sm font-medium">Word Wrap</label>
+                        <input type="checkbox" id="setting-wordwrap" class="h-4 w-4 rounded accent-[var(--accent-primary)]">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="setting-autosave" class="text-sm font-medium">Auto Save</label>
+                        <input type="checkbox" id="setting-autosave" class="h-4 w-4 rounded accent-[var(--accent-primary)]">
+                    </div>
+                     <div>
+                        <label class="block text-sm font-medium mb-1">User Snippets (JSON)</label>
+                         <div id="snippets-editor" class="w-full h-48 rounded" style="border: 1px solid var(--border-primary)"></div>
+                        <button id="save-snippets-btn" class="mt-2 px-3 py-1 rounded bg-[var(--accent-primary)] text-[var(--bg-primary)] hover:opacity-80 text-sm">Save Snippets</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="resizer-v"></div>
+
+        <div id="main-view">
+            <div id="editor-groups-container">
+                <div id="editor-group-1" class="editor-group">
+                    <div class="editor-tabs flex-shrink-0 flex bg-[var(--bg-tertiary)] overflow-x-auto"></div>
+                    <div class="editor-pane flex-1 relative"></div>
+                </div>
+            </div>
+            <div id="welcome-screen" class="absolute inset-0 flex items-center justify-center text-center text-[var(--text-inactive)]"><div><h1 class="text-3xl mb-4">HyperIDE v9</h1><p>Welcome. Create a file or press `Ctrl+Shift+P` for commands.</p></div></div>
+        </div>
+        
+        <div id="resizer-h"></div>
+        
+        <div id="bottom-panel" class="flex flex-col">
+            <div class="tabs flex-shrink-0 flex bg-[var(--bg-tertiary)] border-b border-[var(--border-primary)] text-sm">
+                <div data-panel="terminal" class="bottom-panel-tab p-2 cursor-pointer">Terminal</div>
+                <div data-panel="problems" class="bottom-panel-tab p-2 cursor-pointer">Problems (<span id="problems-count">0</span>)</div>
+                 <div data-panel="debug_console" class="bottom-panel-tab p-2 cursor-pointer">Debug Console</div>
+                <div data-panel="preview" class="bottom-panel-tab p-2 cursor-pointer">Preview</div>
+            </div>
+            <div id="panel-terminal" class="bottom-panel-content flex-1 p-2 overflow-y-auto">
+                <div id="terminal-output"></div>
+                <div class="flex"><span class="text-[var(--accent-primary)] mr-2">$</span><input type="text" id="terminal-input" class="bg-transparent border-none outline-none w-full"/></div>
+            </div>
+            <div id="panel-problems" class="bottom-panel-content flex-1 overflow-y-auto"></div>
+            <div id="panel-debug_console" class="bottom-panel-content flex-1 p-2 overflow-y-auto"></div>
+            <div id="panel-preview" class="bottom-panel-content flex-1 overflow-y-auto bg-white">
+                 <iframe id="preview-frame" class="w-full h-full border-none"></iframe>
+            </div>
+        </div>
+
+        <div id="status-bar" class="flex items-center justify-between px-4 text-xs z-50">
+            <div class="flex items-center gap-4">
+                <button id="cmd-palette-btn" class="hover:bg-black/20 px-2 py-0.5 rounded" title="Ctrl+Shift+P">Command Palette</button>
+                <button id="beta-palette-btn" class="hover:bg-black/20 px-2 py-0.5 rounded">Beta</button>
+                <span id="git-status"></span>
+            </div>
+            <div class="flex items-center gap-4"><span id="line-col"></span><span id="language-status">Plain Text</span></div>
+        </div>
+    </div>
+    
+    <div id="modal-overlay" class="overlay hidden"></div>
+    <div id="context-menu" class="absolute z-[2000] bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-md shadow-lg text-sm hidden py-1"></div>
+    <div id="notification-toast" class="fixed bottom-10 right-5 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg opacity-0 transition-opacity duration-300"></div>
+    <input type="file" id="file-importer" class="hidden" multiple>
+
+
+<script type="module">
+    // The main application object
+    const H_IDE = {
+        state: {
+            fs: null, 
+            editors: { pane1: null, pane2: null },
+            snippetsEditor: null,
+            activePane: 'pane1',
+            openFiles: { pane1: new Map(), pane2: new Map() },
+            activePaths: { pane1: null, pane2: null },
+            isSplitView: false,
+            
+            activeSidebarView: 'explorer', activeBottomPanel: 'terminal',
+            pyodide: null, pyodideReady: false, untitledCounter: 1,
+            settings: { 
+                theme: 'Hyper Dark', fontSize: 14, showLineNumbers: true, showMinimap: true,
+                wordWrap: false, autoSave: false, keymap: 'default',
+                layout: { sidebar: '250px', panel: '200px', split: '1fr' }
+            },
+            themes: { 
+                'Hyper Dark': {}, 
+                'VS Code Dark': {'--bg-primary':'#1e1e1e','--bg-secondary':'#252526','--bg-tertiary':'#333333','--text-primary':'#d4d4d4'}, 
+                'Solarized Light': {'--bg-primary':'#fdf6e3','--bg-secondary':'#f0eada','--text-primary':'#657b83','--accent-primary':'#268bd2'} 
+            },
+            lintResults: {},
+            gitChanges: new Set(),
+            terminalHistory: [],
+            historyIndex: -1,
+            userSnippets: [],
+            debugger: { isActive: false, interval: null, line: 0, scope: {} },
+            autoSaveInterval: null,
+            debounceTimer: null,
+        },
+        dom: {},
+
+        async init() {
+            this.cacheDomElements();
+            this.settings.init(); 
+            this.fs.init();
+            this.git.init(); 
+            this.snippets.init();
+            this.editor.init(); 
+            this.layout.init();
+            this.ui.init();
+            this.terminal.init();
+            this.search.init();
+            this.debugger.init();
+            this.events.init();
+            this.collaboration.init();
+
+            this.ui.renderExplorer();
+            this.git.renderChanges();
+            this.terminal.log('HyperIDE v9.2 Initialized. Click ▶ to run a file.');
+            this.terminal.log('Loading Python & Lua environments...');
+            
+            try {
+                this.state.pyodide = await loadPyodide();
+                this.state.pyodide.setStdout({ batched: (str) => this.terminal.log(str) });
+                this.state.pyodide.setStderr({ batched: (str) => this.terminal.log(str, 'error') });
+                this.state.pyodideReady = true;
+                this.terminal.log('Python & Lua environments ready.');
+            } catch (error) { this.terminal.log(`Failed to load environments: ${error}`, 'error'); }
+        },
+
+        cacheDomElements() {
+            const ids = [
+                'main-grid', 'top-bar', 'run-btn', 'split-view-btn', 'activity-bar', 'sidebar', 'resizer-v', 'main-view', 'resizer-h', 
+                'bottom-panel', 'status-bar', 'file-explorer', 'editor-groups-container', 'welcome-screen', 'terminal-output', 'terminal-input', 
+                'context-menu', 'notification-toast', 'line-col', 'language-status', 'git-status', 'new-untitled-file-global', 'new-folder-global', 
+                'modal-overlay', 'cmd-palette-btn', 'beta-palette-btn',
+                'setting-theme', 'setting-fontsize', 'setting-keymap', 'setting-linenumbers', 'setting-minimap', 'setting-wordwrap', 'setting-autosave', 'snippets-editor', 'save-snippets-btn',
+                'file-importer', 'view-explorer', 'view-search', 'view-git', 'view-debug', 'view-settings', 
+                'panel-terminal', 'panel-problems', 'panel-debug_console', 'panel-preview', 'preview-frame', 'problems-count',
+                'explorer-search', 'search-input', 'search-results',
+                'git-commit-msg', 'git-commit-btn', 'git-changes', 'git-changes-count',
+                'debug-start-btn', 'debug-step-btn', 'debug-stop-btn', 'debug-variables', 'debug-call-stack',
+                'back-btn', 'forward-btn', 'export-zip-btn'
+            ];
+            ids.forEach(id => this.dom[id.replace(/-/g, '_')] = document.getElementById(id));
+            
+            this.dom.editor_group_1 = {
+                group: document.getElementById('editor-group-1'),
+                tabs: document.querySelector('#editor-group-1 .editor-tabs'),
+                pane: document.querySelector('#editor-group-1 .editor-pane'),
+            };
+        },
+        
+        fs: {}, settings: {}, editor: {}, ui: {}, layout: {}, files: {}, terminal: {}, linter: {},
+        git: {}, search: {}, preview: {}, snippets: {}, formatter: {}, debugger: {}, events: {}, collaboration: {},
+    };
+
+    // --- Module Implementations ---
+
+    H_IDE.fs = {
+        init() {
+            const savedFS = localStorage.getItem('hyperide_fs_v8');
+            H_IDE.state.fs = savedFS ? JSON.parse(savedFS) : {
+                'README.md': { type: 'file', content: '# Welcome to HyperIDE\n\nThis is a demo file. You can edit it and see the live preview in the "Preview" panel.\n\n- Edit `index.html` for a web preview.\n- Run `script.py` with Python.\n- Run `game.lua` with Lua.' },
+                'index.html': { type: 'file', content: '<h1>Hello, HyperIDE v9!</h1>\n<p>Edit this file to see the live preview below.</p>\n<style>body { font-family: sans-serif; color: #333; }</style>' },
+                'main.js': { type: 'file', content: 'function greet(name) {\n    // Use Ctrl+/ to toggle comments\n    console.log(`Hello, ${name}!`);\n}\ngreet("World");\n\n// Try Ctrl+Shift+D to duplicate this line' },
+                'script.py': { type: 'file', content: 'def fib(n):\n    a, b = 0, 1\n    while a < n:\n        print(a, end=\' \')\n        a, b = b, a+b\n    print()\n\nfib(100)'},
+                'game.lua': { type: 'file', content: 'local message = "hello lua"\nprint(message)' },
+            };
+        },
+        save() { 
+            // [IMPROVEMENT] Add error handling for localStorage
+            try {
+                localStorage.setItem('hyperide_fs_v8', JSON.stringify(H_IDE.state.fs)); 
+            } catch (e) {
+                console.error("Failed to save to localStorage:", e);
+                H_IDE.ui.showNotification("Failed to save filesystem. Storage might be full.", "error");
+            }
+        },
+        get(path) {
+            if (!path || path === '/') return { node: H_IDE.state.fs, parent: null, name: null };
+            const parts = path.split('/').filter(p => p); let parent = null; let current = { children: H_IDE.state.fs };
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+                if (!current || !current.children) return null;
+                parent = current; if (!parent.children[part]) return null;
+                current = parent.children[part];
+            }
+            return { node: current, parent: parent.children, name: parts.pop() };
+        },
+        move(srcPath, destPath) {
+            const src = this.get(srcPath);
+            if (!src || !src.node) return H_IDE.ui.showNotification('Source item not found.', 'error');
+            const destResult = this.get(destPath);
+            const destNode = destResult ? destResult.node : this.get('/').node;
+            if (!destNode || destNode.type !== 'folder') return H_IDE.ui.showNotification('Invalid destination folder.', 'error');
+            const destChildren = destNode === H_IDE.state.fs ? destNode : destNode.children;
+            if (destChildren[src.name]) return H_IDE.ui.showNotification(`'${src.name}' already exists in destination.`, 'error');
+            destChildren[src.name] = src.node;
+            delete src.parent[src.name];
+            this.save();
+            H_IDE.ui.renderExplorer();
+        },
+        getAllFilePaths(dir = H_IDE.state.fs, prefix = '') {
+            return Object.entries(dir).flatMap(([name, node]) => {
+                const path = prefix ? `${prefix}/${name}` : name;
+                return node.type === 'folder' ? this.getAllFilePaths(node.children, path) : [path];
+            });
+        },
+        create(path, type, content = '') {
+            const parts = path.split('/'); const name = parts.pop();
+            const parentPath = parts.join('/');
+            const parentResult = this.get(parentPath);
+            const parentNode = parentResult ? parentResult.node : this.get('/').node;
+            const parent = (parentNode && parentNode.type === 'folder') ? parentNode.children : H_IDE.state.fs;
+
+            if (!name) return H_IDE.ui.showNotification(`Invalid name provided.`, 'error');
+            if (parent[name]) return H_IDE.ui.showNotification(`'${name}' already exists.`, 'error');
+            parent[name] = type === 'file' ? { type: 'file', content } : { type: 'folder', children: {}, isOpen: true };
+            this.save(); H_IDE.git.trackChange(path); H_IDE.ui.renderExplorer();
+            if (type === 'file') H_IDE.files.open(path);
+        },
+        delete(path) {
+            const { node, parent, name } = this.get(path); if (!node || !parent) return;
+            H_IDE.files.close(path, true, 'pane1');
+            if(H_IDE.state.isSplitView) H_IDE.files.close(path, true, 'pane2');
+            if (node.type === 'folder') {
+                const closeDescendants = (p, currentDir) => Object.keys(currentDir).forEach(childName => {
+                    const childPath = `${p}/${childName}`;
+                    H_IDE.files.close(childPath, true, 'pane1');
+                    if(H_IDE.state.isSplitView) H_IDE.files.close(childPath, true, 'pane2');
+                    if (currentDir[childName].type === 'folder') closeDescendants(childPath, currentDir[childName].children);
+                });
+                closeDescendants(path, node.children);
+            }
+            delete parent[name]; this.save(); H_IDE.git.trackChange(path, true); H_IDE.ui.renderExplorer(); H_IDE.ui.showNotification(`Deleted '${name}'.`);
+        },
+        rename(oldPath, newName) {
+            if (!newName || !newName.trim()) return H_IDE.ui.showNotification('New name cannot be empty.', 'error');
+            if (oldPath.split('/').pop() === newName) return;
+            const { node, parent, name } = this.get(oldPath); if (!node || !parent) return;
+            if (parent[newName]) return H_IDE.ui.showNotification(`'${newName}' already exists.`, 'error');
+            parent[newName] = node; delete parent[name];
+            const newPath = oldPath.substring(0, oldPath.length - name.length) + newName;
+            ['pane1', 'pane2'].forEach(paneId => {
+                if (!H_IDE.state.editors[paneId]) return;
+                if (H_IDE.state.openFiles[paneId].has(oldPath)) {
+                    const fileData = H_IDE.state.openFiles[paneId].get(oldPath);
+                    H_IDE.state.openFiles[paneId].delete(oldPath); 
+                    H_IDE.state.openFiles[paneId].set(newPath, fileData);
+                    fileData.tabEl.dataset.path = newPath; fileData.tabEl.querySelector('.tab-name').textContent = newName;
+                    if (H_IDE.state.activePaths[paneId] === oldPath) H_IDE.state.activePaths[paneId] = newPath;
+                }
+            });
+            this.save(); H_IDE.git.trackChange(newPath); H_IDE.ui.renderExplorer();
+        },
+        async exportZip() {
+            if (typeof JSZip === 'undefined') {
+                return H_IDE.ui.showNotification('ZIP library not loaded.', 'error');
+            }
+            const zip = new JSZip();
+            const addFilesToZip = (dir, path) => {
+                for (const name in dir) {
+                    const item = dir[name];
+                    const fullPath = path ? `${path}/${name}` : name;
+                    if (item.type === 'folder') {
+                        addFilesToZip(item.children, fullPath);
+                    } else {
+                        zip.file(fullPath, item.content);
+                    }
+                }
+            };
+            
+            addFilesToZip(H_IDE.state.fs, '');
+            
+            try {
+                const blob = await zip.generateAsync({type: 'blob'});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = "hyperide_project.zip";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+                H_IDE.ui.showNotification('Project exported as ZIP.');
+            } catch (e) {
+                H_IDE.ui.showNotification('Failed to export ZIP.', 'error');
+                console.error(e);
+            }
+        },
+    };
+    
+    H_IDE.settings = {
+        init() {
+            const saved = localStorage.getItem('hyperide_settings_v8');
+            if (saved) {
+                try {
+                    const parsedSettings = JSON.parse(saved);
+                    H_IDE.state.settings = { ...H_IDE.state.settings, ...parsedSettings, layout: { ...H_IDE.state.settings.layout, ...parsedSettings.layout }};
+                } catch(e) {
+                    console.error("Failed to parse settings:", e);
+                    localStorage.removeItem('hyperide_settings_v8');
+                }
+            }
+            this.populateUI();
+            this.applyAll();
+        },
+        save() { 
+            try {
+                localStorage.setItem('hyperide_settings_v8', JSON.stringify(H_IDE.state.settings)); 
+            } catch(e) {
+                console.error("Failed to save settings:", e);
+                H_IDE.ui.showNotification("Failed to save settings.", "error");
+            }
+        },
+        populateUI() {
+            H_IDE.dom.setting_theme.innerHTML = Object.keys(H_IDE.state.themes).map(t => `<option value="${t}">${t}</option>`).join('');
+            H_IDE.dom.setting_theme.value = H_IDE.state.settings.theme;
+            H_IDE.dom.setting_fontsize.value = H_IDE.state.settings.fontSize;
+            H_IDE.dom.setting_keymap.value = H_IDE.state.settings.keymap;
+            H_IDE.dom.setting_linenumbers.checked = H_IDE.state.settings.showLineNumbers;
+            H_IDE.dom.setting_minimap.checked = H_IDE.state.settings.showMinimap;
+            H_IDE.dom.setting_wordwrap.checked = H_IDE.state.settings.wordWrap;
+            H_IDE.dom.setting_autosave.checked = H_IDE.state.settings.autoSave;
+        },
+        applyAll() {
+            const theme = H_IDE.state.themes[H_IDE.state.settings.theme] || {};
+            const baseTheme = {
+                '--bg-primary': '#11111b', '--bg-secondary': '#1a1b26', '--bg-tertiary': '#161620', '--bg-hover': '#2a2c3d',
+                '--text-primary': '#c0caf5', '--text-secondary': '#a9b1d6', '--text-inactive': '#5c637a',
+                '--border-primary': '#343b58', '--accent-primary': '#7aa2f7', '--accent-secondary': '#bb9af7', '--error-color': '#f7768e',
+                '--warning-color': '#e0af68'
+            };
+            Object.entries(baseTheme).forEach(([key,val]) => document.documentElement.style.setProperty(key, val));
+            Object.entries(theme).forEach(([key,val]) => document.documentElement.style.setProperty(key, val));
+            
+            const options = { 
+                fontSize: H_IDE.state.settings.fontSize + 'px', 
+                showGutter: H_IDE.state.settings.showLineNumbers,
+                showMinimap: H_IDE.state.settings.showMinimap,
+                wrap: H_IDE.state.settings.wordWrap,
+            };
+            Object.values(H_IDE.state.editors).forEach(editor => {
+                if (editor) {
+                    editor.setOptions(options);
+                    editor.setKeyboardHandler(H_IDE.state.settings.keymap === 'default' ? null : `ace/keyboard/${H_IDE.state.settings.keymap}`);
+                }
+            });
+
+            if (H_IDE.state.settings.autoSave) {
+                if (!H_IDE.state.autoSaveInterval) {
+                    H_IDE.state.autoSaveInterval = setInterval(() => {
+                        Object.keys(H_IDE.state.editors).forEach(paneId => {
+                            if (H_IDE.state.activePaths[paneId]) H_IDE.files.save(paneId);
+                        });
+                    }, 2000);
+                }
+            } else {
+                clearInterval(H_IDE.state.autoSaveInterval);
+                H_IDE.state.autoSaveInterval = null;
+            }
+
+            H_IDE.dom.main_grid.style.gridTemplateColumns = `48px ${H_IDE.state.settings.layout.sidebar} 5px 1fr`;
+            H_IDE.dom.main_grid.style.gridTemplateRows = `35px 1fr 5px ${H_IDE.state.settings.layout.panel} 24px`;
+            
+            this.resizeAllEditors();
+        },
+        update(key, value) { H_IDE.state.settings[key] = value; this.applyAll(); this.save(); },
+        resizeAllEditors() {
+            setTimeout(() => {
+                Object.values(H_IDE.state.editors).filter(Boolean).forEach(editor => editor?.resize());
+                H_IDE.state.snippetsEditor?.resize();
+            }, 10);
+        }
+    };
+
+    H_IDE.editor = {
+        init() {
+            this.createEditorInstance('pane1');
+            H_IDE.state.snippetsEditor = this.createSnippetsEditor();
+        },
+        createEditorInstance(paneId) {
+            const domInfo = H_IDE.ui.getPaneDom(paneId);
+            const editor = ace.edit(domInfo.pane);
+            
+            editor.setOptions({
+                enableBasicAutocompletion: true, enableLiveAutocompletion: true, enableSnippets: true,
+                showPrintMargin: false, highlightActiveLine: true, fontFamily: 'var(--font-family)',
+                theme: 'ace/theme/tomorrow_night_eighties', enableEmmet: true, selectionStyle: "line"
+            });
+
+            editor.on("focus", () => H_IDE.state.activePane = paneId);
+            editor.on("changeSelection", () => H_IDE.ui.updateStatus());
+            editor.on("change", () => {
+                const path = H_IDE.state.activePaths[paneId];
+                if (path) {
+                    const data = H_IDE.state.openFiles[paneId].get(path);
+                    if (data && !data.tabEl.classList.contains('modified')) data.tabEl.classList.add('modified');
+                    clearTimeout(H_IDE.state.debounceTimer);
+                    H_IDE.state.debounceTimer = setTimeout(() => {
+                        const content = editor.getValue();
+                        H_IDE.linter.lintFile(path, content);
+                        H_IDE.preview.update(path, content);
+                    }, 500);
+                }
+            });
+            editor.on("guttermousedown", (e) => H_IDE.debugger.toggleBreakpoint(e));
+
+            H_IDE.state.editors[paneId] = editor;
+            this.setupCommands(editor);
+            H_IDE.settings.applyAll();
+            return editor;
+        },
+        createSnippetsEditor() {
+            const editor = ace.edit("snippets-editor");
+            editor.setOptions({
+                mode: "ace/mode/json", showGutter: false, fontSize: "12px",
+                theme: 'ace/theme/tomorrow_night_eighties',
+            });
+            editor.setValue(JSON.stringify(H_IDE.snippets.get(), null, 2), 1);
+            return editor;
+        },
+        getActiveEditor() { return H_IDE.state.editors[H_IDE.state.activePane]; },
+        setupCommands(editor) {
+            const commands = [
+                { name: "save", bindKey: {win: "Ctrl-S", mac: "Command-S"}, exec: () => H_IDE.files.save() },
+                { name: "run", bindKey: {win: "F5", mac: "F5"}, exec: () => H_IDE.files.runActive() },
+                { name: 'format', bindKey: { win: 'Shift-Alt-F', mac: 'Shift-Option-F' }, exec: (editor) => H_IDE.formatter.formatCode(editor) },
+                { name: "togglecomment", bindKey: {win: "Ctrl-/", mac: "Command-/"}, exec: editor => editor.toggleCommentLines() },
+                { name: "duplicateline", bindKey: {win: "Ctrl-Shift-D", mac: "Command-Shift-D"}, exec: editor => editor.duplicateSelection() },
+                { name: "movelinesup", bindKey: {win: "Alt-Up", mac: "Option-Up"}, exec: (e) => e.moveLinesUp() },
+                { name: "movelinesdown", bindKey: {win: "Alt-Down", mac: "Option-Down"}, exec: (e) => e.moveLinesDown() },
+                { name: "addcursorup", bindKey: {win: "Ctrl-Alt-Up", mac: "Command-Option-Up"}, exec: (e) => e.selectMoreLines(-1) },
+                { name: "addcursordown", bindKey: {win: "Ctrl-Alt-Down", mac: "Command-Option-Down"}, exec: (e) => e.selectMoreLines(1) },
+                { name: "debugstep", bindKey: {win: "F10", mac: "F10"}, exec: () => H_IDE.debugger.step() },
+            ];
+            commands.forEach(cmd => editor.commands.addCommand(cmd));
+        }
+    };
+    
+    H_IDE.ui = {
+        init() {
+            this.switchSidebarView('explorer'); 
+            this.switchBottomPanel('terminal');
+        },
+        getPaneDom(paneId) {
+            if (paneId === 'pane1') return H_IDE.dom.editor_group_1;
+            return {
+                group: document.getElementById('editor-group-2'),
+                tabs: document.querySelector('#editor-group-2 .editor-tabs'),
+                pane: document.querySelector('#editor-group-2 .editor-pane'),
+            };
+        },
+        renderExplorer() {
+            const container = H_IDE.dom.file_explorer; container.innerHTML = '';
+            const query = H_IDE.dom.explorer_search.value.toLowerCase();
+            const render = (dir, pathPrefix = '', level = 0) => {
+                const filteredEntries = Object.entries(dir).filter(([name, node]) => {
+                    if (!query) return true;
+                    if (node.type === 'file') return name.toLowerCase().includes(query);
+                    const hasMatchingChild = (d) => Object.entries(d).some(([n, c]) => c.type === 'file' ? n.toLowerCase().includes(query) : n.toLowerCase().includes(query) || hasMatchingChild(c.children));
+                    return name.toLowerCase().includes(query) || hasMatchingChild(node.children);
+                });
+                filteredEntries.sort(([a,nodeA],[b,nodeB])=>(nodeA.type < nodeB.type ? -1 : 1) || a.localeCompare(b)).forEach(([name, node]) => {
+                    const path = pathPrefix ? `${pathPrefix}/${name}` : name;
+                    const el = document.createElement('div');
+                    el.className = 'file-item p-1 rounded cursor-pointer flex items-center hover:bg-[var(--bg-hover)]';
+                    el.style.paddingLeft = `${level * 16 + 4}px`;
+                    el.dataset.path = path;
+                    el.draggable = true;
+                    el.innerHTML = `<span class="mr-2 pointer-events-none">${node.type === 'folder' ? (node.isOpen ? '📂' : '📁') : '📄'}</span><span class="pointer-events-none">${name}</span>`;
+                    container.appendChild(el);
+                    
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (node.type === 'folder') { node.isOpen = !node.isOpen; H_IDE.fs.save(); this.renderExplorer(); }
+                        else { H_IDE.files.open(path); }
+                    });
+                    
+                    el.addEventListener('dragstart', (e) => { e.stopPropagation(); e.dataTransfer.setData('text/plain', path); });
+                    el.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); if(node.type === 'folder') el.classList.add('drag-over'); });
+                    el.addEventListener('dragleave', (e) => { e.preventDefault(); e.stopPropagation(); el.classList.remove('drag-over'); });
+                    el.addEventListener('drop', (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        el.classList.remove('drag-over');
+                        const srcPath = e.dataTransfer.getData('text/plain');
+                        const destPath = (node.type === 'folder') ? path : path.substring(0, path.lastIndexOf('/'));
+                        if (srcPath && destPath && srcPath !== destPath) {
+                            H_IDE.fs.move(srcPath, destPath);
+                        }
+                    });
+
+                    if (node.type === 'folder' && node.isOpen) render(node.children, path, level + 1);
+                });
+            }
+            render(H_IDE.state.fs);
+        },
+        updateStatus() {
+            const editor = H_IDE.editor.getActiveEditor();
+            const paneId = H_IDE.state.activePane;
+            if (!editor || !paneId) return;
+            const path = H_IDE.state.activePaths[paneId];
+            if (!path) { H_IDE.dom.line_col.textContent = ''; H_IDE.dom.language_status.textContent = 'No file'; return; }
+            
+            const pos = editor.getCursorPosition();
+            H_IDE.dom.line_col.textContent = `Ln ${pos.row + 1}, Col ${pos.column + 1}`;
+            H_IDE.dom.language_status.textContent = ace.require("ace/ext/modelist").getModeForPath(path).caption;
+        },
+        switchSidebarView(viewId) {
+            if (H_IDE.state.activeSidebarView === viewId && H_IDE.dom.sidebar.style.display !== 'none') {
+                H_IDE.dom.main_grid.style.gridTemplateColumns = '48px 0px 0px 1fr';
+                H_IDE.dom.sidebar.style.display = 'none';
+                H_IDE.dom.resizer_v.style.display = 'none';
+            } else {
+                H_IDE.dom.main_grid.style.gridTemplateColumns = `48px ${H_IDE.state.settings.layout.sidebar} 5px 1fr`;
+                H_IDE.dom.sidebar.style.display = 'flex';
+                H_IDE.dom.resizer_v.style.display = 'block';
+                document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
+                document.getElementById(`view-${viewId}`)?.classList.add('active');
+                document.querySelectorAll('.activity-bar-icon').forEach(i => i.classList.remove('active'));
+                document.querySelector(`.activity-bar-icon[data-view="${viewId}"]`)?.classList.add('active');
+            }
+            H_IDE.state.activeSidebarView = viewId;
+            H_IDE.settings.resizeAllEditors();
+        },
+        switchBottomPanel(panelId) {
+            H_IDE.dom.bottom_panel.style.display = 'flex';
+            H_IDE.dom.resizer_h.style.display = 'block';
+            H_IDE.dom.main_grid.style.gridTemplateRows = `35px 1fr 5px ${H_IDE.state.settings.layout.panel} 24px`;
+            document.querySelectorAll('.bottom-panel-content').forEach(p => p.classList.remove('active'));
+            document.getElementById(`panel-${panelId}`)?.classList.add('active');
+            document.querySelectorAll('.bottom-panel-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.bottom-panel-tab[data-panel="${panelId}"]`)?.classList.add('active');
+            H_IDE.state.activeBottomPanel = panelId;
+            H_IDE.settings.resizeAllEditors();
+        },
+        toggleBottomPanel() {
+            const isVisible = H_IDE.dom.bottom_panel.style.display !== 'none';
+            if (isVisible) {
+                H_IDE.dom.bottom_panel.style.display = 'none';
+                H_IDE.dom.resizer_h.style.display = 'none';
+                H_IDE.dom.main_grid.style.gridTemplateRows = '35px 1fr 0px 0px 24px';
+            } else {
+                this.switchBottomPanel(H_IDE.state.activeBottomPanel);
+            }
+            H_IDE.settings.resizeAllEditors();
+        },
+        showNotification(msg, type = 'success') {
+            const toast = H_IDE.dom.notification_toast; toast.textContent = msg;
+            toast.style.backgroundColor = type === 'error' ? 'var(--error-color)' : 'var(--accent-secondary)';
+            toast.classList.remove('opacity-0');
+            setTimeout(() => toast.classList.add('opacity-0'), 3000);
+        },
+        showModal(content) {
+            H_IDE.dom.modal_overlay.innerHTML = ''; 
+            H_IDE.dom.modal_overlay.appendChild(content);
+            H_IDE.dom.modal_overlay.classList.remove('hidden');
+            H_IDE.dom.modal_overlay.onclick = (e) => {
+                if (e.target === H_IDE.dom.modal_overlay) {
+                    this.hideModal();
+                }
+            };
+        },
+        hideModal() { H_IDE.dom.modal_overlay.classList.add('hidden'); H_IDE.dom.modal_overlay.innerHTML = ''; },
+        // [IMPROVEMENT] Add a custom confirm modal instead of using window.confirm
+        showConfirmModal(message, onConfirm) {
+            const content = document.createElement('div');
+            content.className = 'modal-base p-4';
+            content.innerHTML = `
+                <p class="mb-4">${message}</p>
+                <div class="flex justify-end gap-2">
+                    <button id="modal-cancel-btn" class="px-4 py-2 rounded bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)]">Cancel</button>
+                    <button id="modal-confirm-btn" class="px-4 py-2 rounded bg-[var(--accent-primary)] text-[var(--bg-primary)] hover:opacity-80">Confirm</button>
+                </div>
+            `;
+            this.showModal(content);
+            document.getElementById('modal-confirm-btn').onclick = () => {
+                this.hideModal();
+                onConfirm();
+            };
+            document.getElementById('modal-cancel-btn').onclick = () => this.hideModal();
+        }
+    };
+    
+    H_IDE.layout = {
+        init() {
+            const onDrag = (resizer, onMove, onEnd) => resizer.addEventListener('mousedown', e => { e.preventDefault(); const cb = (ev)=>onMove(ev); const upCb = () => { document.removeEventListener('mousemove', cb); if(onEnd) onEnd(); }; document.addEventListener('mousemove', cb); document.addEventListener('mouseup', upCb, { once: true }); });
+            
+            onDrag(H_IDE.dom.resizer_v, e => {
+                const newSidebarWidth = e.clientX - 48;
+                if (newSidebarWidth > 150 && newSidebarWidth < 500) {
+                    H_IDE.dom.main_grid.style.gridTemplateColumns = `48px ${newSidebarWidth}px 5px 1fr`;
+                }
+            }, () => {
+                H_IDE.state.settings.layout.sidebar = H_IDE.dom.main_grid.style.gridTemplateColumns.split(' ')[1];
+                H_IDE.settings.save();
+                H_IDE.settings.resizeAllEditors();
+            });
+            
+            onDrag(H_IDE.dom.resizer_h, e => {
+                const newPanelHeight = window.innerHeight - e.clientY - 24;
+                 if (newPanelHeight > 100 && newPanelHeight < window.innerHeight * 0.8) {
+                    H_IDE.dom.main_grid.style.gridTemplateRows = `35px 1fr 5px ${newPanelHeight}px 24px`;
+                 }
+            }, () => {
+                H_IDE.state.settings.layout.panel = H_IDE.dom.main_grid.style.gridTemplateRows.split(' ')[3];
+                H_IDE.settings.save();
+                H_IDE.settings.resizeAllEditors();
+            });
+        },
+        toggleSplitView() {
+            H_IDE.state.isSplitView = !H_IDE.state.isSplitView;
+            const container = H_IDE.dom.editor_groups_container;
+            if (H_IDE.state.isSplitView) {
+                container.classList.add('split');
+                const group2HTML = `<div id="editor-group-2" class="editor-group"><div class="editor-tabs flex-shrink-0 flex bg-[var(--bg-tertiary)] overflow-x-auto"></div><div class="editor-pane flex-1 relative"></div></div>`;
+                const resizerHTML = `<div id="editor-resizer-v" style="background-color: var(--border-primary); cursor: col-resize;"></div>`;
+                H_IDE.dom.editor_group_1.group.insertAdjacentHTML('afterend', resizerHTML + group2HTML);
+                H_IDE.dom.editor_group_2 = {
+                    group: document.getElementById('editor-group-2'),
+                    tabs: document.querySelector('#editor-group-2 .editor-tabs'),
+                    pane: document.querySelector('#editor-group-2 .editor-pane'),
+                };
+                H_IDE.editor.createEditorInstance('pane2');
+                H_IDE.state.activePane = 'pane2';
+                H_IDE.state.editors.pane2.focus();
+            } else {
+                container.classList.remove('split');
+                H_IDE.state.openFiles.pane2.forEach((_value, path) => H_IDE.files.open(path, 'pane1'));
+                document.getElementById('editor-group-2')?.remove();
+                document.getElementById('editor-resizer-v')?.remove();
+                if (H_IDE.state.editors.pane2) {
+                    H_IDE.state.editors.pane2.destroy();
+                }
+                H_IDE.state.editors.pane2 = null;
+                H_IDE.state.openFiles.pane2.clear();
+                H_IDE.state.activePaths.pane2 = null;
+                H_IDE.state.activePane = 'pane1';
+                H_IDE.state.editors.pane1.focus();
+            }
+            H_IDE.settings.resizeAllEditors();
+        }
+    };
+
+    H_IDE.files = {
+        open(path, paneId = H_IDE.state.activePane, isUntitled = false, content = '') {
+            if (paneId === 'pane2' && !H_IDE.state.isSplitView) { H_IDE.layout.toggleSplitView(); }
+            const targetPaneId = H_IDE.state.isSplitView ? paneId : 'pane1';
+            
+            if (H_IDE.state.openFiles[targetPaneId].has(path)) return this.switch(path, targetPaneId);
+            
+            let fileContent = content;
+            if (!isUntitled) {
+                const file = H_IDE.fs.get(path)?.node;
+                if (!file || file.type !== 'file') return;
+                fileContent = file.content;
+            }
+            
+            H_IDE.dom.welcome_screen.style.display = 'none';
+            const session = ace.createEditSession(fileContent, ace.require("ace/ext/modelist").getModeForPath(path).mode);
+            H_IDE.linter.setAnnotations(session, path);
+
+            const tabEl = document.createElement('div');
+            tabEl.className = 'editor-tab px-4 py-2 border-r border-[var(--border-primary)] cursor-pointer flex items-center gap-2 flex-shrink-0';
+            tabEl.dataset.path = path; tabEl.title = path;
+            const fileName = path.split('/').pop();
+            tabEl.innerHTML = `<span class="tab-name">${fileName}</span><span class="close-tab text-xs p-0.5 rounded-full hover:bg-black/20" title="Close (Ctrl+Shift+W)">x</span>`;
+            
+            const domInfo = H_IDE.ui.getPaneDom(targetPaneId);
+            tabEl.onclick = () => this.switch(path, targetPaneId);
+            tabEl.querySelector('.close-tab').onclick = (e) => { e.stopPropagation(); this.close(path, false, targetPaneId); };
+            domInfo.tabs.appendChild(tabEl);
+            H_IDE.state.openFiles[targetPaneId].set(path, { session, tabEl, isUntitled, breakpoints: new Set() });
+            this.switch(path, targetPaneId);
+            H_IDE.linter.lintFile(path, fileContent);
+            H_IDE.preview.update(path, fileContent);
+        },
+        openUntitled(lang = 'js') {
+            const ext = lang;
+            const path = `Untitled-${H_IDE.state.untitledCounter++}.${ext}`;
+            const templates = {
+                js: '// New JavaScript File',
+                py: '# New Python File',
+                lua: '-- New Lua File',
+                html: '<!DOCTYPE html>\n<html>\n<head>\n  <title>New HTML File</title>\n</head>\n<body>\n\n</body>\n</html>',
+                java: 'public class NewFile {\n    public static void main(String[] args) {\n        System.out.println("Hello, Java!");\n    }\n}',
+                md: '# New Markdown File'
+            };
+            this.open(path, H_IDE.state.activePane, true, templates[ext] || '');
+        },
+        switch(path, paneId) {
+            if (H_IDE.state.activePaths[paneId] === path) return;
+            const oldPath = H_IDE.state.activePaths[paneId];
+            if(oldPath && H_IDE.state.openFiles[paneId].has(oldPath)) H_IDE.state.openFiles[paneId].get(oldPath).tabEl.classList.remove('active');
+            
+            H_IDE.state.activePaths[paneId] = path;
+            const data = H_IDE.state.openFiles[paneId].get(path);
+            data.tabEl.classList.add('active');
+            H_IDE.state.editors[paneId].setSession(data.session);
+            H_IDE.state.editors[paneId].focus();
+            this.updateRunButtonState(path);
+            H_IDE.ui.updateStatus();
+            H_IDE.preview.update(path, data.session.getValue());
+        },
+        close(path, force = false, paneId) {
+            if (!paneId || !H_IDE.state.openFiles[paneId]) return;
+            const data = H_IDE.state.openFiles[paneId].get(path); if (!data) return;
+            
+            const doClose = () => {
+                const domInfo = H_IDE.ui.getPaneDom(paneId);
+                domInfo.tabs.removeChild(data.tabEl); H_IDE.state.openFiles[paneId].delete(path);
+                
+                if (H_IDE.state.activePaths[paneId] === path) {
+                    const nextPath = [...H_IDE.state.openFiles[paneId].keys()].pop();
+                    if (nextPath) this.switch(nextPath, paneId);
+                    else {
+                        H_IDE.state.activePaths[paneId] = null;
+                        if(H_IDE.state.openFiles.pane1.size === 0 && (!H_IDE.state.isSplitView || H_IDE.state.openFiles.pane2.size === 0)) {
+                           H_IDE.dom.welcome_screen.style.display = 'flex';
+                        }
+                        if (H_IDE.state.activePane === paneId) this.updateRunButtonState(null);
+                        H_IDE.ui.updateStatus();
+                    }
+                }
+            };
+
+            if (data.tabEl.classList.contains('modified') && !force) {
+                // [FIX] Use custom modal instead of confirm()
+                H_IDE.ui.showConfirmModal(`'${path}' has unsaved changes. Close anyway?`, doClose);
+            } else {
+                doClose();
+            }
+        },
+        save(paneId) {
+            const targetPaneId = paneId || H_IDE.state.activePane;
+            const path = H_IDE.state.activePaths[targetPaneId];
+            if (!path) return;
+            const data = H_IDE.state.openFiles[targetPaneId].get(path); if (!data) return;
+            if (data.isUntitled) { H_IDE.events.showSaveAsModal(path, targetPaneId); return; }
+            
+            const file = H_IDE.fs.get(path)?.node;
+            if (!file) { return H_IDE.ui.showNotification(`Error: Could not find file ${path} to save.`, 'error');}
+            const newContent = data.session.getValue();
+            if(file.content !== newContent) {
+                file.content = newContent;
+                H_IDE.fs.save();
+                H_IDE.git.trackChange(path);
+            }
+            data.tabEl.classList.remove('modified');
+            H_IDE.linter.lintFile(path, newContent);
+            H_IDE.preview.update(path, newContent);
+            if (!H_IDE.state.settings.autoSave) H_IDE.ui.showNotification(`${path.split('/').pop()} saved.`);
+        },
+        runActive() {
+            const paneId = H_IDE.state.activePane;
+            const path = H_IDE.state.activePaths[paneId];
+            if (!path) return H_IDE.ui.showNotification('No active file to run.', 'error');
+            
+            this.save(paneId);
+
+            const ext = path.split('.').pop();
+            const command = { 'js': 'node', 'py': 'python', 'lua': 'lua' }[ext];
+            if (command) {
+                H_IDE.terminal.exec(`${command} ${path}`);
+                H_IDE.ui.switchBottomPanel('terminal');
+            } else {
+                return H_IDE.ui.showNotification(`Cannot run .${ext} files.`, 'error');
+            }
+        },
+        updateRunButtonState(path) {
+            if (!path) { H_IDE.dom.run_btn.disabled = true; return; }
+            const ext = path.split('.').pop();
+            H_IDE.dom.run_btn.disabled = !['js', 'py', 'lua'].includes(ext);
+        }
+    };
+    
+    H_IDE.terminal = {
+        init() { 
+            H_IDE.dom.terminal_input.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && e.target.value) { 
+                    this.exec(e.target.value); 
+                    H_IDE.state.historyIndex = -1;
+                    e.target.value = ''; 
+                } else if (e.key === 'ArrowUp') {
+                    if (H_IDE.state.terminalHistory.length > 0) {
+                        H_IDE.state.historyIndex = Math.min(H_IDE.state.historyIndex + 1, H_IDE.state.terminalHistory.length - 1);
+                        e.target.value = H_IDE.state.terminalHistory[H_IDE.state.historyIndex];
+                    }
+                } else if (e.key === 'ArrowDown') {
+                    if (H_IDE.state.historyIndex > 0) {
+                        H_IDE.state.historyIndex--;
+                        e.target.value = H_IDE.state.terminalHistory[H_IDE.state.historyIndex];
+                    } else {
+                        H_IDE.state.historyIndex = -1;
+                        e.target.value = '';
+                    }
+                }
+            }); 
+        },
+        log(msg, type = 'log') {
+            const line = document.createElement('div');
+            if (type === 'error') line.classList.add('text-[var(--error-color)]');
+            else if (type === 'info') line.classList.add('text-[var(--text-inactive)]');
+            line.innerHTML = String(msg).replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+            H_IDE.dom.terminal_output.appendChild(line);
+            H_IDE.dom.terminal_output.scrollTop = H_IDE.dom.terminal_output.scrollHeight;
+        },
+        async exec(cmdStr) {
+            this.log(`$ ${cmdStr}`);
+            H_IDE.state.terminalHistory.unshift(cmdStr);
+            const [cmd, ...args] = cmdStr.trim().split(/\s+/);
+            
+            // [IMPROVEMENT] Clarify execution logic for commands without arguments
+            let content;
+            let path = args.join(' ');
+            
+            if (path) {
+                const file = H_IDE.fs.get(path);
+                if (file && file.node.type === 'file') {
+                    content = file.node.content;
+                } else if (['python', 'node', 'lua'].includes(cmd)) {
+                    return this.log(`File not found: ${path}`, 'error');
+                }
+            } else if (['python', 'node', 'lua'].includes(cmd)) {
+                 const activePath = H_IDE.state.activePaths[H_IDE.state.activePane];
+                 if(activePath && H_IDE.state.openFiles[H_IDE.state.activePane].has(activePath)) {
+                       content = H_IDE.state.openFiles[H_IDE.state.activePane].get(activePath).session.getValue();
+                       this.log(`No file specified. Running active file: ${activePath}`, 'info');
+                       path = activePath; // for context
+                 } else {
+                     return this.log(`No file specified and no active file to run.`, 'error');
+                 }
+            }
+
+            switch(cmd) {
+                case 'python':
+                    if (H_IDE.state.pyodideReady && content !== undefined) await H_IDE.state.pyodide.runPythonAsync(content);
+                    else if (!H_IDE.state.pyodideReady) this.log('Python environment not ready.', 'error');
+                    break;
+                case 'node':
+                    if (content !== undefined) { try { const cLogs = []; const tLog = console.log; console.log = (...a) => cLogs.push(a.join(' ')); new Function(content)(); console.log = tLog; this.log(cLogs.join('\n')); } catch(e) { this.log(e.message, 'error'); } }
+                    break;
+                case 'lua':
+                    if (content !== undefined) {
+                        try {
+                            const capturedOutput = [];
+                            const fengari = window.fengari;
+                            const L = fengari.lauxlib.luaL_newstate();
+                            fengari.lualib.luaL_openlibs(L);
+                            fengari.lua.lua_pushcfunction(L, () => {
+                                const nargs = fengari.lua.lua_gettop(L);
+                                let s = "";
+                                for (let i = 1; i <= nargs; i++) {
+                                    s += fengari.lua.lua_tojsstring(L, i);
+                                    if (i < nargs) s += "\t";
+                                }
+                                capturedOutput.push(s);
+                                return 0;
+                            });
+                            fengari.lua.lua_setglobal(L, "print");
+                            const status = fengari.lauxlib.luaL_dostring(L, fengari.to_luastring(content));
+                            if (status !== fengari.lua.LUA_OK) {
+                                this.log(fengari.lua.lua_tojsstring(L, -1), 'error');
+                            }
+                            if(capturedOutput.length > 0) this.log(capturedOutput.join('\n'));
+                        } catch(e) { this.log(e.message, 'error'); }
+                    }
+                    break;
+                case 'clear': H_IDE.dom.terminal_output.innerHTML = ''; break;
+                case 'git': H_IDE.git.handleCommand(args); break;
+                default: this.log(`Command not found: ${cmd}.`, 'error');
+            }
+        }
+    };
+    
+    H_IDE.linter = {
+        lintFile(path, content) {
+            const ext = path.split('.').pop();
+            const problems = [];
+            if(ext === 'js' || ext === 'py' || ext === 'lua') {
+                const lines = content.split('\n');
+                lines.forEach((line, i) => {
+                    if (ext === 'js' && /\bvar\s/.test(line)) {
+                        problems.push({ row: i, column: 0, text: 'Use of `var` is discouraged. Use `let` or `const`.', type: 'warning' });
+                    }
+                    if (ext === 'py' && /print\s/.test(line) && !/print\(/.test(line)) {
+                        problems.push({ row: i, column: 0, text: 'Use `print(...)` instead of `print ...` in Python 3.', type: 'error' });
+                    }
+                });
+            }
+            H_IDE.state.lintResults[path] = problems;
+            this.setAnnotationsForPath(path);
+            this.renderProblemsPanel();
+        },
+        setAnnotationsForPath(path) {
+            Object.keys(H_IDE.state.editors).forEach(paneId => {
+                if (H_IDE.state.openFiles[paneId] && H_IDE.state.openFiles[paneId].has(path)) {
+                    const session = H_IDE.state.openFiles[paneId].get(path).session;
+                    if (session) this.setAnnotations(session, path);
+                }
+            });
+        },
+        setAnnotations(session, path) {
+             const problems = H_IDE.state.lintResults[path] || [];
+             session.setAnnotations(problems);
+        },
+        renderProblemsPanel() {
+            const container = H_IDE.dom.panel_problems;
+            container.innerHTML = '';
+            let totalProblems = 0;
+            
+            Object.entries(H_IDE.state.lintResults).forEach(([path, problems]) => {
+                if (problems.length > 0) {
+                    const fileHeader = document.createElement('div');
+                    fileHeader.className = 'p-1 font-bold'; fileHeader.textContent = path;
+                    container.appendChild(fileHeader);
+                    
+                    problems.forEach(p => {
+                        const item = document.createElement('div');
+                        item.className = 'problem-item p-1 pl-3 ml-2 text-sm cursor-pointer hover:bg-[var(--bg-hover)]';
+                        item.innerHTML = `<span class="text-[var(--text-secondary)]">Ln ${p.row + 1}:</span> ${p.text}`;
+                        item.onclick = () => {
+                            H_IDE.files.open(path); setTimeout(() => H_IDE.editor.getActiveEditor().gotoLine(p.row + 1, 0, true), 100);
+                        };
+                        container.appendChild(item);
+                        totalProblems++;
+                    });
+                }
+            });
+             H_IDE.dom.problems_count.textContent = totalProblems;
+        }
+    };
+    
+    H_IDE.git = {
+        init() {
+            const saved = localStorage.getItem('hyperide_git_v8');
+            H_IDE.state.gitChanges = saved ? new Set(JSON.parse(saved)) : new Set();
+            this.updateStatus();
+        },
+        save() { 
+            try {
+                localStorage.setItem('hyperide_git_v8', JSON.stringify([...H_IDE.state.gitChanges])); 
+            } catch(e) {
+                console.error("Failed to save git changes:", e);
+                H_IDE.ui.showNotification("Failed to save git state.", "error");
+            }
+        },
+        trackChange(path) { H_IDE.state.gitChanges.add(path); this.save(); this.renderChanges(); this.updateStatus(); },
+        commit() {
+            const msg = H_IDE.dom.git_commit_msg.value;
+            if (H_IDE.state.gitChanges.size === 0) return H_IDE.ui.showNotification('No changes to commit.', 'error');
+            if (!msg) return H_IDE.ui.showNotification('Please enter a commit message.', 'error');
+            
+            H_IDE.terminal.log(`[GIT] Committing ${H_IDE.state.gitChanges.size} files: ${msg}`);
+            H_IDE.state.gitChanges.clear(); this.save(); this.renderChanges();
+            H_IDE.dom.git_commit_msg.value = '';
+            H_IDE.ui.showNotification('Changes committed (mock).');
+            this.updateStatus();
+        },
+        renderChanges() {
+            const container = H_IDE.dom.git_changes;
+            container.innerHTML = '';
+            H_IDE.dom.git_changes_count.textContent = H_IDE.state.gitChanges.size;
+            H_IDE.state.gitChanges.forEach(path => {
+                const el = document.createElement('div');
+                el.className = 'p-1 rounded cursor-pointer flex items-center hover:bg-[var(--bg-hover)] text-sm';
+                el.title = path;
+                el.innerHTML = `<span class="text-green-400 mr-2">M</span> <span>${path.split('/').pop()}</span>`;
+                el.onclick = () => H_IDE.files.open(path);
+                container.appendChild(el);
+            });
+        },
+        updateStatus() {
+            H_IDE.dom.git_status.textContent = `Git (${H_IDE.state.gitChanges.size})`;
+        },
+        handleCommand(args) {
+            const [cmd, ...params] = args;
+            if (cmd === 'commit' && params[0] === '-m' && params[1]) {
+                H_IDE.dom.git_commit_msg.value = params.slice(1).join(' ').replace(/"/g, ''); this.commit();
+            } else if (cmd === 'status') {
+                H_IDE.terminal.log(`On branch master (mock)\nChanges to be committed:`);
+                H_IDE.state.gitChanges.forEach(path => H_IDE.terminal.log(`  modified: ${path}`));
+            } else { H_IDE.terminal.log(`git: '${cmd}' is not a valid command.`, 'error'); }
+        }
+    };
+    
+    H_IDE.search = {
+        init() {
+            H_IDE.dom.search_input.addEventListener('keydown', e => { if (e.key === 'Enter') this.performSearch(); });
+        },
+        performSearch() {
+            const query = H_IDE.dom.search_input.value;
+            if (query.length < 2) {
+                H_IDE.dom.search_results.innerHTML = '';
+                return;
+            }
+            const resultsContainer = H_IDE.dom.search_results;
+            resultsContainer.innerHTML = '';
+            const filePaths = H_IDE.fs.getAllFilePaths();
+            const searchRegex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+
+            filePaths.forEach(path => {
+                const content = H_IDE.fs.get(path).node.content;
+                const lines = content.split('\n');
+                const fileResults = [];
+                lines.forEach((line, i) => {
+                    if (line.toLowerCase().includes(query.toLowerCase())) {
+                        fileResults.push({ lineNum: i + 1, lineContent: line });
+                    }
+                });
+
+                if (fileResults.length > 0) {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'search-result-file p-1 font-bold';
+                    fileDiv.textContent = path;
+                    resultsContainer.appendChild(fileDiv);
+
+                    fileResults.forEach(res => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'search-result-item p-1 pl-4 text-sm cursor-pointer hover:bg-[var(--bg-hover)]';
+                        itemDiv.innerHTML = `<span class="text-[var(--text-inactive)]">${res.lineNum}: </span>` + 
+                                            res.lineContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                                            .replace(searchRegex, match => `<span class="match" style="background-color: var(--warning-color); color: var(--bg-primary);">${match}</span>`);
+
+                        itemDiv.onclick = () => {
+                            H_IDE.files.open(path);
+                            setTimeout(() => H_IDE.editor.getActiveEditor().gotoLine(res.lineNum, 0, true), 100);
+                        };
+                        resultsContainer.appendChild(itemDiv);
+                    });
+                }
+            });
+        }
+    };
+
+    H_IDE.preview = {
+        update(path, content) {
+            if (typeof content === 'undefined') return;
+
+            const frame = H_IDE.dom.preview_frame;
+            const ext = path ? path.split('.').pop() : '';
+            
+            if (ext === 'html') {
+                frame.srcdoc = content;
+            } else if (ext === 'md') {
+                if (typeof marked !== 'undefined') {
+                    const styledHtml = `<style>body{font-family: sans-serif; padding: 1.5rem; color: var(--text-primary); background: var(--bg-secondary);} a{color: var(--accent-primary);} code{background: var(--bg-tertiary); padding: 2px 4px; border-radius: 4px;} pre{background: var(--bg-tertiary); padding: 1rem; border-radius: 4px;}</style>${marked.parse(content)}`;
+                    frame.srcdoc = styledHtml;
+                } else {
+                    frame.srcdoc = "marked.js library not loaded.";
+                }
+            } else {
+                frame.srcdoc = `<pre style='padding:1rem;white-space:pre-wrap;word-wrap:break-word;color:var(--text-primary);background:var(--bg-secondary)'>${content.replace(/[&<>]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[t]))}</pre>`;
+            }
+        }
+    };
+
+    H_IDE.snippets = {
+        init() {
+            const saved = localStorage.getItem('hyperide_snippets_v8');
+            try {
+                H_IDE.state.userSnippets = saved ? JSON.parse(saved) : [{name: "log", code: "console.log($1);"}];
+            } catch (e) {
+                console.error("Failed to parse snippets:", e);
+                H_IDE.state.userSnippets = [];
+            }
+            this.registerSnippets();
+        },
+        get() { return H_IDE.state.userSnippets; },
+        save(snippetsText) {
+            try {
+                const parsed = JSON.parse(snippetsText);
+                H_IDE.state.userSnippets = parsed;
+                localStorage.setItem('hyperide_snippets_v8', JSON.stringify(parsed));
+                this.registerSnippets();
+                H_IDE.ui.showNotification('Snippets saved and loaded.');
+            } catch(e) {
+                H_IDE.ui.showNotification('Invalid JSON format for snippets.', 'error');
+            }
+        },
+        registerSnippets() {
+            const snippetManager = ace.require("ace/snippets").snippetManager;
+            const snippetText = H_IDE.state.userSnippets.map(s => `snippet ${s.name}\n\t${s.code.replace(/\n/g, '\n\t')}`).join('\n');
+            ['javascript', 'python', 'lua', 'html', 'css'].forEach(mode => {
+                const snippets = snippetManager.parseSnippetFile(snippetText);
+                snippetManager.register(snippets, mode);
+            });
+        }
+    };
+
+    H_IDE.formatter = {
+        formatCode(editor) {
+            if (!editor) editor = H_IDE.editor.getActiveEditor();
+            const path = H_IDE.state.activePaths[H_IDE.state.activePane];
+            if (!path) return;
+
+            // [FIX] Define prettier and prettierPlugins from window scope
+            const prettier = window.prettier;
+            const prettierPlugins = window.prettierPlugins;
+
+            if (!prettier || !prettierPlugins) {
+                return H_IDE.ui.showNotification('Formatter library not loaded.', 'error');
+            }
+
+            const ext = path.split('.').pop();
+            const parserMap = { 'js': 'babel', 'py': 'python', 'html': 'html', 'css': 'css', 'md': 'markdown' };
+            const parser = parserMap[ext];
+
+            if (!parser) {
+                return H_IDE.ui.showNotification(`Formatting not available for .${ext} files.`, 'error');
+            }
+            
+            if (!prettierPlugins[parser]) {
+                 return H_IDE.ui.showNotification(`Formatter plugin for '${parser}' not available.`, 'error');
+            }
+
+            try {
+                const unformatted = editor.getValue();
+                const formatted = prettier.format(unformatted, {
+                    parser: parser,
+                    plugins: [prettierPlugins[parser]],
+                    semi: true,
+                    singleQuote: true,
+                });
+                const pos = editor.getCursorPosition();
+                editor.setValue(formatted, 1);
+                editor.moveCursorTo(pos.row, pos.column);
+                H_IDE.ui.showNotification('Code formatted.');
+            } catch (e) {
+                H_IDE.ui.showNotification(`Failed to format code: ${e.message}`, 'error');
+                H_IDE.terminal.log(`Formatter Error: ${e.message}`, 'error');
+            }
+        }
+    };
+    
+    H_IDE.debugger = {
+        init() {
+            H_IDE.dom.debug_start_btn.onclick = () => this.start();
+            H_IDE.dom.debug_step_btn.onclick = () => this.step();
+            H_IDE.dom.debug_stop_btn.onclick = () => this.stop();
+        },
+        toggleBreakpoint(e) {
+            const editor = e.editor;
+            const session = editor.getSession();
+            const row = e.getDocumentPosition().row;
+            const paneId = Object.keys(H_IDE.state.editors).find(id => H_IDE.state.editors[id] === editor);
+            if (!paneId) return;
+
+            const path = H_IDE.state.activePaths[paneId];
+            if (!path) return;
+            const fileData = H_IDE.state.openFiles[paneId].get(path);
+            
+            if (fileData.breakpoints.has(row)) {
+                session.clearBreakpoint(row);
+                fileData.breakpoints.delete(row);
+            } else {
+                session.setBreakpoint(row, "ace_breakpoint");
+                fileData.breakpoints.add(row);
+            }
+        },
+        start() {
+            this.stop(); 
+            const paneId = H_IDE.state.activePane;
+            const path = H_IDE.state.activePaths[paneId];
+            if (!path) return H_IDE.ui.showNotification("No active file to debug.", "error");
+
+            H_IDE.state.debugger.isActive = true;
+            H_IDE.state.debugger.line = -1;
+            H_IDE.state.debugger.scope = { global: {} };
+            H_IDE.ui.switchSidebarView('debug');
+            this.step();
+        },
+        step() {
+            if (!H_IDE.state.debugger.isActive) return;
+            const paneId = H_IDE.state.activePane;
+            const editor = H_IDE.state.editors[paneId];
+            const session = editor.getSession();
+            const maxLines = session.getLength();
+
+            if (H_IDE.state.debugger.marker) session.removeMarker(H_IDE.state.debugger.marker);
+            H_IDE.state.debugger.line++;
+
+            if (H_IDE.state.debugger.line >= maxLines) {
+                this.stop();
+                return;
+            }
+            
+            const range = new ace.Range(H_IDE.state.debugger.line, 0, H_IDE.state.debugger.line, 1);
+            H_IDE.state.debugger.marker = session.addMarker(range, "ace_active-line", "fullLine");
+            editor.gotoLine(H_IDE.state.debugger.line + 1);
+
+            const lineContent = session.getLine(H_IDE.state.debugger.line);
+            const match = lineContent.match(/(\w+)\s*=\s*(.+)/);
+            if (match) {
+                H_IDE.state.debugger.scope[match[1].trim()] = match[2].trim().replace(/;$/, '');
+            }
+
+            this.updateUI();
+        },
+        stop() {
+             H_IDE.state.debugger.isActive = false;
+             const markerId = H_IDE.state.debugger.marker;
+             if (markerId) {
+                 Object.values(H_IDE.state.editors).filter(Boolean).forEach(editor => {
+                     if (editor.session) editor.session.removeMarker(markerId);
+                 });
+             }
+             H_IDE.state.debugger.marker = null;
+             this.updateUI();
+        },
+        updateUI() {
+            const { isActive, scope } = H_IDE.state.debugger;
+            H_IDE.dom.debug_variables.innerHTML = isActive ? Object.entries(scope).map(([key, value]) => `<div><span class="text-[var(--accent-secondary)]">${key}</span>: ${value}</div>`).join('') : '';
+            H_IDE.dom.debug_call_stack.innerHTML = isActive ? `<div>(anonymous)</div>` : '';
+        }
+    };
+
+    H_IDE.collaboration = {
+        init() {
+            // This is a placeholder for future real-time collaboration features.
+        }
+    };
+    
+    H_IDE.events = {
+        init() {
+            H_IDE.dom.activity_bar.addEventListener('click', e => { const view = e.target.closest('.activity-bar-icon')?.dataset.view; if (view) H_IDE.ui.switchSidebarView(view); });
+            H_IDE.dom.bottom_panel.querySelector('.tabs').addEventListener('click', e => { const panel = e.target.closest('.bottom-panel-tab')?.dataset.panel; if (panel) H_IDE.ui.switchBottomPanel(panel); });
+            H_IDE.dom.new_untitled_file_global.onclick = () => this.showNewFileModal();
+            H_IDE.dom.new_folder_global.onclick = () => this.showNewItemModal('folder');
+            H_IDE.dom.file_explorer.oncontextmenu = (e) => this.showContextMenu(e);
+            H_IDE.dom.cmd_palette_btn.onclick = () => this.showCommandPalette();
+            H_IDE.dom.beta_palette_btn.onclick = () => this.showBetaFeaturesPalette();
+            H_IDE.dom.run_btn.onclick = () => H_IDE.files.runActive();
+            H_IDE.dom.split_view_btn.onclick = () => H_IDE.layout.toggleSplitView();
+            H_IDE.dom.git_commit_btn.onclick = () => H_IDE.git.commit();
+            H_IDE.dom.save_snippets_btn.onclick = () => H_IDE.snippets.save(H_IDE.state.snippetsEditor.getValue());
+            H_IDE.dom.export_zip_btn.onclick = () => H_IDE.fs.exportZip();
+
+            H_IDE.dom.explorer_search.oninput = () => H_IDE.ui.renderExplorer();
+            H_IDE.dom.setting_theme.onchange = (e) => H_IDE.settings.update('theme', e.target.value);
+            H_IDE.dom.setting_fontsize.oninput = (e) => H_IDE.settings.update('fontSize', parseInt(e.target.value));
+            H_IDE.dom.setting_keymap.onchange = (e) => H_IDE.settings.update('keymap', e.target.value);
+            H_IDE.dom.setting_linenumbers.onchange = (e) => H_IDE.settings.update('showLineNumbers', e.target.checked);
+            H_IDE.dom.setting_minimap.onchange = (e) => H_IDE.settings.update('showMinimap', e.target.checked);
+            H_IDE.dom.setting_wordwrap.onchange = (e) => H_IDE.settings.update('wordWrap', e.target.checked);
+            H_IDE.dom.setting_autosave.onchange = (e) => H_IDE.settings.update('autoSave', e.target.checked);
+            
+            H_IDE.dom.file_importer.onchange = (e) => this.readAndCreateFiles(e.target.files);
+            const explorerEl = H_IDE.dom.view_explorer;
+            explorerEl.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+            explorerEl.addEventListener('drop', e => { e.preventDefault(); this.handleFileDrop(e); });
+            
+            document.addEventListener('click', (e) => { if (!e.target.closest('#context-menu')) H_IDE.dom.context_menu.classList.add('hidden'); });
+            
+            window.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.shiftKey && e.key === 'P') { e.preventDefault(); this.showCommandPalette(); }
+                if (e.ctrlKey && e.key === 'j') { e.preventDefault(); H_IDE.ui.toggleBottomPanel(); }
+                if (e.ctrlKey && e.shiftKey && e.key === 'E') { e.preventDefault(); H_IDE.ui.switchSidebarView('explorer'); }
+                if (e.ctrlKey && e.shiftKey && e.key === 'F') { e.preventDefault(); H_IDE.ui.switchSidebarView('search'); }
+                if (e.ctrlKey && e.shiftKey && e.key === 'G') { e.preventDefault(); H_IDE.ui.switchSidebarView('git'); }
+                if (e.ctrlKey && e.shiftKey && e.key === 'D') { e.preventDefault(); H_IDE.ui.switchSidebarView('debug'); }
+                if (e.ctrlKey && e.shiftKey && e.key === 'W') { e.preventDefault(); H_IDE.files.close(H_IDE.state.activePaths[H_IDE.state.activePane], false, H_IDE.state.activePane); }
+                if (e.key === 'Escape') { H_IDE.ui.hideModal(); H_IDE.dom.context_menu.classList.add('hidden'); }
+            });
+
+            setInterval(() => {
+                try {
+                    localStorage.setItem('hyperide_backup', JSON.stringify(H_IDE.state.fs));
+                } catch (e) {
+                    console.warn('Auto-Backup failed:', e);
+                }
+            }, 30000);
+        },
+        showNewFileModal() {
+            const content = document.createElement('div');
+            content.className = 'modal-base p-4';
+            content.innerHTML = `<h3 class="text-lg font-bold mb-4">Create New File</h3><div class="grid grid-cols-3 gap-2"></div>`;
+            const grid = content.querySelector('.grid');
+            const languages = { 'Python': 'py', 'Lua': 'lua', 'JavaScript': 'js', 'HTML': 'html', 'Markdown': 'md', 'Java': 'java' };
+            Object.entries(languages).forEach(([name, ext]) => {
+                const btn = document.createElement('button');
+                btn.className = 'p-4 rounded hover:bg-[var(--bg-hover)] bg-[var(--bg-primary)]';
+                btn.textContent = name;
+                btn.onclick = () => {
+                    H_IDE.files.openUntitled(ext);
+                    H_IDE.ui.hideModal();
+                };
+                grid.appendChild(btn);
+            });
+            H_IDE.ui.showModal(content);
+        },
+        showNewItemModal(type, basePath = '') {
+            const content = document.createElement('div'); content.className = 'modal-base p-4';
+            content.innerHTML = `<h3 class="text-lg font-bold mb-4">New ${type}</h3><input type="text" id="modal-input-name" class="modal-input" placeholder="Enter name...">`;
+            H_IDE.ui.showModal(content);
+            const input = document.getElementById('modal-input-name'); input.focus();
+            input.onkeydown = (e) => { if (e.key === 'Enter' && input.value) { const path = basePath ? `${basePath}/${input.value}` : input.value; H_IDE.fs.create(path, type); H_IDE.ui.hideModal(); } else if (e.key === 'Escape') H_IDE.ui.hideModal(); };
+        },
+        showContextMenu(e) {
+            e.preventDefault(); e.stopPropagation();
+            const target = e.target.closest('.file-item');
+            const path = target?.dataset.path || '/';
+            const isRoot = path === '/';
+            const nodeResult = H_IDE.fs.get(path);
+            const nodeType = isRoot ? 'folder' : (nodeResult ? nodeResult.node.type : null);
+            if (!nodeType) return; 
+
+            let items = [];
+            if (nodeType === 'folder') {
+                items.push({ label: 'New File', action: () => this.showNewItemModal('file', isRoot ? '' : path) });
+                items.push({ label: 'New Folder', action: () => this.showNewItemModal('folder', isRoot ? '' : path) });
+            }
+            if (!isRoot) { 
+                items.push({ label: 'Rename', action: () => this.showRenameModal(path) }); 
+                items.push({ label: 'Delete', action: () => H_IDE.ui.showConfirmModal(`Are you sure you want to delete '${path}'?`, () => H_IDE.fs.delete(path)) }); 
+            }
+            if (items.length === 0) return;
+
+            const menu = H_IDE.dom.context_menu;
+            menu.innerHTML = items.map(item => `<div class="context-menu-item px-4 py-2 hover:bg-[var(--bg-hover)] cursor-pointer" data-label="${item.label}">${item.label}</div>`).join('');
+            menu.onclick = (ev) => { 
+                const actionLabel = ev.target.dataset.label; 
+                if(actionLabel) {
+                    const actionItem = items.find(i => i.label === actionLabel);
+                    actionItem?.action(); 
+                }
+                menu.classList.add('hidden'); 
+            };
+            menu.style.left = `${e.clientX}px`; menu.style.top = `${e.clientY}px`;
+            menu.classList.remove('hidden');
+        },
+        showRenameModal(path) {
+            const oldName = path.split('/').pop();
+            const content = document.createElement('div'); content.className = 'modal-base p-4';
+            content.innerHTML = `<h3 class="text-lg font-bold mb-4">Rename</h3><input type="text" id="modal-input-rename" class="modal-input">`;
+            H_IDE.ui.showModal(content);
+            const input = document.getElementById('modal-input-rename'); input.value = oldName; input.focus(); input.select();
+            input.onkeydown = (e) => { if (e.key === 'Enter' && input.value) { H_IDE.fs.rename(path, input.value); H_IDE.ui.hideModal(); } else if (e.key === 'Escape') H_IDE.ui.hideModal(); };
+        },
+        showSaveAsModal(untitledPath, paneId) {
+            const content = document.createElement('div'); content.className = 'modal-base p-4';
+            content.innerHTML = `<h3 class="text-lg font-bold mb-4">Save As</h3><input type="text" id="modal-input-save" class="modal-input" placeholder="Enter file path (e.g., src/app.js)">`;
+            H_IDE.ui.showModal(content);
+            const input = document.getElementById('modal-input-save'); input.focus();
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter' && input.value) {
+                    const newPath = input.value;
+                    const data = H_IDE.state.openFiles[paneId].get(untitledPath); if (!data) return H_IDE.ui.hideModal();
+                    H_IDE.fs.create(newPath, 'file', data.session.getValue());
+                    H_IDE.files.close(untitledPath, true, paneId);
+                    H_IDE.files.open(newPath, paneId); 
+                    H_IDE.ui.hideModal();
+                } else if (e.key === 'Escape') H_IDE.ui.hideModal();
+            };
+        },
+        readAndCreateFiles(files) {
+            for(const file of files) {
+                const reader = new FileReader();
+                reader.onload = (e) => H_IDE.fs.create(file.name, 'file', e.target.result);
+                reader.readAsText(file);
+            }
+        },
+        handleFileDrop(event) { this.readAndCreateFiles(event.dataTransfer.files); },
+        showCommandPalette() {
+            const content = document.createElement('div'); content.className = 'modal-base';
+            content.innerHTML = `<input type="text" id="cmd-input" class="modal-input m-2" placeholder="Search files and commands..."><div id="cmd-list" class="overflow-y-auto max-h-[50vh]"></div>`;
+            H_IDE.ui.showModal(content);
+            const input = document.getElementById('cmd-input'); const list = document.getElementById('cmd-list');
+            const commands = [
+                { label: 'File: New File...', action: () => this.showNewFileModal() },
+                { label: 'File: Save Active File', action: () => H_IDE.files.save() },
+                { label: 'Edit: Format Document', action: () => H_IDE.formatter.formatCode() },
+                { label: 'View: Toggle Split View', action: () => H_IDE.layout.toggleSplitView() },
+                { label: 'Run: Run File', action: () => H_IDE.files.runActive() },
+            ];
+            const allFiles = H_IDE.fs.getAllFilePaths().map(p => ({ label: `📄 ${p}`, action: () => H_IDE.files.open(p) }));
+            const allItems = [...commands, ...allFiles];
+            this.setupPalette(input, list, allItems);
+        },
+        showBetaFeaturesPalette() {
+            const content = document.createElement('div'); content.className = 'modal-base';
+            content.innerHTML = `<input type="text" id="cmd-input" class="modal-input m-2" placeholder="Search Beta Features..."><div id="cmd-list" class="overflow-y-auto max-h-[50vh]"></div>`;
+            H_IDE.ui.showModal(content);
+            const input = document.getElementById('cmd-input'); const list = document.getElementById('cmd-list');
+            const commands = [
+                 { "label": "Beta: Toggle Auto-closing Brackets", "action": () => { let editor = H_IDE.editor.getActiveEditor(); editor.setBehavioursEnabled(!editor.getBehavioursEnabled()); H_IDE.ui.showNotification(`Auto Bracket Closing: ${editor.getBehavioursEnabled()}`) } },
+                 { "label": "Beta: Format: Add Newline at File End", "action": () => { let editor = H_IDE.editor.getActiveEditor(); editor.session.insert({row: editor.session.getLength(), column: 0}, "\n"); H_IDE.ui.showNotification("Newline added") } },
+                 { "label": "Beta: UI: Increase Font Size", "action": () => H_IDE.settings.update('fontSize', H_IDE.state.settings.fontSize + 1) },
+                 { "label": "Beta: UI: Decrease Font Size", "action": () => H_IDE.settings.update('fontSize', H_IDE.state.settings.fontSize - 1) },
+                 { "label": "Beta: UI: Show IDE Version Info", "action": () => H_IDE.ui.showNotification("HyperIDE v9.2") },
+                 { "label": "Beta: Refactor: Rename Symbol (Mock)", "action": () => H_IDE.ui.showNotification("Mock action: Symbol renamed") },
+                 { "label": "Beta: Refactor: Extract Function (Mock)", "action": () => H_IDE.ui.showNotification("Mock action: Function extracted") },
+                 { "label": "Beta: Git: Show Blame for Line", "action": () => { H_IDE.ui.showNotification("Mock: Line committed by 'user' 3 days ago") } },
+                 { "label": "Beta: Workspace: Save Session", "action": () => { H_IDE.ui.showNotification("Session state saved to local storage.") } }
+            ];
+            this.setupPalette(input, list, commands);
+        },
+        setupPalette(input, list, items) {
+            let activeIndex = 0;
+            const renderList = (query='') => {
+                const filtered = items.filter(c=>c.label.toLowerCase().includes(query.toLowerCase()));
+                list.innerHTML = filtered.map((c, i) =>`<div class="command-palette-item p-2 cursor-pointer ${i === activeIndex ? 'active' : ''}" data-label="${c.label}">${c.label}</div>`).join('');
+                if (list.querySelector('.active')) {
+                    list.querySelector('.active').scrollIntoView({ block: 'nearest' });
+                }
+            };
+            const executeAction = (label) => {
+                items.find(c=>c.label===label)?.action(); 
+                H_IDE.ui.hideModal();
+            };
+            list.onclick = (e) => { const label = e.target.closest('.command-palette-item')?.dataset.label; if(label) executeAction(label); };
+            input.oninput = () => { activeIndex = 0; renderList(input.value); };
+            input.onkeydown = (e) => {
+                const items = list.querySelectorAll('.command-palette-item');
+                if (e.key === 'Enter') {
+                   const activeItem = list.querySelector('.command-palette-item.active');
+                   if (activeItem) executeAction(activeItem.dataset.label);
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeIndex = (activeIndex + 1) % items.length;
+                    renderList(input.value);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeIndex = (activeIndex - 1 + items.length) % items.length;
+                    renderList(input.value);
+                }
+            }
+            input.focus(); renderList('');
+        }
+    };
+
+    // Initialize the Application
+    H_IDE.init();
+    
+    // Make it accessible from the console for debugging
+    window.H_IDE = H_IDE;
+</script>
+</body>
+</html>
