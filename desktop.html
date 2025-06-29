@@ -32,9 +32,33 @@
         #desktop { width: 100%; height: 100%; position: relative; }
         #taskbar { position: fixed; bottom: 0; left: 0; width: 100%; height: 55px; background: var(--color-taskbar-bg); backdrop-filter: blur(15px); border-top: 1px solid var(--color-window-border); display: flex; justify-content: center; align-items: center; padding: 0 1rem; z-index: 10000; }
         .taskbar-icons { display: flex; gap: 0.5rem; }
-        .app-icon { width: 42px; height: 42px; background-color: rgba(255, 255, 255, 0.05); border-radius: 8px; cursor: pointer; border: 1px solid transparent; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; position: relative; transition: all 0.2s ease; }
+        .app-icon { 
+            width: 42px; height: 42px; background-color: rgba(255, 255, 255, 0.05); border-radius: 8px; cursor: pointer; border: 1px solid transparent; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; position: relative; transition: all 0.2s ease; 
+            /* Notification dot container */
+            overflow: visible; /* Allow dot to spill outside */
+        }
         .app-icon:hover { background-color: rgba(255, 255, 255, 0.1); transform: translateY(-3px); }
         .app-icon.active::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background-color: var(--color-window-border-active); border-radius: 50%; }
+        
+        /* Notification dot style */
+        .notification-dot {
+            position: absolute;
+            top: -3px; /* Adjust as needed */
+            right: -3px; /* Adjust as needed */
+            width: 12px;
+            height: 12px;
+            background-color: #ff5555; /* Red color */
+            border-radius: 50%;
+            box-shadow: 0 0 5px 2px rgba(255, 85, 85, 0.5); /* Neon effect, slightly smaller */
+            animation: pulse-glow 1.5s infinite alternate;
+            z-index: 1; /* Ensure it's above the icon */
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px 2px rgba(255, 85, 85, 0.5); }
+            100% { box-shadow: 0 0 10px 4px rgba(255, 85, 85, 0.8); }
+        }
+
         .window { position: absolute; background: var(--color-window-bg); border: 1px solid var(--color-window-border); border-radius: 12px; box-shadow: var(--shadow-window); display: flex; flex-direction: column; resize: both; overflow: hidden; min-width: 400px; min-height: 300px; opacity: 0; transform: scale(0.95); animation: openWindow 0.3s forwards cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes openWindow { to { opacity: 1; transform: scale(1); } }
         .window.active { border-color: var(--color-window-border-active); }
@@ -67,15 +91,15 @@
     /**
      * JSDoc: @file desktop.js (Unified Version)
      * @description Index-Space 가상 OS의 핵심 데스크톱. iframe 로딩과 네이티브 앱을 모두 지원.
-     * @version 2.3 - 완전 통합 버전
+     * @version 2.4 - 터미널 알림 기능 통합
      */
     const IndexSpaceOS = {
         state: { windows: new Map(), activeWindowId: null, maxZIndex: 100 },
         config: {
             apps: [
-                { 
-                    id: 'welcome', 
-                    name: 'Welcome to Index-Space', 
+                {   
+                    id: 'welcome',  
+                    name: 'Welcome to Index-Space',  
                     icon: '🚀',
                     launch: (winId) => {
                         const contentEl = document.getElementById(`content-${winId}`);
@@ -98,22 +122,91 @@
                     }
                 },
                 { id: 'fileExplorer', name: 'File Explorer', icon: '📁', url: './FileExplorer.html' },
-                { id: 'terminal', name: 'Terminal', icon: '👨‍💻', url: './Terminal.html' },
-                { id: 'editor', name: 'Code Editor', icon: '📝', url: './Editor.html' },
+                { id: 'terminal', name: 'Terminal', icon: '👨‍💻', url: './terminal.html' }, // Updated URL to .html
+                { id: 'editor', name: 'Code Editor', icon: '📝', url: './editor.html' },   // Updated URL to .html
                 { id: 'settings', name: 'Settings', icon: '⚙️', url: './Settings.html' },
                 { id: 'arcade', name: 'Arcade', icon: '🎮', url: './Arcade.html' },
             ]
         },
         dom: {},
+        terminalDotTimeout: null, // For managing the notification dot timeout
+        
         init() {
             this.dom = { desktop: document.getElementById('desktop'), taskbarIcons: document.getElementById('taskbar-icons') };
             this.TaskbarManager.init(this);
             this.WindowManager.init(this);
+            this.setupInterWindowCommunication(); // Setup message listener
+            
             // Launch Welcome app on startup
             const welcomeApp = this.config.apps.find(a => a.id === 'welcome');
             if (welcomeApp) {
                 this.WindowManager.launchApp(welcomeApp);
             }
+        },
+
+        // New function to handle terminal activity notification
+        handleTerminalActivity() {
+            const terminalAppIcon = document.querySelector('.app-icon[data-app-id="terminal"]');
+            if (!terminalAppIcon) return;
+
+            let notificationDot = terminalAppIcon.querySelector('.notification-dot');
+            if (!notificationDot) {
+                notificationDot = document.createElement('div');
+                notificationDot.id = 'terminal-notification-dot'; // Add ID for direct access if needed
+                notificationDot.className = 'notification-dot';
+                terminalAppIcon.appendChild(notificationDot);
+            }
+            notificationDot.classList.remove('hidden'); // Show the dot
+            
+            // Clear any previous timeout to keep the dot visible longer
+            clearTimeout(this.terminalDotTimeout);
+            this.terminalDotTimeout = setTimeout(() => {
+                notificationDot.classList.add('hidden');
+                notificationDot.remove(); // Remove dot from DOM after hiding
+            }, 5000); // Hide after 5 seconds of no activity
+        },
+
+        setupInterWindowCommunication() {
+            window.addEventListener('message', (event) => {
+                // Ensure messages are from expected origins for security (in production)
+                // if (event.origin !== window.location.origin) return; 
+
+                const { type, payload } = event.data;
+
+                switch (type) {
+                    case 'terminalActivity':
+                        this.handleTerminalActivity();
+                        break;
+                    case 'appReady':
+                        // When an app (like editor.html or terminal.html) sends 'appReady'
+                        const appInstance = this.config.apps.find(app => app.id === payload.appId);
+                        if (appInstance) {
+                            // Find the window DOM element for this app
+                            const windowEl = document.querySelector(`#${payload.windowId} iframe`);
+                            if (windowEl && windowEl.contentWindow) {
+                                // Store the iframe's window object for direct communication
+                                // This is crucial for editor to talk to terminal and vice-versa
+                                appInstance.iframeWindow = windowEl.contentWindow;
+
+                                console.log(`Desktop: ${payload.appId} iframe ready.`);
+                                // If editor is ready and terminal is already open, tell editor about terminal
+                                if (payload.appId === 'editor' && IndexSpaceOS.config.apps.find(a => a.id === 'terminal')?.iframeWindow) {
+                                    const terminalWin = IndexSpaceOS.config.apps.find(a => a.id === 'terminal').iframeWindow;
+                                    event.source.postMessage({ type: 'terminalWindowRef', payload: { terminalWindow: terminalWin } }, '*');
+                                    console.log('Desktop: Sent terminal ref to editor.');
+                                }
+                                // If terminal is ready and editor is already open, tell terminal about editor (if needed)
+                                if (payload.appId === 'terminal' && IndexSpaceOS.config.apps.find(a => a.id === 'editor')?.iframeWindow) {
+                                    const editorWin = IndexSpaceOS.config.apps.find(a => a.id === 'editor').iframeWindow;
+                                    event.source.postMessage({ type: 'editorWindowRef', payload: { editorWindow: editorWin } }, '*');
+                                    console.log('Desktop: Sent editor ref to terminal (if needed).');
+                                }
+                            }
+                        }
+                        break;
+                    // Add other message types if needed
+                }
+            });
         }
     };
 
@@ -124,6 +217,7 @@
             this.app = app;
             this.os = os;
             this.options = options;
+            this.iframe = null; // Store iframe element if applicable
             this.create();
             this.bindEvents();
         }
@@ -175,24 +269,54 @@
             
             if (this.app.launch) {
                 // Native app with custom launch function
-                this.app.launch(this.id);
+                contentEl.innerHTML = ''; // Clear placeholder
+                contentEl.classList.add('has-content'); // Ensure proper padding/line-height
+                this.app.launch(this.id); // Pass window ID to native app for content rendering
             } else if (this.app.url) {
                 // iframe-based app
                 contentEl.classList.add('has-iframe');
-                contentEl.innerHTML = '';
-                const iframe = document.createElement('iframe');
-                iframe.src = this.app.id + ".html"; // Convention: use app ID as filename
-                contentEl.appendChild(iframe);
+                contentEl.innerHTML = ''; // Clear placeholder
+                this.iframe = document.createElement('iframe'); // Store reference to iframe
+                this.iframe.src = this.app.url;
+                this.iframe.onload = () => {
+                    // Send appReady message from iframe to parent (desktop)
+                    // and send iframe window reference to parent
+                    if (this.iframe && this.iframe.contentWindow) {
+                        this.iframe.contentWindow.postMessage({ type: 'appReady', payload: { appId: this.app.id, windowId: this.id } }, '*');
+                        // Store iframe's window object in app config for direct communication
+                        this.app.iframeWindow = this.iframe.contentWindow;
+
+                        // Immediately send the other app's iframeWindow if it exists
+                        // Editor needs terminal, Terminal needs editor for some commands
+                        const otherAppId = (this.app.id === 'editor') ? 'terminal' : ((this.app.id === 'terminal') ? 'editor' : null);
+                        if (otherAppId) {
+                            const otherApp = this.os.config.apps.find(a => a.id === otherAppId);
+                            if (otherApp && otherApp.iframeWindow) {
+                                // Inform this new iframe about the existing other iframe
+                                this.iframe.contentWindow.postMessage({ 
+                                    type: (otherAppId === 'terminal' ? 'terminalWindowRef' : 'editorWindowRef'),
+                                    payload: {
+                                        [otherAppId === 'terminal' ? 'terminalWindow' : 'editorWindow']: otherApp.iframeWindow 
+                                    }
+                                }, '*');
+                            }
+                        }
+                    }
+                };
+                contentEl.appendChild(this.iframe);
             } else {
                 // Fallback placeholder
                 contentEl.classList.add('has-content');
-                contentEl.innerHTML = `<div class="placeholder-content">Content for ${this.app.name} will be loaded here.</div>`;
+                contentHTML = `<div class="placeholder-content">Content for ${this.app.name} will be loaded here.</div>`;
+                contentEl.innerHTML = contentHTML;
             }
         }
         
         bindEvents() {
             const header = this.el.querySelector('.window-header');
             const closeBtn = this.el.querySelector('.close-btn');
+            const minimizeBtn = this.el.querySelector('.minimize-btn');
+            const maximizeBtn = this.el.querySelector('.maximize-btn');
             
             // Window dragging
             header.addEventListener('mousedown', (e) => {
@@ -220,25 +344,76 @@
             // Close button
             closeBtn.addEventListener('click', () => this.os.WindowManager.close(this.id));
             
+            // Minimize button (simple hide/show for now)
+            minimizeBtn.addEventListener('click', () => {
+                this.el.style.display = 'none';
+                this.os.TaskbarManager.update(); // Update taskbar icon active state
+                // If minimized window was active, focus another or null
+                if (this.os.state.activeWindowId === this.id) {
+                    const remainingWindows = Array.from(this.os.state.windows.keys()).filter(winId => this.os.state.windows.get(winId).el.style.display !== 'none' && winId !== this.id);
+                    this.os.state.activeWindowId = remainingWindows.length > 0 ? remainingWindows[0] : null;
+                    if (this.os.state.activeWindowId) {
+                        this.os.WindowManager.focus(this.os.state.activeWindowId);
+                    }
+                }
+            });
+
+            // Maximize button (toggle full screen/restore)
+            maximizeBtn.addEventListener('click', () => {
+                if (this.el.classList.contains('maximized')) {
+                    // Restore from maximized
+                    this.el.style.width = this.lastWidth || '80vw';
+                    this.el.style.height = this.lastHeight || '70vh';
+                    this.el.style.left = this.lastLeft || 'calc(50% - 40vw)';
+                    this.el.style.top = this.lastTop || 'calc(50% - 35vh)';
+                    this.el.classList.remove('maximized');
+                    this.el.style.resize = 'both'; // Enable resize
+                } else {
+                    // Maximize
+                    this.lastWidth = this.el.style.width;
+                    this.lastHeight = this.el.style.height;
+                    this.lastLeft = this.el.style.left;
+                    this.lastTop = this.el.style.top;
+
+                    this.el.style.width = '100vw';
+                    this.el.style.height = 'calc(100vh - 55px)'; // Full height minus taskbar
+                    this.el.style.left = '0';
+                    this.el.style.top = '0';
+                    this.el.classList.add('maximized');
+                    this.el.style.resize = 'none'; // Disable resize when maximized
+                }
+                // Important: Trigger resize on iframe content if it exists
+                if (this.iframe && this.iframe.contentWindow && this.iframe.contentWindow.H_IDE && this.iframe.contentWindow.H_IDE.settings) {
+                    this.iframe.contentWindow.H_IDE.settings.resizeAllEditors(); // For editor.html specifically
+                }
+            });
+            
             // Focus on click
             this.el.addEventListener('mousedown', () => this.os.WindowManager.focus(this.id), true);
         }
         
-        destroy() { 
-            this.el.remove(); 
+        destroy() {  
+            // Clean up iframeWindow reference in app config when window is closed
+            if (this.app.iframeWindow) {
+                this.app.iframeWindow = null;
+            }
+            this.el.remove();  
         }
     }
 
     /** WindowManager: Manages all window operations with support for both iframe and native apps. */
     IndexSpaceOS.WindowManager = {
-        init(os) { 
-            this.os = os; 
+        init(os) {  
+            this.os = os;  
         },
         
         launchApp(app, options = {}) {
-            // Prevent multiple instances of the same app (except for special cases)
+            // Check if app is already open. If so, focus it or restore it if minimized.
             for (const win of this.os.state.windows.values()) {
                 if (win.app.id === app.id) {
+                    if (win.el.style.display === 'none') { // If minimized
+                        win.el.style.display = 'flex'; // Restore it
+                    }
                     this.focus(win.id);
                     return;
                 }
@@ -259,8 +434,8 @@
             this.os.state.windows.forEach((win, winId) => {
                 const isActive = winId === id;
                 win.el.classList.toggle('active', isActive);
-                if (isActive) { 
-                    win.el.style.zIndex = this.os.state.maxZIndex; 
+                if (isActive) {  
+                    win.el.style.zIndex = this.os.state.maxZIndex;  
                 }
             });
             
@@ -272,8 +447,8 @@
             if (win) {
                 win.destroy();
                 this.os.state.windows.delete(id);
-                if (this.os.state.activeWindowId === id) { 
-                    this.os.state.activeWindowId = null; 
+                if (this.os.state.activeWindowId === id) {  
+                    this.os.state.activeWindowId = null;  
                 }
                 this.os.TaskbarManager.update();
             }
@@ -282,10 +457,10 @@
     
     /** TaskbarManager: Renders and manages taskbar icons with intelligent filtering. */
     IndexSpaceOS.TaskbarManager = {
-        init(os) { 
-            this.os = os; 
-            this.render(); 
-            this.bindEvents(); 
+        init(os) {  
+            this.os = os;  
+            this.render();  
+            this.bindEvents();  
         },
         
         render() {
@@ -299,6 +474,15 @@
                 iconEl.dataset.appId = app.id;
                 iconEl.title = app.name;
                 iconEl.textContent = app.icon;
+
+                // Add notification dot placeholder for terminal
+                if (app.id === 'terminal') {
+                    const dot = document.createElement('div');
+                    dot.id = 'terminal-notification-dot';
+                    dot.className = 'notification-dot hidden';
+                    iconEl.appendChild(dot);
+                }
+
                 this.os.dom.taskbarIcons.appendChild(iconEl);
             });
         },
@@ -309,8 +493,8 @@
                 if (icon) {
                     const appId = icon.dataset.appId;
                     const app = this.os.config.apps.find(a => a.id === appId);
-                    if (app) { 
-                        this.os.WindowManager.launchApp(app); 
+                    if (app) {  
+                        this.os.WindowManager.launchApp(app);  
                     }
                 }
             });
@@ -318,7 +502,11 @@
         
         update() {
             const openAppIds = new Set();
-            this.os.state.windows.forEach(win => openAppIds.add(win.app.id));
+            this.os.state.windows.forEach(win => {
+                if (win.el.style.display !== 'none') { // Only count visible windows as "open"
+                    openAppIds.add(win.app.id);
+                }
+            });
             
             this.os.dom.taskbarIcons.querySelectorAll('.app-icon').forEach(icon => {
                 icon.classList.toggle('active', openAppIds.has(icon.dataset.appId));
