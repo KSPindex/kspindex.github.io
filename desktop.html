@@ -3,219 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index-Space :: Reimagined</title>
+    <title>Index-Space :: Desktop (Core)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* --- [Core Styles & New Design System] --- */
         :root {
             --color-background: #0D1117;
             --color-text-primary: #E6EDF3;
             --color-text-secondary: #8B949E;
-            
-            --color-button-bg: #21262D;
-            --color-button-bg-hover: #30363D;
-            --color-button-border: #30363D;
-            
+            --color-window-bg: #161B22;
+            --color-window-header: #0D1117;
+            --color-window-border: #30363D;
+            --color-window-border-active: #58A6FF;
+            --color-taskbar-bg: rgba(22, 27, 34, 0.7);
             --color-accent-primary: #4A5588;
             --color-accent-secondary: #303651;
-
             --font-primary: 'Inter', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
+            --shadow-window: 0 20px 50px rgba(0, 0, 0, 0.4);
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: var(--color-background);
-            color: var(--color-text-primary);
-            font-family: var(--font-primary);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background-color: var(--color-background); color: var(--color-text-primary); font-family: var(--font-primary); user-select: none; }
+        #aurora-background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
+        .aurora-shape { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.1; animation: drift 25s infinite alternate; }
+        .shape1 { width: 70vw; height: 70vw; top: -20%; left: -20%; background: var(--color-accent-primary); }
+        .shape2 { width: 60vw; height: 60vw; bottom: -20%; right: -20%; background: var(--color-accent-secondary); animation-duration: 35s; }
+        @keyframes drift { from { transform: translate(0, 0) rotate(0deg) scale(1); } to { transform: translate(10vw, 5vh) rotate(45deg) scale(1.2); } }
+        #desktop { width: 100%; height: 100%; position: relative; }
+        #taskbar { position: fixed; bottom: 0; left: 0; width: 100%; height: 55px; background: var(--color-taskbar-bg); backdrop-filter: blur(15px); border-top: 1px solid var(--color-window-border); display: flex; justify-content: center; align-items: center; padding: 0 1rem; z-index: 10000; }
+        .taskbar-icons { display: flex; gap: 0.5rem; }
+        .app-icon { width: 42px; height: 42px; background-color: rgba(255, 255, 255, 0.05); border-radius: 8px; cursor: pointer; border: 1px solid transparent; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; position: relative; transition: all 0.2s ease; }
+        .app-icon:hover { background-color: rgba(255, 255, 255, 0.1); transform: translateY(-3px); }
+        .app-icon.active::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background-color: var(--color-window-border-active); border-radius: 50%; }
+        .window { position: absolute; background: var(--color-window-bg); border: 1px solid var(--color-window-border); border-radius: 12px; box-shadow: var(--shadow-window); display: flex; flex-direction: column; resize: both; overflow: hidden; min-width: 400px; min-height: 300px; opacity: 0; transform: scale(0.95); animation: openWindow 0.3s forwards cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes openWindow { to { opacity: 1; transform: scale(1); } }
+        .window.active { border-color: var(--color-window-border-active); }
+        .window-header { width: 100%; height: 36px; background: var(--color-window-header); cursor: move; display: flex; align-items: center; justify-content: flex-start; padding: 0 10px; flex-shrink: 0; border-bottom: 1px solid var(--color-window-border); }
+        .window-controls { display: flex; gap: 8px; margin-right: auto; }
+        .control-btn { width: 12px; height: 12px; border-radius: 50%; border: none; cursor: pointer; }
+        .close-btn { background-color: #FF5F57; }
+        .minimize-btn { background-color: #FEBC2E; }
+        .maximize-btn { background-color: #28C840; }
+        .window-title { color: var(--color-text-secondary); font-size: 0.85rem; text-align: center; flex-grow: 1; padding-right: 70px; }
+        .window-content { flex-grow: 1; overflow-y: auto; padding: 1.5rem; line-height: 1.7;}
+        .placeholder-content { display: flex; justify-content: center; align-items: center; height: 100%; color: var(--color-text-secondary); }
         
-        /* --- [Dynamic Background] --- */
-        #aurora-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-            background: radial-gradient(ellipse at center, rgba(13, 17, 23, 0) 0%, var(--color-background) 100%);
-        }
-        .aurora-shape {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.15;
-            animation: drift 20s infinite alternate;
-        }
-        .shape1 {
-            width: 600px;
-            height: 600px;
-            top: -150px;
-            left: -150px;
-            background: var(--color-accent-primary);
-        }
-        .shape2 {
-            width: 500px;
-            height: 500px;
-            bottom: -100px;
-            right: -100px;
-            background: var(--color-accent-secondary);
-            animation-duration: 25s;
-        }
-        @keyframes drift {
-            from { transform: translate(0, 0) rotate(0deg); }
-            to { transform: translate(100px, 50px) rotate(30deg); }
-        }
-
-        /* --- [Main Content Layout] --- */
-        .content-wrapper {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 2rem;
-            opacity: 0;
-            animation: fadeIn 1.5s 0.5s forwards;
-        }
-        @keyframes fadeIn {
-            to { opacity: 1; }
-        }
-        
-        /* --- [Title & Subtitle] --- */
-        .main-title {
-            font-size: clamp(2.5rem, 8vw, 5rem);
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 1rem;
-            animation: slideUp 1s 1s forwards;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        .main-title .highlight {
-            color: var(--color-accent-primary);
-        }
-        .subtitle {
-            font-size: clamp(1rem, 3vw, 1.25rem);
-            color: var(--color-text-secondary);
-            max-width: 600px;
-            margin-bottom: 2.5rem;
-            animation: slideUp 1s 1.2s forwards;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        
-        @keyframes slideUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* --- [Start Now Button - New Design] --- */
-        .start-now-link {
-            text-decoration: none;
-        }
-        .start-now-button {
-            font-family: var(--font-primary);
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: var(--color-text-primary);
-            background-color: var(--color-button-bg);
-            padding: 1rem 2.5rem;
-            border-radius: 12px;
-            border: 1px solid var(--color-button-border);
-            cursor: pointer;
-            position: relative;
-            
-            /* Soft Inner Shadow for depth */
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 
-                        0 10px 30px rgba(0,0,0,0.2);
-
-            transition: all 0.3s ease;
-            
-            animation: slideUp 1s 1.4s forwards;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        .start-now-button:hover {
-            background-color: var(--color-button-bg-hover);
-            transform: translateY(-3px);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 
-                        0 0 15px 5px rgba(74, 85, 136, 0.2),
-                        0 15px 30px rgba(0,0,0,0.3);
-        }
-        .start-now-button:active {
-            transform: translateY(0px);
-        }
-
+        /* Welcome App Specific Styles */
+        .welcome-content h2 { font-size: 1.8rem; font-weight: 700; color: var(--color-window-border-active); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-window-border); }
+        .welcome-content h3 { font-size: 1.2rem; font-weight: 500; color: var(--color-text-primary); margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        .welcome-content p { color: var(--color-text-secondary); font-size: 1rem; margin-bottom: 1rem; }
+        .welcome-content strong { color: var(--color-text-primary); font-weight: 500; }
     </style>
 </head>
 <body>
-    <div id="aurora-background">
-        <div class="aurora-shape shape1"></div>
-        <div class="aurora-shape shape2"></div>
-    </div>
-
-    <main class="content-wrapper">
-        <h1 class="main-title">
-            Welcome to <span class="highlight">Index-Space</span>
-        </h1>
-        <p class="subtitle">
-            A purely client-side virtual operating system, crafted with native web technologies. Explore the possibilities within your browser.
-        </p>
-        <a href="#" id="start-link" class="start-now-link">
-            <button class="start-now-button">Start Now</button>
-        </a>
-    </main>
-
+    <div id="aurora-background"><div class="aurora-shape shape1"></div><div class="aurora-shape shape2"></div></div>
+    <div id="desktop"></div>
+    <div id="taskbar"><div id="taskbar-icons" class="taskbar-icons"></div></div>
+    
     <script>
     /**
-     * JSDoc: @file index.js (v2.1)
-     * @description Index-Space의 새로운 진입 페이지 스크립트.
-     * 현대적인 UI와 부드러운 애니메이션에 중점을 둡니다.
-     * @author Gemini
+     * JSDoc: @file desktop.js v2.2 (Welcome App Restored)
+     * @description Index-Space 가상 OS의 핵심 데스크톱. 시작 시 Welcome 앱을 실행.
      */
+    const IndexSpaceOS = {
+        state: { windows: new Map(), activeWindowId: null, maxZIndex: 100 },
+        config: {
+            apps: [
+                { 
+                    id: 'welcome', 
+                    name: 'Welcome to Index-Space', 
+                    icon: '🚀',
+                    launch: (winId) => {
+                        const contentEl = document.getElementById(`content-${winId}`);
+                        contentEl.classList.add('welcome-content');
+                        contentEl.innerHTML = `
+                            <h2>탄생 (The Genesis)</h2>
+                            <p>웹의 발전은 눈부셨지만, 우리는 그 과정에서 무언가를 잃어버렸습니다. 수많은 프레임워크와 라이브러리의 추상화 계층 아래, 웹 기술의 순수한 본질은 희미해졌습니다. 개발자는 더 이상 DOM을 직접 제어하지 않고, CSS의 동작 원리를 깊이 고민하지 않으며, JavaScript의 무한한 가능성을 스스로 탐험하기보다 정해진 틀에 자신을 맞추게 되었습니다.</p>
+                            <p><strong>Index-Space</strong>는 이러한 현실에 대한 철학적 반기이자 기술적 도전입니다. "만약 현대 웹브라우저라는 강력한 기반 위에서, 외부 의존성 없이 순수한 네이티브 기술만으로 하나의 완전한 운영체제를 구축한다면 어떨까?" 라는 질문에서 이 프로젝트는 시작되었습니다. 이것은 단순한 웹사이트가 아닌, 브라우저의 한계를 시험하고 웹 개발의 근본으로 회귀하려는 하나의 선언입니다.</p>
+                            
+                            <h2>철학 (Our Philosophy)</h2>
+                            <h3>1. 순수함과 성능 (Purity and Performance)</h3>
+                            <p>Index-Space의 모든 코드는 외부 라이브러리 없이 직접 작성되었습니다. 창 관리 시스템, 가상 파일 시스템, 애플리케이션 런처, 심지어 이 창을 움직이는 로직까지 모두 순수 JavaScript로 구현되었습니다. 이는 불필요한 코드 없이 최적의 성능을 보장하며, 개발자가 모든 것의 동작 원리를 명확히 이해할 수 있게 합니다.</p>
+                            
+                            <h3>2. 제한 없는 창의성 (Unbounded Creativity)</h3>
+                            <p>이곳은 당신의 샌드박스입니다. 서버의 제약도, 복잡한 빌드 과정도 없습니다. 브라우저가 허용하는 모든 것은 Index-Space 안에서 가능합니다. VFS에 파일을 저장하고, 자체 제작 에디터로 코드를 수정하며, 즉시 실행되는 애플리케이션을 만들어 보세요. 당신의 아이디어가 유일한 한계입니다.</p>
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const startLink = document.getElementById('start-link');
-        
-        // 이 예제에서는 데모를 위해 가상의 desktop.html로 이동합니다.
-        // 실제 구현에서는 이 부분이 라우팅 로직을 처리하게 됩니다.
-        startLink.addEventListener('click', (e) => {
-            e.preventDefault();
+                            <h3>3. 깊이 있는 학습 (Deep Learning)</h3>
+                            <p>Index-Space는 결과물인 동시에 과정 그 자체입니다. 이 시스템의 소스 코드를 들여다보는 것은 현대 운영체제의 핵심 구성 요소들이 어떻게 원시적인 웹 기술로부터 탄생하는지를 목격하는 여정입니다. 이는 모든 웹 개발자에게 자신의 기술 스택에 대한 깊이 있는 통찰력과 자신감을 부여할 것입니다.</p>
+                        `;
+                    }
+                },
+                { id: 'fileExplorer', name: 'File Explorer', icon: '📁', url: './FileExplorer.html' },
+                { id: 'terminal', name: 'Terminal', icon: '👨‍💻', url: './Terminal.html' },
+                { id: 'editor', name: 'Code Editor', icon: '📝', url: './Editor.html' },
+                { id: 'settings', name: 'Settings', icon: '⚙️', url: './Settings.html' },
+                { id: 'arcade', name: 'Arcade', icon: '🎮', url: './Arcade.html' },
+            ]
+        },
+        dom: {},
+        init() {
+            this.dom = { desktop: document.getElementById('desktop'), taskbarIcons: document.getElementById('taskbar-icons') };
+            this.TaskbarManager.init(this);
+            this.WindowManager.init(this);
+            // Launch Welcome app on startup
+            const welcomeApp = this.config.apps.find(a => a.id === 'welcome');
+            if (welcomeApp) {
+                this.WindowManager.launchApp(welcomeApp);
+            }
+        }
+    };
+
+    /** @class Window - Represents a single application window. */
+    class Window {
+        constructor(app, os, options = {}) {
+            this.id = `win-${Date.now()}`;
+            this.app = app;
+            this.os = os;
+            this.options = options;
+            this.create();
+            this.bindEvents();
+        }
+        create() {
+            this.el = document.createElement('div');
+            this.el.id = this.id;
+            this.el.className = 'window';
+            this.el.style.width = this.options.width || '720px';
+            this.el.style.height = this.options.height || '500px';
+            const windowCount = this.os.state.windows.size;
+            const offsetX = (windowCount % 10) * 20;
+            const offsetY = (windowCount % 10) * 20;
+            this.el.style.left = `calc(50% - ${parseInt(this.el.style.width) / 2}px + ${offsetX}px)`;
+            this.el.style.top = `calc(50% - ${parseInt(this.el.style.height) / 2}px + ${offsetY}px)`;
             
-            // 페이지 전환 효과
-            document.body.style.transition = 'opacity 0.5s ease-out';
-            document.body.style.opacity = '0';
-            
-            setTimeout(() => {
-                // 실제 프로젝트에서는 아래 라인을 사용하여 페이지를 이동합니다.
-                // window.location.href = './desktop.html';
-                
-                // 데모용 알림
-                alert("성공적으로 데스크톱 페이지로 이동되었습니다! (실제로는 desktop.html로 이동합니다)");
-                document.body.style.opacity = '1';
+            let contentHTML = `<div class="placeholder-content">Loading ${this.app.name}...</div>`;
+            // If the app has a specific launch function (like Welcome), it will override this.
+            if(this.app.url) {
+                contentHTML = `<div class="placeholder-content">Loading ${this.app.name}... <br/>(This will navigate to ${this.app.url})</div>`;
+            }
 
-            }, 500);
-        });
-    });
+            this.el.innerHTML = `
+                <div class="window-header">
+                    <div class="window-controls">
+                        <button class="control-btn close-btn" title="Close"></button>
+                        <button class="control-btn minimize-btn" title="Minimize"></button>
+                        <button class="control-btn maximize-btn" title="Maximize"></button>
+                    </div>
+                    <span class="window-title">${this.app.name}</span>
+                </div>
+                <div class="window-content" id="content-${this.id}">${contentHTML}</div>
+            `;
+            this.os.dom.desktop.appendChild(this.el);
 
+            if (this.app.launch) {
+                this.app.launch(this.id);
+            }
+        }
+        bindEvents() {
+            const header = this.el.querySelector('.window-header');
+            const closeBtn = this.el.querySelector('.close-btn');
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.control-btn')) return;
+                this.os.WindowManager.focus(this.id);
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const initialX = this.el.offsetLeft;
+                const initialY = this.el.offsetTop;
+                const doDrag = (moveEvent) => {
+                    this.el.style.left = `${initialX + moveEvent.clientX - startX}px`;
+                    this.el.style.top = `${initialY + moveEvent.clientY - startY}px`;
+                };
+                const stopDrag = () => { document.removeEventListener('mousemove', doDrag); document.removeEventListener('mouseup', stopDrag); };
+                document.addEventListener('mousemove', doDrag);
+                document.addEventListener('mouseup', stopDrag);
+            });
+            closeBtn.addEventListener('click', () => this.os.WindowManager.close(this.id));
+            this.el.addEventListener('mousedown', () => this.os.WindowManager.focus(this.id), true);
+        }
+        destroy() { this.el.remove(); }
+    }
+
+    /** WindowManager: Manages all window operations. */
+    IndexSpaceOS.WindowManager = {
+        init(os) { this.os = os; },
+        launchApp(app, options = {}) {
+            // Prevent multiple instances of the same app
+            for (const win of this.os.state.windows.values()) {
+                if (win.app.id === app.id) {
+                    this.focus(win.id);
+                    return;
+                }
+            }
+            const newWindow = new Window(app, this.os, options);
+            this.os.state.windows.set(newWindow.id, newWindow);
+            this.focus(newWindow.id);
+            this.os.TaskbarManager.update();
+        },
+        focus(id) {
+            if (this.os.state.activeWindowId === id) return;
+            this.os.state.activeWindowId = id;
+            this.os.state.maxZIndex++;
+            this.os.state.windows.forEach((win, winId) => {
+                const isActive = winId === id;
+                win.el.classList.toggle('active', isActive);
+                if (isActive) { win.el.style.zIndex = this.os.state.maxZIndex; }
+            });
+            this.os.TaskbarManager.update();
+        },
+        close(id) {
+            const win = this.os.state.windows.get(id);
+            if (win) {
+                win.destroy();
+                this.os.state.windows.delete(id);
+                if (this.os.state.activeWindowId === id) { this.os.state.activeWindowId = null; }
+                this.os.TaskbarManager.update();
+            }
+        }
+    };
+    
+    /** TaskbarManager: Renders and manages taskbar icons. */
+    IndexSpaceOS.TaskbarManager = {
+        init(os) { this.os = os; this.render(); this.bindEvents(); },
+        render() {
+            this.os.dom.taskbarIcons.innerHTML = '';
+            this.os.config.apps.forEach(app => {
+                // Welcome 앱은 작업 표시줄에 표시하지 않음
+                if (app.id === 'welcome') return;
+                const iconEl = document.createElement('div');
+                iconEl.className = 'app-icon';
+                iconEl.dataset.appId = app.id;
+                iconEl.title = app.name;
+                iconEl.textContent = app.icon;
+                this.os.dom.taskbarIcons.appendChild(iconEl);
+            });
+        },
+        bindEvents() {
+            this.os.dom.taskbarIcons.addEventListener('click', (e) => {
+                const icon = e.target.closest('.app-icon');
+                if (icon) {
+                    const appId = icon.dataset.appId;
+                    const app = this.os.config.apps.find(a => a.id === appId);
+                    if (app) { this.os.WindowManager.launchApp(app); }
+                }
+            });
+        },
+        update() {
+            const openAppIds = new Set();
+            this.os.state.windows.forEach(win => openAppIds.add(win.app.id));
+            this.os.dom.taskbarIcons.querySelectorAll('.app-icon').forEach(icon => {
+                icon.classList.toggle('active', openAppIds.has(icon.dataset.appId));
+            });
+        }
+    };
+    
+    document.addEventListener('DOMContentLoaded', () => IndexSpaceOS.init());
     </script>
 </body>
 </html>
