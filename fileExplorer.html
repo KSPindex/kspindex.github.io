@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete File Explorer v7.0 - Index-Space</title>
+    <title>Complete File Explorer v7.2 - Index-Space</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -213,14 +213,14 @@
 
 
         /* List View Specific Styles */
-        .file-list {
+        .content-area.file-list {
             display: flex;
             flex-direction: column;
             gap: 2px;
             padding: 0; /* Remove padding from content-area if list-header is used */
         }
 
-        .file-list .file-item {
+        .content-area.file-list .file-item {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -228,17 +228,17 @@
             background: var(--color-surface-1); /* Slightly different background for list items */
             border: none; /* Remove border for list items */
         }
-        .file-list .file-item:hover {
+        .content-area.file-list .file-item:hover {
              background: rgba(255,255,255,0.05);
              transform: none;
         }
-        .file-list .file-item.selected {
+        .content-area.file-list .file-item.selected {
             background: var(--color-selection-bg);
             border-left: 3px solid var(--color-accent);
             box-shadow: none;
         }
 
-        .file-list .file-item-icon {
+        .content-area.file-list .file-item-icon {
             font-size: 1.5em; /* Smaller icons for list view */
             width: 24px;
             height: 24px;
@@ -247,7 +247,7 @@
             justify-content: center;
         }
 
-        .file-list .file-item-name {
+        .content-area.file-list .file-item-name {
             flex-grow: 1; /* Take up remaining space */
             margin-bottom: 0;
             white-space: nowrap; /* Prevent wrapping */
@@ -255,13 +255,13 @@
             text-overflow: ellipsis; /* Show ellipsis for overflow */
         }
 
-        .file-list .file-item-meta {
+        .content-area.file-list .file-item-meta {
             width: 100px; /* Fixed width for size/date in list view */
             text-align: right;
             flex-shrink: 0; /* Prevent shrinking */
         }
-        .file-list .file-item-meta.list-col-size { width: 80px; }
-        .file-list .file-item-meta.list-col-date { width: 150px; }
+        .content-area.file-list .file-item-meta.list-col-size { width: 80px; }
+        .content-area.file-list .file-item-meta.list-col-date { width: 150px; }
 
 
         .list-header {
@@ -294,26 +294,27 @@
         .list-col-date { width: 150px; text-align: right; }
 
         /* Grid View Specific Styles */
-        .file-grid {
+        .content-area.file-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Smaller grid items */
             gap: 16px;
+            padding: 16px; /* Reset padding for grid view */
         }
 
-        .file-grid .file-item {
+        .content-area.file-grid .file-item {
             flex-direction: column;
             text-align: center;
             padding: 16px 8px;
         }
 
-        .file-grid .file-item-icon {
+        .content-area.file-grid .file-item-icon {
             font-size: 2.5em;
             width: 60px;
             height: 60px;
             margin-bottom: 8px;
         }
 
-        .file-grid .file-item-name {
+        .content-area.file-grid .file-item-name {
             margin-bottom: 4px;
             height: 3em; /* Allow 2-3 lines of text */
             display: -webkit-box;
@@ -322,7 +323,7 @@
             overflow: hidden;
         }
 
-        .file-grid .file-item-meta {
+        .content-area.file-grid .file-item-meta {
             display: block;
         }
 
@@ -451,6 +452,38 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
+        /* Properties Modal specific styles */
+        .properties-content {
+            text-align: left;
+            width: 100%;
+            max-width: 400px; /* Constrain width for properties table */
+            margin: 0 auto; /* Center the content */
+            padding-bottom: 1.5rem;
+        }
+
+        .properties-content table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        .properties-content td {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .properties-content td:first-child {
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            padding-right: 20px;
+            width: 35%; /* Adjust label width */
+        }
+
+        .properties-content td:last-child {
+            color: var(--color-text-primary);
+            word-break: break-all;
+        }
+
         .modal-buttons {
             display: flex;
             justify-content: center;
@@ -481,9 +514,7 @@
         /* Utility */
         .hidden { display: none !important; }
 
-    </style>
-</head>
-<body>
+    </style></head><body>
     <main id="app-container" class="app-container"></main>
     <div id="context-menu-container"></div>
     <div id="modal-container"></div>
@@ -495,8 +526,8 @@
 
     <script>
     /**
-     * Complete File Explorer v7.0 - Final Script
-     * A fully-featured, browser-only file explorer with advanced capabilities.
+     * Complete File Explorer v7.2 - Final Script
+     * Added Properties/Details modal for files and folders.
      */
     const App = {
         init() {
@@ -513,40 +544,89 @@
                 this.Modal.init(this);
                 this.DragDrop.init(this);
                 this.FileExplorer.init(this);
+            }).catch(error => {
+                console.error("Failed to initialize VFS:", error);
+                alert("File Explorer failed to initialize. Please check console for errors.");
             });
         }
     };
 
     App.VFS = {
-        DB_NAME: 'IndexSpace_VFS_v7', db: null,
+        DB_NAME: 'IndexSpace_VFS_v7_2', // Changed DB name for new version to force re-initialization
+        DB_VERSION: 1, // Explicitly set version
+        db: null,
+
         init() {
             return new Promise((resolve, reject) => {
-                const req = indexedDB.open(this.DB_NAME, 1);
+                const req = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+
                 req.onupgradeneeded = e => {
                     const db = e.target.result;
                     if (!db.objectStoreNames.contains('nodes')) {
                         const store = db.createObjectStore('nodes', { keyPath: 'id' });
+                        // Index for efficient listing of children by parentId and name for uniqueness
                         store.createIndex('path', ['parentId', 'name'], { unique: true });
+                        // Add other indexes if needed for search performance (e.g., by type, size)
                     }
                 };
+
                 req.onsuccess = async e => {
                     this.db = e.target.result;
+                    // Ensure 'path' index exists (important for older DBs if upgraded manually)
+                    if (!this.db.objectStoreNames.contains('nodes') || !this.db.transaction('nodes', 'readonly').objectStore('nodes').indexNames.contains('path')) {
+                        // This case should ideally be handled by onupgradeneeded for higher versions
+                        console.warn("IndexedDB 'nodes' store or 'path' index missing. Data might be inconsistent.");
+                    }
                     await this.initDefaultFS();
                     resolve();
                 };
-                req.onerror = reject;
+
+                req.onerror = e => {
+                    console.error("IndexedDB error:", e.target.error);
+                    reject(e.target.error);
+                };
             });
         },
+
         async initDefaultFS() {
-            if (!(await this.getNodeByPath('/'))) {
-                await this.mkdir('/');
-                await this.mkdir('/Home');
-                await this.mkdir('/Documents');
-                await this.write('/Documents/README.txt', 'Welcome to Index-Space File Explorer v7.0!\n\nTry:\n- Double-clicking this file to edit it.\n- Dragging files into this window to upload.\n- Right-clicking for more options.\n- Using keyboard shortcuts (Del, F2, Ctrl+C/X/V).\n- Navigating to the .trash folder to restore items.');
-                await this.write('/Documents/image_example.png', new Blob([], { type: 'image/png' })); // Placeholder for image
-                await this.mkdir('/.trash');
+            // Check for root node
+            let rootNode = await this._runTx('nodes', 'readonly', s => s.get('/'));
+            if (!rootNode) {
+                // If root doesn't exist, create it. name is empty for root as it's the root of the path
+                await this._runTx('nodes', 'readwrite', s => s.add({ id: '/', type: 'folder', name: '', parentId: null, ctime: new Date(), mtime: new Date(), size: 0 }));
+            }
+
+            // Create default folders if they don't exist
+            const defaultPaths = ['/Home', '/Documents', '/.trash'];
+            for (const path of defaultPaths) {
+                if (!(await this.getNodeByPath(path))) {
+                    try {
+                        await this.mkdir(path);
+                    } catch (e) {
+                        console.warn(`Failed to create default folder ${path}: ${e.message}`);
+                    }
+                }
+            }
+
+            // Create a default README.txt if it doesn't exist
+            const readmePath = '/Documents/README.txt';
+            if (!(await this.getNodeByPath(readmePath))) {
+                await this.write(readmePath, 'Welcome to Index-Space File Explorer v7.2!\n\nTry:\n- Double-clicking this file to edit it.\n- Dragging files into this window to upload.\n- Right-clicking for more options.\n- Using keyboard shortcuts (Del, F2, Ctrl+C/X/V).\n- Navigating to the .trash folder to restore items.');
+            }
+
+            // Placeholder for an image example (if you want to test image viewing without uploading)
+            const imageExamplePath = '/Documents/image_example.png';
+            if (!(await this.getNodeByPath(imageExamplePath))) {
+                // To have a real image, you'd need to convert base64 or fetch.
+                // For now, we'll just create an empty Blob to make the item appear.
+                // For actual image viewing, you'd need to upload a real image.
+                // Or use a small base64 image here for testing:
+                const base64Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="; // 1x1 transparent pixel
+                const blob = await fetch(base64Image).then(res => res.blob());
+                await this.write(imageExamplePath, blob);
             }
         },
+
         async _runTx(storeName, mode, operation) {
             return new Promise((resolve, reject) => {
                 const tx = this.db.transaction(storeName, mode);
@@ -555,6 +635,7 @@
                 try {
                     req = operation(store);
                 } catch (e) {
+                    tx.abort(); // Abort transaction if operation itself throws
                     reject(e);
                     return;
                 }
@@ -563,51 +644,112 @@
                 tx.onabort = () => reject(tx.error);
             });
         },
+
         async _getNewId() { return `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`; },
+
         async mkdir(path) {
             if (path === '/') {
                 const existingRoot = await this.getNode('/');
                 if (!existingRoot) {
+                    // Only add if not already there, name is empty for root for path index
                     return this._runTx('nodes', 'readwrite', s => s.add({ id: '/', type: 'folder', name: '', parentId: null, ctime: new Date(), mtime: new Date(), size: 0 }));
                 }
                 return existingRoot.id;
             }
             const { parentPath, name } = this._parsePath(path);
             const parent = await this.getNodeByPath(parentPath);
-            if (!parent || parent.type !== 'folder') throw new Error(`Invalid path: Parent not found or not a folder`);
+            if (!parent || parent.type !== 'folder') throw new Error(`Invalid path: Parent folder '${parentPath}' not found or not a folder`);
 
-            // Check if item with same name already exists
+            // Check if item with same name already exists in target parent
             const existingNode = await this._runTx('nodes', 'readonly', s => s.index('path').get([parent.id, name]));
-            if (existingNode) throw new Error(`Item with name '${name}' already exists in '${parentPath}'`);
+            if (existingNode) throw new Error(`An item named '${name}' already exists in '${parentPath}'`);
 
             const id = await this._getNewId();
             await this._runTx('nodes', 'readwrite', s => s.add({ id, parentId: parent.id, name, type: 'folder', ctime: new Date(), mtime: new Date(), size: 0 }));
             return id;
         },
+
         async write(path, content = '') {
             const { parentPath, name } = this._parsePath(path);
             const parent = await this.getNodeByPath(parentPath);
-            if (!parent || parent.type !== 'folder') throw new Error(`Parent not found or not a folder`);
+            if (!parent || parent.type !== 'folder') throw new Error(`Parent folder '${parentPath}' not found or not a folder`);
+
+            let nodeData;
+            let mimeType = '';
+            let size = 0;
+
+            if (content instanceof Blob) {
+                mimeType = content.type || 'application/octet-stream';
+                size = content.size;
+            } else { // Assume string content
+                mimeType = 'text/plain';
+                size = new TextEncoder().encode(String(content)).length; // Accurate byte size for string
+            }
 
             const existingNode = await this._runTx('nodes', 'readonly', s => s.index('path').get([parent.id, name]));
-            const id = existingNode ? existingNode.id : await this._getNewId();
-            const size = content instanceof Blob ? content.size : new Blob([String(content)]).size;
             const now = new Date();
+            const id = existingNode ? existingNode.id : await this._getNewId();
 
-            const nodeData = { id, parentId: parent.id, name, type: 'file', content, size, ctime: existingNode ? existingNode.ctime : now, mtime: now };
+            nodeData = {
+                id,
+                parentId: parent.id,
+                name,
+                type: 'file',
+                content, // Store Blob or String directly
+                size,
+                mimeType, // Store MIME type for Blobs
+                ctime: existingNode ? existingNode.ctime : now,
+                mtime: now
+            };
 
             if (existingNode) {
-                await this._runTx('nodes', 'readwrite', s => s.put(nodeData));
+                await this._runTx('nodes', 'readwrite', s => s.put(nodeData)); // Update existing
             } else {
-                await this._runTx('nodes', 'readwrite', s => s.add(nodeData));
+                await this._runTx('nodes', 'readwrite', s => s.add(nodeData)); // Add new
             }
             return id;
         },
+
+        // New function to read file content safely
+        async read(id, format = 'string') { // format can be 'string', 'blob', 'dataurl'
+            const node = await this.getNode(id);
+            if (!node || node.type !== 'file') throw new Error('Not a file or file not found.');
+
+            if (node.content instanceof Blob) {
+                if (format === 'blob') return node.content;
+                if (format === 'string') return await node.content.text();
+                if (format === 'dataurl') {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(node.content);
+                    });
+                }
+                return node.content; // Default to Blob if format not recognized
+            } else { // Assume content is string
+                if (format === 'string') return String(node.content || '');
+                // Attempt to convert string to Blob for download/dataurl if needed, but might lose original mimeType
+                if (format === 'blob') return new Blob([String(node.content || '')], { type: node.mimeType || 'text/plain' });
+                if (format === 'dataurl') {
+                    const blob = new Blob([String(node.content || '')], { type: node.mimeType || 'text/plain' });
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                }
+                return String(node.content || '');
+            }
+        },
+
         async list(path) {
             const p = await this.getNodeByPath(path);
             if (!p) return [];
             return this._runTx('nodes', 'readonly', s => s.index('path').getAll(IDBKeyRange.bound([p.id, ''], [p.id, '\uffff'])));
         },
+
         async delete(id) {
             const n = await this.getNode(id);
             if (!n) return;
@@ -617,9 +759,12 @@
             }
             await this._runTx('nodes', 'readwrite', s => s.delete(id));
         },
+
         async rename(id, newName) {
             const nodeToRename = await this.getNode(id);
             if (!nodeToRename) throw new Error('Node not found for rename.');
+            if (nodeToRename.id === '/') throw new Error("Cannot rename root folder.");
+
             const parent = await this.getNode(nodeToRename.parentId);
             if (parent) {
                 const existing = await this._runTx('nodes', 'readonly', s => s.index('path').get([parent.id, newName]));
@@ -637,14 +782,26 @@
                 }
             });
         },
+
         async move(id, newParentPath) {
             const targetParent = await this.getNodeByPath(newParentPath);
             if (!targetParent || targetParent.type !== 'folder') throw new Error(`Invalid target path: '${newParentPath}' is not a folder or does not exist.`);
 
             const nodeToMove = await this.getNode(id);
             if (!nodeToMove) throw new Error('Node not found for move.');
-
+            if (nodeToMove.id === '/') throw new Error("Cannot move root folder.");
             if (nodeToMove.parentId === targetParent.id) return; // Already in target folder
+
+            // Prevent moving a folder into itself or its sub-folder
+            let currentCheckId = targetParent.id;
+            while(currentCheckId && currentCheckId !== '/') {
+                if (currentCheckId === nodeToMove.id) {
+                    throw new Error("Cannot move a folder into itself or its sub-folder.");
+                }
+                const checkNode = await this.getNode(currentCheckId);
+                currentCheckId = checkNode ? checkNode.parentId : null;
+            }
+
 
             // Check for name conflict in target folder
             const existingNodeInTarget = await this._runTx('nodes', 'readonly', s => s.index('path').get([targetParent.id, nodeToMove.name]));
@@ -661,6 +818,7 @@
                 }
             });
         },
+
         async copy(id, newParentPath) {
             const n = await this.getNode(id);
             if(!n) return;
@@ -670,19 +828,20 @@
 
             let newName = n.name;
             let counter = 1;
-            let targetPath = `${newParentPath === '/' ? '' : newParentPath}/${newName}`;
+            let targetPathFull = `${newParentPath === '/' ? '' : newParentPath}/${newName}`;
 
             // Handle naming conflicts for copy
-            while (await this.getNodeByPath(targetPath)) {
+            while (await this.getNodeByPath(targetPathFull)) {
                 const nameParts = n.name.split('.');
-                if (nameParts.length > 1 && counter === 1) { // First try with "(Copy)" before extension
-                     newName = `${nameParts.slice(0, -1).join('.')}(Copy).${nameParts[nameParts.length - 1]}`;
-                } else if (nameParts.length > 1) { // Subsequent tries with (Copy X)
-                    newName = `${nameParts.slice(0, -1).join('.')}(Copy ${counter}).${nameParts[nameParts.length - 1]}`;
-                } else { // No extension
-                    newName = `${n.name}(Copy ${counter})`;
+                const baseName = nameParts.slice(0, -1).join('.');
+                const ext = nameParts.length > 1 ? `.${nameParts[nameParts.length - 1]}` : '';
+
+                if (counter === 1) { // First try with "(Copy)" before extension
+                     newName = `${baseName}(Copy)${ext}`;
+                } else { // Subsequent tries with (Copy X)
+                    newName = `${baseName}(Copy ${counter})${ext}`;
                 }
-                targetPath = `${newParentPath === '/' ? '' : newParentPath}/${newName}`;
+                targetPathFull = `${newParentPath === '/' ? '' : newParentPath}/${newName}`;
                 counter++;
             }
 
@@ -694,52 +853,71 @@
                 }
                 return newFolderId;
             } else {
-                const newFileId = await this.write(`${newParentPath === '/' ? '' : newParentPath}/${newName}`, n.content);
+                // Ensure content is copied, not just reference
+                const copiedContent = n.content instanceof Blob ? n.content : String(n.content || '');
+                const newFileId = await this.write(`${newParentPath === '/' ? '' : newParentPath}/${newName}`, copiedContent);
                 return newFileId;
             }
         },
+
         async getNode(id) {
             return this._runTx('nodes', 'readonly', s => s.get(id));
         },
+
         async getNodeByPath(path) {
             if (path === '/') return this.getNode('/');
             let pid = '/';
             let n = null;
-            const pathParts = path.split('/').filter(p => p);
+            // Filter(Boolean) removes empty strings from split, preventing // issues
+            const pathParts = path.split('/').filter(Boolean);
             for (const name of pathParts) {
                 n = await this._runTx('nodes', 'readonly', s => s.index('path').get([pid, name]));
-                if (!n) return null;
+                if (!n) return null; // Part of path not found
                 pid = n.id;
             }
-            return n;
+            return n; // Return the final node
         },
+
         async constructPath(id) {
             if (id === '/') return '/';
             let p = [];
             let n = await this.getNode(id);
-            while (n && n.parentId !== null) { // Changed condition to parentId !== null for root
+            if (!n) return null; // Node not found
+
+            while (n && n.parentId !== null) { // Stop when parentId is null (root)
                 p.unshift(n.name);
-                if (n.parentId === '/') break;
+                if (n.parentId === '/') break; // Stop at the actual root folder node
                 n = await this.getNode(n.parentId);
             }
             return `/${p.join('/')}`;
         },
+
         _parsePath(path) {
             const p = path.split('/').filter(Boolean);
-            const n = p.pop() || '';
-            const pp = `/${p.join('/')}`;
-            return { parentPath: pp, name: n };
+            const name = p.pop() || ''; // Last part is name, or empty string for root
+            const parentPath = `/${p.join('/')}`; // Remaining parts form parent path
+            return { parentPath: parentPath === '' ? '/' : parentPath, name }; // Ensure root parent is '/'
         },
+
         async findNodesByContent(query) {
             const results = [];
+            const lowerCaseQuery = query.toLowerCase();
             await this._runTx('nodes', 'readonly', store => {
                 const request = store.openCursor();
-                request.onsuccess = e => {
+                request.onsuccess = async e => {
                     const cursor = e.target.result;
                     if (cursor) {
                         const node = cursor.value;
-                        if (node.type === 'file' && typeof node.content === 'string' && node.content.toLowerCase().includes(query.toLowerCase())) {
-                            results.push(node);
+                        // Only search text content for text-like files, defined by mimeType starting with 'text/'
+                        if (node.type === 'file' && node.mimeType && node.mimeType.startsWith('text/')) {
+                            try {
+                                const contentString = await this.read(node.id, 'string');
+                                if (contentString.toLowerCase().includes(lowerCaseQuery)) {
+                                    results.push(node);
+                                }
+                            } catch (readError) {
+                                console.warn(`Could not read content for search: ${node.name}`, readError);
+                            }
                         }
                         cursor.continue();
                     }
@@ -783,15 +961,17 @@
             this.container.appendChild(menu);
 
             // Post-render position adjustment for bounds
-            const rect = menu.getBoundingClientRect();
-            if (rect.right > window.innerWidth) {
-                menu.style.left = `${x - rect.width}px`;
-            }
-            if (rect.bottom > window.innerHeight) {
-                menu.style.top = `${y - rect.height}px`;
-            }
-
-            setTimeout(() => menu.classList.add('visible'), 0);
+            // Must be done AFTER appending to DOM so getBoundingClientRect is accurate
+            setTimeout(() => {
+                const rect = menu.getBoundingClientRect();
+                if (rect.right > window.innerWidth) {
+                    menu.style.left = `${Math.max(0, x - rect.width)}px`; // Ensure it doesn't go off left edge
+                }
+                if (rect.bottom > window.innerHeight) {
+                    menu.style.top = `${Math.max(0, y - rect.height)}px`; // Ensure it doesn't go off top edge
+                }
+                menu.classList.add('visible');
+            }, 0);
         },
         hide() { this.container.innerHTML = ''; }
     };
@@ -827,10 +1007,10 @@
             this.container.querySelector('.cancel-btn').onclick = () => { this.close(); if(onCancel) onCancel(); };
             this.container.querySelector('.confirm-btn').onclick = () => { this.close(); onConfirm(); };
         },
-        prompt({ title, message, defaultValue = '', onConfirm }) {
+        prompt({ title, message, defaultValue = '', onConfirm, onCancel }) {
             const content = `<h3>${title}</h3><p>${message}</p><input type="text" value="${defaultValue}" class="modal-input" style="width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 4px; border: 1px solid var(--color-border); background: var(--color-surface-2); color: var(--color-text-primary);" />`;
             const buttons = `<button class="cancel-btn">Cancel</button><button class="confirm-btn primary-btn">OK</button>`;
-            this._createModal(content, buttons);
+            this._createModal(content, buttons, onCancel);
 
             const input = this.container.querySelector('.modal-input');
             input.focus();
@@ -841,12 +1021,13 @@
                     onConfirm(input.value);
                 } else if (e.key === 'Escape') {
                     this.close();
+                    if(onCancel) onCancel();
                 }
             };
-            this.container.querySelector('.cancel-btn').onclick = () => { this.close(); };
+            this.container.querySelector('.cancel-btn').onclick = () => { this.close(); if(onCancel) onCancel(); };
             this.container.querySelector('.confirm-btn').onclick = () => { this.close(); onConfirm(input.value); };
         },
-        viewFile({ title, contentHtml, onSave }) {
+        viewFile({ title, contentHtml, onSave, onClose }) {
             let buttons = '';
             if (onSave) {
                 buttons = `<button class="save-btn success-btn">Save</button><button class="close-btn">Close</button>`;
@@ -854,7 +1035,7 @@
                 buttons = `<button class="close-btn primary-btn">Close</button>`;
             }
             const content = `<h3>${title}</h3><div class="file-viewer-content">${contentHtml}</div>`;
-            this._createModal(content, buttons);
+            this._createModal(content, buttons, onClose); // Pass onClose to _createModal
 
             if (onSave) {
                 this.container.querySelector('.save-btn').onclick = () => {
@@ -863,7 +1044,14 @@
                     this.close();
                 };
             }
-            this.container.querySelector('.close-btn').onclick = () => { this.close(); };
+            this.container.querySelector('.close-btn').onclick = () => { this.close(); if(onClose) onClose(); };
+        },
+        // New modal type for showing properties
+        showProperties({ title, contentHtml, onClose }) {
+            const content = `<h3>${title}</h3><div class="properties-content">${contentHtml}</div>`;
+            const buttons = `<button class="close-btn primary-btn">Close</button>`;
+            this._createModal(content, buttons, onClose);
+            this.container.querySelector('.close-btn').onclick = () => { this.close(); if(onClose) onClose(); };
         },
         close() {
             this.container.innerHTML = '';
@@ -875,23 +1063,33 @@
         init(app) {
             this.app = app;
             this.overlay = app.dom.dragOverlay;
-            window.addEventListener('dragenter', e => this.onDragEnter(e));
-            this.overlay.addEventListener('dragleave', e => this.onDragLeave(e));
+            // Use window for dragenter/dragleave to show/hide overlay globally
+            window.addEventListener('dragenter', this.onWindowDragEnter.bind(this));
+            window.addEventListener('dragleave', this.onWindowDragLeave.bind(this));
             this.overlay.addEventListener('dragover', e => e.preventDefault()); // Necessary to allow drop
-            this.overlay.addEventListener('drop', e => this.onDrop(e));
+            this.overlay.addEventListener('drop', this.onDrop.bind(this));
         },
-        onDragEnter(e) {
+        dragCounter: 0, // To handle nested dragenter/dragleave events
+        onWindowDragEnter(e) {
             e.preventDefault();
+            this.dragCounter++;
             this.overlay.classList.add('active');
         },
-        onDragLeave(e) {
-            if(e.target === this.overlay) this.overlay.classList.remove('active');
+        onWindowDragLeave(e) {
+            e.preventDefault();
+            this.dragCounter--;
+            // Only hide if the cursor is actually leaving the window/app
+            if (this.dragCounter === 0) {
+                this.overlay.classList.remove('active');
+            }
         },
         async onDrop(e) {
             e.preventDefault();
+            this.dragCounter = 0; // Reset counter
             this.overlay.classList.remove('active');
             const files = e.dataTransfer.files;
             if (files.length > 0) {
+                // Ensure the FileExplorer's upload function is called with proper context
                 await this.app.FileExplorer.uploadFiles(files);
             }
         }
@@ -960,12 +1158,26 @@
             this.bindEvents();
         },
         async render() {
-            let items = await this.app.VFS.list(this.currentPath);
+            let items = [];
+            try {
+                items = await this.app.VFS.list(this.currentPath);
+            } catch (error) {
+                console.error(`Error listing items for path ${this.currentPath}:`, error);
+                alert(`Error loading folder: ${error.message}`);
+                // Attempt to navigate to root if current path is broken
+                if (this.currentPath !== '/') {
+                    this.navigate('/');
+                    return;
+                }
+                items = []; // Clear items if path is truly broken
+            }
+
 
             // Apply search filter
             const searchTerm = this.dom.searchBar.value.toLowerCase();
             if (searchTerm) {
                 const pathFiltered = items.filter(item => item.name.toLowerCase().includes(searchTerm));
+                // Only search content for text-like files, and only if search term exists
                 const contentFiltered = await this.app.VFS.findNodesByContent(searchTerm);
                 // Combine and de-duplicate results
                 items = [...new Map([...pathFiltered, ...contentFiltered].map(item => [item.id, item])).values()];
@@ -975,13 +1187,22 @@
             const fileTypeFilterValue = this.dom.fileTypeFilter.value;
             if (fileTypeFilterValue !== 'all') {
                 items = items.filter(item => {
-                    const ext = item.type === 'file' ? item.name.split('.').pop().toLowerCase() : '';
+                    const ext = item.type === 'file' && item.name.includes('.') ? item.name.split('.').pop().toLowerCase() : '';
                     switch (fileTypeFilterValue) {
                         case 'folder': return item.type === 'folder';
-                        case 'text': return item.type === 'file' && ['txt', 'md', 'js', 'html', 'css'].includes(ext);
-                        case 'image': return item.type === 'file' && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
-                        case 'archive': return item.type === 'file' && ['zip', 'rar'].includes(ext);
-                        case 'other': return item.type === 'file' && !['txt', 'md', 'js', 'html', 'css', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'zip', 'rar'].includes(ext);
+                        case 'text': return item.type === 'file' && ['txt', 'md', 'js', 'html', 'css', 'json', 'xml'].includes(ext);
+                        case 'image': return item.type === 'file' && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext);
+                        case 'archive': return item.type === 'file' && ['zip', 'rar', 'tar', 'gz'].includes(ext);
+                        case 'other':
+                            // Exclude known types
+                            return item.type === 'file' && ![
+                                'txt', 'md', 'js', 'html', 'css', 'json', 'xml', // Text
+                                'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', // Images
+                                'zip', 'rar', 'tar', 'gz', // Archives
+                                'mp3', 'wav', 'ogg', // Audio (if you add audio icons)
+                                'mp4', 'webm', 'ogv', // Video (if you add video icons)
+                                'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx' // Documents (if you add doc icons)
+                            ].includes(ext);
                         default: return true;
                     }
                 });
@@ -1046,13 +1267,6 @@
             e.dataset.id = item.id;
             e.draggable = true; // Enable drag
 
-            // Dynamic class based on view mode
-            if (this.listView) {
-                e.classList.add('list-view');
-            } else {
-                e.classList.add('grid-view');
-            }
-
             e.innerHTML = `
                 <div class="file-item-icon">${this.getIcon(item)}</div>
                 <div class="file-item-name">${item.name}</div>
@@ -1066,10 +1280,17 @@
 
             t.querySelector('.back-btn').onclick = () => this.navigateHistory(-1);
             t.querySelector('.fwd-btn').onclick = () => this.navigateHistory(1);
-            t.querySelector('.up-btn').onclick = () => this.navigate(this.app.VFS._parsePath(this.currentPath).parentPath);
+            t.querySelector('.up-btn').onclick = () => {
+                const parsedPath = this.app.VFS._parsePath(this.currentPath);
+                if (parsedPath.parentPath !== this.currentPath) { // Prevent navigating up from root
+                    this.navigate(parsedPath.parentPath);
+                }
+            };
             t.querySelector('.upload-btn').onclick = () => this.app.dom.fileUploader.click();
             this.app.dom.fileUploader.onchange = async e => {
-                await this.uploadFiles(e.target.files);
+                if (e.target.files.length > 0) {
+                    await this.uploadFiles(e.target.files);
+                }
                 e.target.value = null; // Clear input for next upload
             };
 
@@ -1112,9 +1333,14 @@
                 e.stopPropagation();
                 const itemEl = e.target.closest('.file-item');
                 // Ensure context menu is shown for selected items or the clicked item
-                if (itemEl && !this.selection.has(itemEl.dataset.id)) {
-                    this.selection.clear();
-                    this.selection.add(itemEl.dataset.id);
+                if (itemEl) {
+                    if (!this.selection.has(itemEl.dataset.id)) {
+                        this.selection.clear();
+                        this.selection.add(itemEl.dataset.id);
+                        this.updateSelection();
+                    }
+                } else {
+                    this.selection.clear(); // Clear selection if right-clicked on empty space
                     this.updateSelection();
                 }
                 this.app.ContextMenu.show(e.clientX, e.clientY, itemEl ? this.getItemContextMenu() : this.getGridContextMenu());
@@ -1124,10 +1350,10 @@
                 el.onclick = () => this.navigate(el.dataset.path);
             });
 
-            // Keyboard Shortcuts
+            // Keyboard Shortcuts (global listener for most actions)
             document.addEventListener('keydown', e => this.handleKeyboardShortcut(e));
 
-            // Drag and Drop (inside explorer)
+            // Drag and Drop (inside explorer) - for items being dragged *within* the explorer
             this.dom.contentArea.ondragstart = e => {
                 const itemEl = e.target.closest('.file-item');
                 if(itemEl){
@@ -1143,24 +1369,41 @@
 
             this.dom.contentArea.ondragover = e => {
                 e.preventDefault();
-                const targetItemEl = e.target.closest('.file-item');
+                // Remove all previous drag-over highlights
                 this.dom.contentArea.querySelectorAll('.file-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+                const targetItemEl = e.target.closest('.file-item');
                 if (targetItemEl) {
                     this.app.VFS.getNode(targetItemEl.dataset.id).then(node => {
-                        // Prevent dragging into itself or its children
-                        const isSelfOrChild = [...this.selection].some(selectedId => {
-                            let current = selectedId;
-                            while(current) {
-                                if (current === node.id) return true;
-                                const selectedNode = this.items.find(i => i.id === current);
-                                current = selectedNode ? selectedNode.parentId : null;
-                                if (current === '/') break; // Stop at root
+                        // Prevent dragging a folder onto itself or into its children
+                        if (node.type === 'folder') {
+                            const selectedIds = [...this.selection];
+                            let isInvalidTarget = false;
+                            for (const selectedId of selectedIds) {
+                                // Check if target node is the same as a selected node
+                                if (selectedId === node.id) {
+                                    isInvalidTarget = true;
+                                    break;
+                                }
+                                // Check if target node is a child of a selected folder
+                                let currentParentId = node.parentId;
+                                while(currentParentId) {
+                                    if (currentParentId === selectedId) {
+                                        const selectedNode = this.items.find(item => item.id === selectedId);
+                                        if (selectedNode && selectedNode.type === 'folder') {
+                                            isInvalidTarget = true;
+                                            break;
+                                        }
+                                    }
+                                    const parentNode = this.items.find(item => item.id === currentParentId);
+                                    currentParentId = parentNode ? parentNode.parentId : null;
+                                }
+                                if (isInvalidTarget) break;
                             }
-                            return false;
-                        });
 
-                        if (node.type === 'folder' && !isSelfOrChild) {
-                            targetItemEl.classList.add('drag-over');
+                            if (!isInvalidTarget) {
+                                targetItemEl.classList.add('drag-over');
+                            }
                         }
                     });
                 }
@@ -1191,31 +1434,45 @@
 
                 const draggedItemIds = JSON.parse(e.dataTransfer.getData('text/plain'));
                 for(const id of draggedItemIds) {
-                    const itemPath = await this.app.VFS.constructPath(id);
-                    const itemParsed = this.app.VFS._parsePath(itemPath);
-                    if (itemParsed.parentPath !== targetPath && id !== targetPath) { // Prevent moving to self or into own child
-                        try {
-                            await this.app.VFS.move(id, targetPath);
-                        } catch (error) {
-                            alert(`Error moving ${itemParsed.name}: ${error.message}`);
-                        }
+                    const itemNode = await this.app.VFS.getNode(id);
+                    if (!itemNode) continue;
+
+                    const itemCurrentPath = await this.app.VFS.constructPath(id);
+                    const itemParsed = this.app.VFS._parsePath(itemCurrentPath);
+
+                    if (itemNode.parentId === (await this.app.VFS.getNodeByPath(targetPath))?.id) {
+                        // Item already in target folder, skip
+                        continue;
+                    }
+
+                    try {
+                        await this.app.VFS.move(id, targetPath);
+                    } catch (error) {
+                        alert(`Error moving '${itemParsed.name}': ${error.message}`);
                     }
                 }
                 this.render();
             };
         },
         handleKeyboardShortcut(e) {
-            // Check if focus is not on path bar or search bar during shortcuts
+            // Check if focus is not on path bar or search bar or renaming element during shortcuts
             const activeEl = document.activeElement;
-            const isInputFocused = activeEl === this.dom.pathBar || activeEl === this.dom.searchBar || activeEl.classList.contains('renaming');
-            if (isInputFocused && !['Enter', 'Escape'].includes(e.key)) return;
+            const isInputFocused = activeEl === this.dom.pathBar ||
+                                   activeEl === this.dom.searchBar ||
+                                   activeEl.classList.contains('renaming') ||
+                                   activeEl.tagName === 'TEXTAREA'; // For modal textareas
+
+            if (isInputFocused && !['Enter', 'Escape'].includes(e.key)) {
+                // Allow Enter and Escape for input fields
+                return;
+            }
 
             const isCtrlOrCmd = e.ctrlKey || e.metaKey; // metaKey for Cmd on Mac
 
             switch (e.key) {
                 case 'Delete':
-                case 'Backspace': // Treat Backspace as Delete for convenience
-                    if (this.selection.size > 0) {
+                case 'Backspace': // Treat Backspace as Delete for convenience outside inputs
+                    if (this.selection.size > 0 && !isInputFocused) {
                         e.preventDefault(); // Prevent browser back navigation for Backspace
                         this.deleteSelection();
                     }
@@ -1294,6 +1551,10 @@
                     const lastIdx = allItems.findIndex(el => el.dataset.id === this.lastClickedId);
                     const currentIdx = allItems.findIndex(el => el.dataset.id === id);
                     const [start, end] = [lastIdx, currentIdx].sort((a,b)=>a-b);
+                    // Clear existing selection only if it's not part of the shift-selection
+                    if (!(e.ctrlKey || e.metaKey)) { // Only clear if Ctrl/Cmd isn't held
+                       this.selection.clear();
+                    }
                     for (let i = start; i <= end; i++) {
                         this.selection.add(allItems[i].dataset.id);
                     }
@@ -1303,9 +1564,14 @@
                     } else {
                         this.selection.add(id);
                     }
-                } else {
-                    this.selection.clear();
-                    this.selection.add(id);
+                } else { // No modifier key
+                    // If already selected and only one item selected, don't clear (for rename)
+                    if (this.selection.size === 1 && this.selection.has(id)) {
+                        // Do nothing, keep selection
+                    } else {
+                        this.selection.clear();
+                        this.selection.add(id);
+                    }
                 }
                 this.lastClickedId = id;
             } else { // Clicked on empty space
@@ -1321,12 +1587,14 @@
             const isTrashFolder = this.currentPath === '/.trash';
 
             let items = [
-                { label: 'Open', action: () => {
+                { label: 'Open', action: async () => {
                     if (isSingleSelection) {
-                        const itemEl = this.dom.contentArea.querySelector(`[data-id="${selectedItemIds[0]}"]`);
-                        if (itemEl) itemEl.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+                        const node = await this.app.VFS.getNode(selectedItemIds[0]);
+                        if (node) this.openFileInViewer(node);
                     }
-                }, disabled: !isSingleSelection },
+                }, disabled: !isSingleSelection || this.items.find(i => i.id === selectedItemIds[0])?.type !== 'file' },
+                // --- Properties (Added) ---
+                { label: '속성 (Properties)', action: () => this.showProperties(selectedItemIds[0]), disabled: !isSingleSelection },
                 null,
                 { label: 'Cut (Ctrl+X)', action: () => this.cutSelection(), disabled: !hasSelection || isTrashFolder },
                 { label: 'Copy (Ctrl+C)', action: () => this.copySelection(), disabled: !hasSelection || isTrashFolder },
@@ -1337,7 +1605,7 @@
                         const selectedEl = this.dom.contentArea.querySelector(`[data-id="${selectedItemIds[0]}"]`);
                         if (selectedEl) this.startRename(selectedEl);
                     }
-                }, disabled: !isSingleSelection || isTrashFolder },
+                }, disabled: !isSingleSelection || isTrashFolder || selectedItemIds[0] === '/' }, // Cannot rename root
             ];
 
             if (isTrashFolder) {
@@ -1347,7 +1615,7 @@
                 );
             } else {
                 items.push(
-                    { label: 'Delete (Del)', action: () => this.deleteSelection(), disabled: !hasSelection }
+                    { label: 'Delete (Del)', action: () => this.deleteSelection(), disabled: !hasSelection || selectedItemIds[0] === '/' } // Cannot delete root
                 );
             }
 
@@ -1382,9 +1650,12 @@
             this.app.Modal.prompt({
                 title: `Create New ${type === 'folder' ? 'Folder' : 'Text File'}`,
                 message: `Enter name for new ${type}:`,
-                defaultValue: `New ${type === 'folder' ? 'Folder' : 'File'}`,
+                defaultValue: `New ${type === 'folder' ? (type === 'file' ? 'File' : 'Folder') : 'File'}`,
                 onConfirm: async (name) => {
-                    if (!name) return;
+                    if (!name || name.trim() === '') {
+                        alert('Name cannot be empty.');
+                        return;
+                    }
                     const fullPath = `${this.currentPath === '/' ? '' : this.currentPath}/${name}`;
                     try {
                         if (type === 'folder') {
@@ -1401,6 +1672,11 @@
         },
         startRename(itemEl) {
             if(!itemEl) return;
+            const nodeId = itemEl.dataset.id;
+            if (nodeId === '/') { // Prevent renaming root
+                alert("Cannot rename root folder.");
+                return;
+            }
             const nameEl = itemEl.querySelector('.file-item-name');
             const originalName = nameEl.textContent;
             nameEl.contentEditable = true;
@@ -1418,17 +1694,21 @@
                 nameEl.contentEditable = false;
                 nameEl.classList.remove('renaming');
                 const newName = nameEl.textContent.trim();
-                if (newName && newName !== originalName) {
+                if (!newName) { // Name cannot be empty
+                    alert('File/folder name cannot be empty.');
+                    nameEl.textContent = originalName; // Revert
+                    this.render();
+                    return;
+                }
+                if (newName !== originalName) {
                     try {
-                        await this.app.VFS.rename(itemEl.dataset.id, newName);
+                        await this.app.VFS.rename(nodeId, newName);
                     } catch (error) {
                         alert(`Error renaming: ${error.message}`);
-                        // Restore original name on error
-                        nameEl.textContent = originalName;
+                        nameEl.textContent = originalName; // Restore original name on error
                     }
                 } else {
-                    // Restore original name if empty or same
-                    nameEl.textContent = originalName;
+                    nameEl.textContent = originalName; // If name is same, revert just in case
                 }
                 this.render(); // Re-render to ensure correct state and selection
             };
@@ -1448,16 +1728,25 @@
         },
         deleteSelection() {
             if (!this.selection.size) return;
-            const itemNames = [...this.selection].map(id => this.items.find(i => i.id === id)?.name || 'unknown').join(', ');
+            const itemsToDelete = [...this.selection].map(id => this.items.find(i => i.id === id)).filter(Boolean);
+            const rootItemAttempt = itemsToDelete.some(item => item.id === '/');
+            if (rootItemAttempt) {
+                alert("Cannot move the root folder to Trash.");
+                return;
+            }
+
+            const itemNames = itemsToDelete.map(item => `'${item.name}'`).join(', ');
             this.app.Modal.confirm({
-                title: 'Delete Items',
+                title: 'Move to Trash',
                 message: `Are you sure you want to move ${this.selection.size} item(s) to Trash? \n\n(${itemNames})`,
                 onConfirm: async () => {
                     for (const id of this.selection) {
                         try {
-                            await this.app.VFS.move(id, '/.trash');
+                            if (id !== '/') { // Ensure root cannot be trashed
+                                await this.app.VFS.move(id, '/.trash');
+                            }
                         } catch (error) {
-                            alert(`Error moving ${this.items.find(i => i.id === id)?.name || 'item'} to Trash: ${error.message}`);
+                            alert(`Error moving '${this.items.find(i => i.id === id)?.name || 'item'}' to Trash: ${error.message}`);
                         }
                     }
                     this.selection.clear();
@@ -1467,7 +1756,8 @@
         },
         deletePermanentlySelection() {
             if (!this.selection.size) return;
-            const itemNames = [...this.selection].map(id => this.items.find(i => i.id === id)?.name || 'unknown').join(', ');
+            const itemsToDelete = [...this.selection].map(id => this.items.find(i => i.id === id)).filter(Boolean);
+            const itemNames = itemsToDelete.map(item => `'${item.name}'`).join(', ');
             this.app.Modal.confirm({
                 title: 'Delete Permanently',
                 message: `Are you sure you want to permanently delete ${this.selection.size} item(s)? This action cannot be undone. \n\n(${itemNames})`,
@@ -1476,7 +1766,7 @@
                         try {
                             await this.app.VFS.delete(id);
                         } catch (error) {
-                            alert(`Error deleting ${this.items.find(i => i.id === id)?.name || 'item'}: ${error.message}`);
+                            alert(`Error deleting '${this.items.find(i => i.id === id)?.name || 'item'}' permanently: ${error.message}`);
                         }
                     }
                     this.selection.clear();
@@ -1488,16 +1778,27 @@
             if (!this.selection.size) return;
             this.app.Modal.confirm({
                 title: 'Restore Items',
-                message: `Are you sure you want to restore ${this.selection.size} item(s) from Trash to their original location? (If original location is unavailable, it will move to /Home)`,
+                message: `Are you sure you want to restore ${this.selection.size} item(s) from Trash? \nThey will be restored to '/Home' if their original parent is unknown.`,
                 onConfirm: async () => {
-                    // This logic is simplified: always restore to /Home.
-                    // A more robust VFS would store original parentId.
+                    // In a real VFS, you'd store original parent ID on deletion.
+                    // For this example, we restore to /Home.
                     const restoreToPath = '/Home';
                     for (const id of this.selection) {
+                        const itemNode = await this.app.VFS.getNode(id);
+                        if (!itemNode) continue;
+
                         try {
-                            await this.app.VFS.move(id, restoreToPath);
+                            // Check if an item with the same name already exists in /Home
+                            const existingInHome = await this.app.VFS.getNodeByPath(`${restoreToPath}/${itemNode.name}`);
+                            if (existingInHome) {
+                                // If exists, try to rename it before restoring to avoid conflict
+                                alert(`'${itemNode.name}' already exists in /Home. Please rename it manually before restoring.`);
+                                continue; // Skip this item
+                            } else {
+                                await this.app.VFS.move(id, restoreToPath);
+                            }
                         } catch (error) {
-                            alert(`Error restoring ${this.items.find(i => i.id === id)?.name || 'item'}: ${error.message}. Item might already exist in /Home.`);
+                            alert(`Error restoring '${itemNode.name}': ${error.message}`);
                         }
                     }
                     this.selection.clear();
@@ -1507,18 +1808,42 @@
         },
         copySelection() {
             if(!this.selection.size) return;
+            // Prevent copying if current path is trash
+            if (this.currentPath === '/.trash') {
+                alert("Cannot copy items from Trash.");
+                return;
+            }
             this.clipboard = { mode: 'copy', itemIds: [...this.selection] };
             this.updateStatusBar(); // Update status to show clipboard mode
         },
         cutSelection() {
             if(!this.selection.size) return;
+            // Prevent cutting if current path is trash
+            if (this.currentPath === '/.trash') {
+                alert("Cannot cut items from Trash.");
+                return;
+            }
             this.clipboard = { mode: 'cut', itemIds: [...this.selection] };
             this.updateStatusBar(); // Update status to show clipboard mode
         },
         async pasteSelection() {
             if (!this.clipboard.itemIds.length) return;
+            if (this.currentPath === '/.trash') {
+                alert("Cannot paste items into Trash.");
+                return;
+            }
+
             const currentPath = this.currentPath;
             for(const id of this.clipboard.itemIds) {
+                const itemNode = await this.app.VFS.getNode(id);
+                if (!itemNode) continue;
+
+                // Prevent pasting a folder into itself
+                if (itemNode.type === 'folder' && (await this.app.VFS.constructPath(itemNode.id)).startsWith(currentPath) && itemNode.id !== (await this.app.VFS.getNodeByPath(currentPath)).id) {
+                    alert(`Cannot paste folder '${itemNode.name}' into its own sub-path.`);
+                    continue;
+                }
+
                 try {
                     if (this.clipboard.mode === 'copy') {
                         await this.app.VFS.copy(id, currentPath);
@@ -1526,7 +1851,7 @@
                         await this.app.VFS.move(id, currentPath);
                     }
                 } catch (error) {
-                    alert(`Error pasting ${this.items.find(i => i.id === id)?.name || 'item'}: ${error.message}`);
+                    alert(`Error pasting '${itemNode.name}': ${error.message}`);
                 }
             }
             if (this.clipboard.mode === 'cut') {
@@ -1536,12 +1861,15 @@
             this.render();
         },
         async uploadFiles(files) {
+            if (this.currentPath === '/.trash') {
+                alert("Cannot upload files into Trash.");
+                return;
+            }
             for (const file of files) {
-                const buffer = await file.arrayBuffer();
                 try {
-                    await this.app.VFS.write(`${this.currentPath}/${file.name}`, new Blob([buffer], { type: file.type }));
+                    await this.app.VFS.write(`${this.currentPath}/${file.name}`, file); // Pass file Blob directly
                 } catch (error) {
-                    alert(`Error uploading ${file.name}: ${error.message}`);
+                    alert(`Error uploading '${file.name}': ${error.message}`);
                 }
             }
             this.render();
@@ -1549,83 +1877,160 @@
         async downloadItem(id) {
             const node = await this.app.VFS.getNode(id);
             if(node && node.type === 'file') {
-                const blob = node.content instanceof Blob ? node.content : new Blob([node.content], { type: node.mimeType || 'application/octet-stream' });
-                const url = URL.createObjectURL(blob);
-                const a = this.app.dom.fileDownloader;
-                a.href = url;
-                a.download = node.name;
-                document.body.appendChild(a); // Append to body to ensure it's in DOM
-                a.click();
-                document.body.removeChild(a); // Clean up
-                URL.revokeObjectURL(url);
+                try {
+                    const blob = await this.app.VFS.read(id, 'blob'); // Read as Blob
+                    const url = URL.createObjectURL(blob);
+                    const a = this.app.dom.fileDownloader;
+                    a.href = url;
+                    a.download = node.name;
+                    document.body.appendChild(a); // Append to body to ensure it's in DOM
+                    a.click();
+                    document.body.removeChild(a); // Clean up
+                    URL.revokeObjectURL(url); // Release object URL
+                } catch (error) {
+                    alert(`Error preparing download for '${node.name}': ${error.message}`);
+                }
             } else {
                 alert('Cannot download a folder or non-existent item.');
             }
         },
         async openFileInViewer(node) {
-            if (!node || node.type !== 'file') return;
+            if (!node || node.type !== 'file') {
+                alert('Invalid item selected for viewing.');
+                return;
+            }
 
-            const ext = node.name.split('.').pop().toLowerCase();
-            const textFileExtensions = ['txt', 'md', 'js', 'html', 'css', 'json', 'xml']; // Add more as needed
-            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']; // Add more as needed
+            const ext = node.name.includes('.') ? node.name.split('.').pop().toLowerCase() : '';
+            const textFileExtensions = ['txt', 'md', 'js', 'html', 'css', 'json', 'xml'];
+            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
 
-            if (textFileExtensions.includes(ext)) {
-                let fileContent = '';
-                if (node.content instanceof Blob) {
-                    fileContent = await node.content.text();
-                } else {
-                    fileContent = String(node.content || '');
-                }
-
-                this.app.Modal.viewFile({
-                    title: `Viewing / Editing: ${node.name}`,
-                    contentHtml: `<textarea>${fileContent}</textarea>`,
-                    onSave: async (newContent) => {
-                        try {
-                            await this.app.VFS.write(await this.app.VFS.constructPath(node.id), newContent);
-                            this.render(); // Re-render to update file modification time
-                            alert('File saved successfully!');
-                        } catch (error) {
-                            alert(`Error saving file: ${error.message}`);
-                        }
-                    }
-                });
-            } else if (imageExtensions.includes(ext)) {
-                if (node.content instanceof Blob) {
-                    const imageUrl = URL.createObjectURL(node.content);
+            if (textFileExtensions.includes(ext) || (node.mimeType && node.mimeType.startsWith('text/'))) {
+                try {
+                    const fileContent = await this.app.VFS.read(node.id, 'string');
                     this.app.Modal.viewFile({
-                        title: `Viewing: ${node.name}`,
-                        contentHtml: `<img src="${imageUrl}" alt="${node.name}" />`,
-                        onClose: () => URL.revokeObjectURL(imageUrl) // Clean up URL when modal closes
+                        title: `Viewing / Editing: ${node.name}`,
+                        contentHtml: `<textarea>${fileContent}</textarea>`,
+                        onSave: async (newContent) => {
+                            try {
+                                // Write back with original MIME type if possible, otherwise text/plain
+                                const newBlob = new Blob([newContent], { type: node.mimeType || 'text/plain' });
+                                await this.app.VFS.write(await this.app.VFS.constructPath(node.id), newBlob);
+                                this.render(); // Re-render to update file modification time/size
+                                // alert('File saved successfully!'); // Optional feedback
+                            } catch (error) {
+                                alert(`Error saving file: ${error.message}`);
+                            }
+                        }
                     });
-                } else {
-                    alert('Cannot display image: Content is not a Blob.');
+                } catch (error) {
+                    alert(`Error loading text file for viewing: ${error.message}`);
+                }
+            } else if (imageExtensions.includes(ext) || (node.mimeType && node.mimeType.startsWith('image/'))) {
+                try {
+                    const imageUrl = await this.app.VFS.read(node.id, 'dataurl'); // Read as Data URL
+                    if (imageUrl) {
+                        this.app.Modal.viewFile({
+                            title: `Viewing: ${node.name}`,
+                            contentHtml: `<img src="${imageUrl}" alt="${node.name}" />`,
+                            onClose: () => {
+                                // Clean up the object URL when modal closes
+                                if (imageUrl.startsWith('blob:')) URL.revokeObjectURL(imageUrl);
+                            }
+                        });
+                    } else {
+                         alert(`Could not generate image preview for '${node.name}'.`);
+                    }
+                } catch (error) {
+                    alert(`Error loading image for viewing: ${error.message}`);
                 }
             } else {
                 // For other file types, offer download
-                const confirmDownload = confirm(`No viewer available for .${ext} files. Do you want to download "${node.name}" instead?`);
-                if (confirmDownload) {
-                    this.downloadItem(node.id);
-                }
+                this.app.Modal.confirm({
+                    title: 'No Viewer Available',
+                    message: `No viewer available for '${node.name}' (type: ${ext || 'unknown'}). Do you want to download it instead?`,
+                    onConfirm: () => {
+                        this.downloadItem(node.id);
+                    }
+                });
             }
         },
-        navigate(path) {
-            // Normalize path to ensure it starts with / and doesn't have trailing slash unless it's root
-            const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-            const cleanPath = normalizedPath.length > 1 && normalizedPath.endsWith('/') ? normalizedPath.slice(0, -1) : normalizedPath;
+        // New function to show properties modal
+        async showProperties(nodeId) {
+            const node = await this.app.VFS.getNode(nodeId);
+            if (!node) {
+                alert('Item not found.');
+                return;
+            }
 
+            let sizeInfo = '';
+            if (node.type === 'file') {
+                sizeInfo = this.formatBytes(node.size);
+            } else { // For folders, calculate total size (recursive, might be slow for large folders)
+                try {
+                    let totalSize = 0;
+                    const calculateFolderSize = async (folderNode) => {
+                        const children = await this.app.VFS.list(await this.app.VFS.constructPath(folderNode.id));
+                        for (const child of children) {
+                            if (child.type === 'file') {
+                                totalSize += child.size;
+                            } else {
+                                await calculateFolderSize(child); // Recursively sum for subfolders
+                            }
+                        }
+                    };
+                    await calculateFolderSize(node);
+                    sizeInfo = `${this.formatBytes(totalSize)} (${totalSize} bytes)`;
+                } catch (e) {
+                    console.error("Error calculating folder size:", e);
+                    sizeInfo = "Error calculating size";
+                }
+            }
+
+
+            const propertiesHtml = `
+                <table>
+                    <tr><td>Name:</td><td>${node.name || 'Root Folder'}</td></tr>
+                    <tr><td>Type:</td><td>${node.type === 'folder' ? 'Folder' : 'File'}</td></tr>
+                    <tr><td>Location:</td><td>${node.id === '/' ? '/' : (await this.app.VFS.constructPath(node.parentId) || 'Unknown')}</td></tr>
+                    <tr><td>Size:</td><td>${sizeInfo}</td></tr>
+                    <tr><td>Created:</td><td>${new Date(node.ctime).toLocaleString()}</td></tr>
+                    <tr><td>Modified:</td><td>${new Date(node.mtime).toLocaleString()}</td></tr>
+                    ${node.type === 'file' && node.mimeType ? `<tr><td>MIME Type:</td><td>${node.mimeType}</td></tr>` : ''}
+                    <tr><td>ID:</td><td>${node.id}</td></tr>
+                </table>
+            `;
+
+            this.app.Modal.showProperties({
+                title: `Properties: ${node.name || 'Root Folder'}`,
+                contentHtml: propertiesHtml,
+                onClose: () => { /* optional callback */ }
+            });
+        },
+        navigate(path) {
+            // Normalize path: ensure it starts with / and no trailing slash unless it's root
+            let cleanPath = path.startsWith('/') ? path : `/${path}`;
+            if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
+                cleanPath = cleanPath.slice(0, -1);
+            }
+
+            // Prevent redundant navigation
             if (this.currentPath === cleanPath) return;
 
-            // Ensure path exists before navigating
+            // Ensure path exists and is a folder before navigating
             this.app.VFS.getNodeByPath(cleanPath).then(node => {
-                if (!node || node.type !== 'folder') {
-                    alert(`Cannot navigate to invalid or non-folder path: ${cleanPath}`);
+                if (!node) {
+                    alert(`Path does not exist: '${cleanPath}'`);
+                    return;
+                }
+                if (node.type !== 'folder') {
+                    alert(`Cannot navigate to a file: '${cleanPath}'`);
                     return;
                 }
 
                 this.currentPath = cleanPath;
+                // Manage history: truncate future entries if navigating backwards then forwards
                 if(this.historyIndex < this.history.length-1) {
-                    this.history.splice(this.historyIndex + 1); // Truncate history if navigating from middle
+                    this.history.splice(this.historyIndex + 1);
                 }
                 this.history.push(this.currentPath);
                 this.historyIndex = this.history.length - 1;
@@ -1633,6 +2038,7 @@
                 this.render();
             }).catch(error => {
                 alert(`Navigation error: ${error.message}`);
+                console.error(`Navigation error to ${cleanPath}:`, error);
             });
         },
         navigateHistory(dir) {
@@ -1679,16 +2085,37 @@
                 if (item.name === '.trash') return '🗑️'; // Specific icon for trash
                 return '📁';
             }
-            const ext = item.name.split('.').pop().toLowerCase();
+            const ext = item.name.includes('.') ? item.name.split('.').pop().toLowerCase() : '';
+            const mime = item.mimeType || ''; // Use stored MIME type if available
+
+            // Priority: specific extension > MIME type > generic
             const icons = {
-                jpg:'🖼️', jpeg:'🖼️', png:'🖼️', gif:'🖼️', webp:'🖼️', bmp:'🖼️', svg:'🖼️', // Images
-                js:'📜', html:'🌐', css:'🎨', txt:'📄', md:'📝', json:'{}', xml:'<>', // Text/Code
-                zip:'📦', rar:'📦', tar:'📦', gz:'📦', // Archives
-                mp3:'🎵', wav:'🎵', ogg:'🎵', // Audio
-                mp4:'🎬', webm:'🎬', ogv:'🎬', // Video
-                pdf:'📄', doc:'📄', docx:'📄', xls:'📊', xlsx:'📊', ppt:' स्लाइड्स', pptx:'📊', // Documents
+                // Images
+                jpg:'🖼️', jpeg:'🖼️', png:'🖼️', gif:'🖼️', webp:'🖼️', bmp:'🖼️', svg:'🖼️',
+                // Text/Code
+                txt:'📄', md:'📝', js:'📜', html:'🌐', css:'🎨', json:'{}', xml:'<>', log:'📄', sh:'📜',
+                // Archives
+                zip:'📦', rar:'📦', tar:'📦', gz:'📦', '7z':'📦',
+                // Audio
+                mp3:'🎵', wav:'🎵', ogg:'🎵', flac:'🎵',
+                // Video
+                mp4:'🎬', webm:'🎬', ogv:'🎬', avi:'🎬', mov:'🎬',
+                // Documents
+                pdf:'📄', doc:'📝', docx:'📝', xls:'📊', xlsx:'📊', ppt:'📊', pptx:'📊', csv:'📊',
+                // Executables (very generic, not for actual execution)
+                exe:'⚙️', bat:'⚙️', sh:'⚙️',
             };
-            return icons[ext] || '⚙️'; // Default gear icon
+
+            if (icons[ext]) return icons[ext];
+
+            // Fallback based on MIME type major category
+            if (mime.startsWith('text/')) return '📄';
+            if (mime.startsWith('image/')) return '🖼️';
+            if (mime.startsWith('audio/')) return '🎵';
+            if (mime.startsWith('video/')) return '🎬';
+            if (mime.includes('zip') || mime.includes('archive')) return '📦';
+
+            return '⚙️'; // Default gear icon for unknown types
         },
         formatBytes(bytes) {
             if (bytes === 0) return '0 B';
@@ -1698,6 +2125,4 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => App.init());
-    </script>
-</body>
-</html>
+    </script></body></html>
