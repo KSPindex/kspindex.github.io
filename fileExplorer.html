@@ -427,21 +427,35 @@
         createListHeaderElement() { const h = document.createElement('div'); h.className = 'list-header'; h.innerHTML = `<div class="list-header-item list-col-name" data-sort-key="name">Name</div><div class="list-header-item list-col-size" data-sort-key="size">Size</div><div class="list-header-item list-col-date" data-sort-key="mtime">Date Modified</div>`; const c = h.querySelector(`[data-sort-key="${this.sort.key}"]`); if(c) c.classList.add(this.sort.order === 'asc' ? 'sort-asc' : 'sort-desc'); return h; },
         createItemElement(item) { const e = document.createElement('div'); e.className = 'file-item file-list'; e.dataset.id = item.id; e.draggable = true; e.innerHTML = `<div class="file-item-icon">${this.getIcon(item)}</div><div class="file-item-name">${item.name}</div><div class="file-item-meta list-col-size">${item.type === 'file' ? this.formatBytes(item.size) : '—'}</div><div class="file-item-meta list-col-date">${new Date(item.mtime).toLocaleString()}</div>`; return e; },
         bindEvents() {
-            const t = this.dom.toolbar;
-            t.querySelector('.back-btn').onclick = () => this.navigateHistory(-1);
-            t.querySelector('.fwd-btn').onclick = () => this.navigateHistory(1);
-            t.querySelector('.up-btn').onclick = () => this.navigate(this.app.VFS._parsePath(this.currentPath).parentPath);
-            t.querySelector('.upload-btn').onclick = () => this.app.dom.fileUploader.click();
-            this.app.dom.fileUploader.onchange = e => this.uploadFiles(e.target.files);
-            this.dom.pathBar.onkeydown = e => { if (e.key === 'Enter') this.navigate(this.dom.pathBar.value); };
-            this.dom.searchBar.oninput = () => this.render();
-            this.dom.contentArea.addEventListener('click', e => { const h = e.target.closest('.list-header-item'); if (h) { this.handleSort(h.dataset.sortKey); return; } this.handleSelection(e, e.target.closest('.file-item')); });
-            this.dom.contentArea.addEventListener('dblclick', async e => { const i = e.target.closest('.file-item'); if (!i) return; const n = await this.app.VFS.getNode(i.dataset.id); if (n.type === 'folder') this.navigate(await this.app.VFS.constructPath(n.id)); });
-            this.dom.contentArea.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); const i = e.target.closest('.file-item'); this.app.ContextMenu.show(e.clientX, e.clientY, i ? this.getItemContextMenu(i) : this.getGridContextMenu()); });
-            this.dom.sidebar.querySelectorAll('.quick-access-item').forEach(el => el.onclick = () => this.navigate(el.dataset.path));
-            this.dom.contentArea.ondragstart = e => { const i = e.target.closest('.file-item'); if(i){ if (!this.selection.has(i.dataset.id)) { this.selection.clear(); this.selection.add(i.dataset.id); this.updateSelection(); } e.dataTransfer.setData('text/plain', JSON.stringify([...this.selection])); e.dataTransfer.effectAllowed = 'move'; }};
-            this.dom.contentArea.ondragover = e => { e.preventDefault(); const t = e.target.closest('.file-item'); this.dom.contentArea.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); if (t) this.app.VFS.getNode(t.dataset.id).then(n => { if(n.type === 'folder') t.classList.add('drag-over'); }); };
-            this.dom.contentArea.ondrop = async e => { e.preventDefault(); this.dom.contentArea.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); const t = e.target.closest('.file-item'); if (!t) return; const tn = await this.app.VFS.getNode(t.dataset.id); if (!tn || tn.type !== 'folder') return; const d = JSON.parse(e.dataTransfer.getData('text/plain')); for(const id of d) { if(id !== tn.id) await this.app.VFS.move(id, await this.app.VFS.constructPath(tn.id)); } this.render(); };
+        const t = this.dom.toolbar;
+        t.querySelector('.back-btn').onclick = () => this.navigateHistory(-1);
+        t.querySelector('.fwd-btn').onclick = () => this.navigateHistory(1);
+        t.querySelector('.up-btn').onclick = () => this.navigate(this.app.VFS._parsePath(this.currentPath).parentPath);
+        t.querySelector('.upload-btn').onclick = () => this.app.dom.fileUploader.click();
+        this.app.dom.fileUploader.onchange = e => this.uploadFiles(e.target.files);
+        this.dom.pathBar.onkeydown = e => { if (e.key === 'Enter') this.navigate(this.dom.pathBar.value); };
+        this.dom.searchBar.oninput = () => this.render();
+        this.dom.contentArea.addEventListener('click', e => { const h = e.target.closest('.list-header-item'); if (h) { this.handleSort(h.dataset.sortKey); return; } this.handleSelection(e, e.target.closest('.file-item')); });
+
+        // 이 부분이 수정됩니다.
+        this.dom.contentArea.addEventListener('dblclick', async e => {
+            const i = e.target.closest('.file-item');
+            if (!i) return;
+            const n = await this.app.VFS.getNode(i.dataset.id);
+            if (n.type === 'folder') {
+                this.navigate(await this.app.VFS.constructPath(n.id));
+            } else if (n.type === 'file') {
+                // 파일인 경우 downloadItem 함수 호출
+                this.downloadItem(n.id);
+            }
+        });
+
+        this.dom.contentArea.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); const i = e.target.closest('.file-item'); this.app.ContextMenu.show(e.clientX, e.clientY, i ? this.getItemContextMenu(i) : this.getGridContextMenu()); });
+        this.dom.sidebar.querySelectorAll('.quick-access-item').forEach(el => el.onclick = () => this.navigate(el.dataset.path));
+        this.dom.contentArea.ondragstart = e => { const i = e.target.closest('.file-item'); if(i){ if (!this.selection.has(i.dataset.id)) { this.selection.clear(); this.selection.add(i.dataset.id); this.updateSelection(); } e.dataTransfer.setData('text/plain', JSON.stringify([...this.selection])); e.dataTransfer.effectAllowed = 'move'; }};
+        this.dom.contentArea.ondragover = e => { e.preventDefault(); const t = e.target.closest('.file-item'); this.dom.contentArea.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); if (t) this.app.VFS.getNode(t.dataset.id).then(n => { if(n.type === 'folder') t.classList.add('drag-over'); }); };
+        this.dom.contentArea.ondrop = async e => { e.preventDefault(); this.dom.contentArea.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); const t = e.target.closest('.file-item'); if (!t) return; const tn = await this.app.VFS.getNode(t.dataset.id); if (!tn || tn.type !== 'folder') return; const d = JSON.parse(e.dataTransfer.getData('text/plain')); for(const id of d) { if(id !== tn.id) await this.app.VFS.move(id, await this.app.VFS.constructPath(tn.id)); } this.render(); };
+    },
         },
         handleSort(key) { if(this.sort.key === key) this.sort.order = this.sort.order === 'asc' ? 'desc' : 'asc'; else { this.sort.key = key; this.sort.order = 'asc'; } this.render(); },
         handleSelection(e, itemEl) {
