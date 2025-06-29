@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index-Space :: Reimagined</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- [Core Styles & New Design System] --- */
+        :root {
+            --color-background: #0D1117;
+            --color-text-primary: #E6EDF3;
+            --color-text-secondary: #8B949E;
+            
+            --color-button-bg: #21262D;
+            --color-button-bg-hover: #30363D;
+            --color-button-border: #30363D;
+            
+            --color-accent-primary: #4A5588;
+            --color-accent-secondary: #303651;
+
+            --font-primary: 'Inter', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            font-family: var(--font-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* --- [Dynamic Background] --- */
+        #aurora-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, rgba(13, 17, 23, 0) 0%, var(--color-background) 100%);
+        }
+        .aurora-shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            animation: drift 20s infinite alternate;
+        }
+        .shape1 {
+            width: 600px;
+            height: 600px;
+            top: -150px;
+            left: -150px;
+            background: var(--color-accent-primary);
+        }
+        .shape2 {
+            width: 500px;
+            height: 500px;
+            bottom: -100px;
+            right: -100px;
+            background: var(--color-accent-secondary);
+            animation-duration: 25s;
+        }
+        @keyframes drift {
+            from { transform: translate(0, 0) rotate(0deg); }
+            to { transform: translate(100px, 50px) rotate(30deg); }
+        }
+
+        /* --- [Main Content Layout] --- */
+        .content-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            opacity: 0;
+            animation: fadeIn 1.5s 0.5s forwards;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        /* --- [Title & Subtitle] --- */
+        .main-title {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+            animation: slideUp 1s 1s forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .main-title .highlight {
+            color: var(--color-accent-primary);
+        }
+        .subtitle {
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            color: var(--color-text-secondary);
+            max-width: 600px;
+            margin-bottom: 2.5rem;
+            animation: slideUp 1s 1.2s forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- [Start Now Button - New Design] --- */
+        .start-now-link {
+            text-decoration: none;
+        }
+        .start-now-button {
+            font-family: var(--font-primary);
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--color-text-primary);
+            background-color: var(--color-button-bg);
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--color-button-border);
+            cursor: pointer;
+            position: relative;
+            
+            /* Soft Inner Shadow for depth */
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 
+                        0 10px 30px rgba(0,0,0,0.2);
+
+            transition: all 0.3s ease;
+            
+            animation: slideUp 1s 1.4s forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .start-now-button:hover {
+            background-color: var(--color-button-bg-hover);
+            transform: translateY(-3px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 
+                        0 0 15px 5px rgba(74, 85, 136, 0.2),
+                        0 15px 30px rgba(0,0,0,0.3);
+        }
+        .start-now-button:active {
+            transform: translateY(0px);
+        }
+
+    </style>
+</head>
+<body>
+    <div id="aurora-background">
+        <div class="aurora-shape shape1"></div>
+        <div class="aurora-shape shape2"></div>
+    </div>
+
+    <main class="content-wrapper">
+        <h1 class="main-title">
+            Welcome to <span class="highlight">Index-Space</span>
+        </h1>
+        <p class="subtitle">
+            A purely client-side virtual operating system, crafted with native web technologies. Explore the possibilities within your browser.
+        </p>
+        <a href="#" id="start-link" class="start-now-link">
+            <button class="start-now-button">Start Now</button>
+        </a>
+    </main>
+
+    <script>
+    /**
+     * JSDoc: @file index.js (v2.1)
+     * @description Index-Space의 새로운 진입 페이지 스크립트.
+     * 현대적인 UI와 부드러운 애니메이션에 중점을 둡니다.
+     * @author Gemini
+     */
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const startLink = document.getElementById('start-link');
+        
+        // 이 예제에서는 데모를 위해 가상의 desktop.html로 이동합니다.
+        // 실제 구현에서는 이 부분이 라우팅 로직을 처리하게 됩니다.
+        startLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // 페이지 전환 효과
+            document.body.style.transition = 'opacity 0.5s ease-out';
+            document.body.style.opacity = '0';
+            
+            setTimeout(() => {
+                // 실제 프로젝트에서는 아래 라인을 사용하여 페이지를 이동합니다.
+                // window.location.href = './desktop.html';
+                
+                // 데모용 알림
+                alert("성공적으로 데스크톱 페이지로 이동되었습니다! (실제로는 desktop.html로 이동합니다)");
+                document.body.style.opacity = '1';
+
+            }, 500);
+        });
+    });
+
+    </script>
+</body>
+</html>
