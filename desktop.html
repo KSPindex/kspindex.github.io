@@ -17,8 +17,8 @@
             --color-window-border: #30363D;
             --color-window-border-active: #58A6FF;
             --color-taskbar-bg: rgba(22, 27, 34, 0.7);
-            --color-accent-primary: #4A5588;
-            --color-accent-secondary: #303651;
+            --color-accent-primary: #4A5588; /* Blue-purple for shapes */
+            --color-accent-secondary: #303651; /* Darker blue-purple for shapes */
             --font-primary: 'Inter', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
             --shadow-window: 0 20px 50px rgba(0, 0, 0, 0.4);
         }
@@ -34,7 +34,6 @@
         .taskbar-icons { display: flex; gap: 0.5rem; }
         .app-icon { 
             width: 42px; height: 42px; background-color: rgba(255, 255, 255, 0.05); border-radius: 8px; cursor: pointer; border: 1px solid transparent; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; position: relative; transition: all 0.2s ease; 
-            /* Notification dot container */
             overflow: visible; /* Allow dot to spill outside */
         }
         .app-icon:hover { background-color: rgba(255, 255, 255, 0.1); transform: translateY(-3px); }
@@ -43,8 +42,8 @@
         /* Notification dot style */
         .notification-dot {
             position: absolute;
-            top: -3px; /* Adjust as needed */
-            right: -3px; /* Adjust as needed */
+            top: -3px; 
+            right: -3px; 
             width: 12px;
             height: 12px;
             background-color: #ff5555; /* Red color */
@@ -91,7 +90,7 @@
     /**
      * JSDoc: @file desktop.js (Unified Version)
      * @description Index-Space 가상 OS의 핵심 데스크톱. iframe 로딩과 네이티브 앱을 모두 지원.
-     * @version 2.4 - 터미널 알림 기능 통합
+     * @version 2.5 - Editor 및 Terminal 재구축에 따른 연동 업데이트
      */
     const IndexSpaceOS = {
         state: { windows: new Map(), activeWindowId: null, maxZIndex: 100 },
@@ -121,9 +120,9 @@
                         `;
                     }
                 },
-                { id: 'fileExplorer', name: 'File Explorer', icon: '📁', url: './FileExplorer.html' },
-                { id: 'terminal', name: 'Terminal', icon: '👨‍💻', url: './terminal.html' }, // Updated URL to .html
-                { id: 'editor', name: 'Code Editor', icon: '📝', url: './editor.html' },   // Updated URL to .html
+                { id: 'fileExplorer', name: 'File Explorer', icon: '📁', url: './FileExplorer.html' }, // Example for consistency, though editor handles file Browse
+                { id: 'terminal', name: 'Terminal', icon: '👨‍💻', url: './terminal.html' }, 
+                { id: 'editor', name: 'Code Editor', icon: '📝', url: './editor.html' },   
                 { id: 'settings', name: 'Settings', icon: '⚙️', url: './Settings.html' },
                 { id: 'arcade', name: 'Arcade', icon: '🎮', url: './Arcade.html' },
             ]
@@ -144,7 +143,7 @@
             }
         },
 
-        // New function to handle terminal activity notification
+        // Function to handle terminal activity notification
         handleTerminalActivity() {
             const terminalAppIcon = document.querySelector('.app-icon[data-app-id="terminal"]');
             if (!terminalAppIcon) return;
@@ -162,7 +161,8 @@
             clearTimeout(this.terminalDotTimeout);
             this.terminalDotTimeout = setTimeout(() => {
                 notificationDot.classList.add('hidden');
-                notificationDot.remove(); // Remove dot from DOM after hiding
+                // Optionally remove dot from DOM if hidden to clean up
+                // notificationDot.remove(); 
             }, 5000); // Hide after 5 seconds of no activity
         },
 
@@ -175,32 +175,19 @@
 
                 switch (type) {
                     case 'terminalActivity':
+                        // Message from editor.html indicating terminal output
                         this.handleTerminalActivity();
                         break;
                     case 'appReady':
                         // When an app (like editor.html or terminal.html) sends 'appReady'
                         const appInstance = this.config.apps.find(app => app.id === payload.appId);
                         if (appInstance) {
-                            // Find the window DOM element for this app
+                            // Find the iframe associated with this app window
                             const windowEl = document.querySelector(`#${payload.windowId} iframe`);
                             if (windowEl && windowEl.contentWindow) {
-                                // Store the iframe's window object for direct communication
-                                // This is crucial for editor to talk to terminal and vice-versa
+                                // Store the iframe's contentWindow object directly in the app config
                                 appInstance.iframeWindow = windowEl.contentWindow;
-
-                                console.log(`Desktop: ${payload.appId} iframe ready.`);
-                                // If editor is ready and terminal is already open, tell editor about terminal
-                                if (payload.appId === 'editor' && IndexSpaceOS.config.apps.find(a => a.id === 'terminal')?.iframeWindow) {
-                                    const terminalWin = IndexSpaceOS.config.apps.find(a => a.id === 'terminal').iframeWindow;
-                                    event.source.postMessage({ type: 'terminalWindowRef', payload: { terminalWindow: terminalWin } }, '*');
-                                    console.log('Desktop: Sent terminal ref to editor.');
-                                }
-                                // If terminal is ready and editor is already open, tell terminal about editor (if needed)
-                                if (payload.appId === 'terminal' && IndexSpaceOS.config.apps.find(a => a.id === 'editor')?.iframeWindow) {
-                                    const editorWin = IndexSpaceOS.config.apps.find(a => a.id === 'editor').iframeWindow;
-                                    event.source.postMessage({ type: 'editorWindowRef', payload: { editorWindow: editorWin } }, '*');
-                                    console.log('Desktop: Sent editor ref to terminal (if needed).');
-                                }
+                                console.log(`Desktop: ${payload.appId} iframe ready and contentWindow stored.`);
                             }
                         }
                         break;
@@ -217,7 +204,7 @@
             this.app = app;
             this.os = os;
             this.options = options;
-            this.iframe = null; // Store iframe element if applicable
+            this.iframe = null; // To store iframe element if applicable
             this.create();
             this.bindEvents();
         }
@@ -280,28 +267,8 @@
                 this.iframe.src = this.app.url;
                 this.iframe.onload = () => {
                     // Send appReady message from iframe to parent (desktop)
-                    // and send iframe window reference to parent
-                    if (this.iframe && this.iframe.contentWindow) {
-                        this.iframe.contentWindow.postMessage({ type: 'appReady', payload: { appId: this.app.id, windowId: this.id } }, '*');
-                        // Store iframe's window object in app config for direct communication
-                        this.app.iframeWindow = this.iframe.contentWindow;
-
-                        // Immediately send the other app's iframeWindow if it exists
-                        // Editor needs terminal, Terminal needs editor for some commands
-                        const otherAppId = (this.app.id === 'editor') ? 'terminal' : ((this.app.id === 'terminal') ? 'editor' : null);
-                        if (otherAppId) {
-                            const otherApp = this.os.config.apps.find(a => a.id === otherAppId);
-                            if (otherApp && otherApp.iframeWindow) {
-                                // Inform this new iframe about the existing other iframe
-                                this.iframe.contentWindow.postMessage({ 
-                                    type: (otherAppId === 'terminal' ? 'terminalWindowRef' : 'editorWindowRef'),
-                                    payload: {
-                                        [otherAppId === 'terminal' ? 'terminalWindow' : 'editorWindow']: otherApp.iframeWindow 
-                                    }
-                                }, '*');
-                            }
-                        }
-                    }
+                    // The iframe itself will post 'appReady' to its parent (desktop.html)
+                    // The desktop.html will then store iframeWindow on its app config
                 };
                 contentEl.appendChild(this.iframe);
             } else {
@@ -383,8 +350,8 @@
                     this.el.style.resize = 'none'; // Disable resize when maximized
                 }
                 // Important: Trigger resize on iframe content if it exists
-                if (this.iframe && this.iframe.contentWindow && this.iframe.contentWindow.H_IDE && this.iframe.contentWindow.H_IDE.settings) {
-                    this.iframe.contentWindow.H_IDE.settings.resizeAllEditors(); // For editor.html specifically
+                if (this.iframe && this.iframe.contentWindow && this.iframe.contentWindow.App && this.iframe.contentWindow.App.settings) {
+                    this.iframe.contentWindow.App.settings.resizeAllEditors(); // For editor.html specifically
                 }
             });
             
@@ -479,7 +446,7 @@
                 if (app.id === 'terminal') {
                     const dot = document.createElement('div');
                     dot.id = 'terminal-notification-dot';
-                    dot.className = 'notification-dot hidden';
+                    dot.className = 'notification-dot hidden'; // Initially hidden
                     iconEl.appendChild(dot);
                 }
 
