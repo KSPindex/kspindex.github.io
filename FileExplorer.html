@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer (v5.1 Foundational) - Index-Space</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-background: #0D1117;
+            --color-text-primary: #E6EDF3;
+            --color-text-secondary: #8B949E;
+            --color-surface-1: #161B22;
+            --color-surface-2: #0D1117;
+            --color-border: #30363D;
+            --color-accent: #58A6FF;
+            --color-selection-bg: rgba(88, 166, 255, 0.2);
+            --color-modal-bg: rgba(13, 17, 23, 0.8);
+            --color-danger: #DA3633;
+            --font-primary: 'Inter', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background-color: var(--color-background); color: var(--color-text-primary); font-family: var(--font-primary); user-select: none; }
+        .app-container { display: flex; flex-direction: column; width: 100%; height: 100%; background-color: var(--color-surface-1); }
+
+        .explorer-body { display: flex; flex-grow: 1; height: calc(100% - 45px - 25px); }
+        .explorer-main { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .explorer-toolbar { display: flex; align-items: center; padding: 8px; border-bottom: 1px solid var(--color-border); gap: 8px; background-color: var(--color-surface-2); }
+        .nav-btn { background: none; border: 1px solid transparent; color: var(--color-text-secondary); border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+        .nav-btn:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.1); }
+        .nav-btn:disabled { color: #444; cursor: not-allowed; }
+        .path-bar { flex-grow: 1; background-color: #0D1117; border: 1px solid var(--color-border); border-radius: 6px; padding: 4px 8px; font-size: 0.9em; color: var(--color-text-primary); }
+        
+        .content-area { flex-grow: 1; overflow-y: auto; padding: 15px; }
+        .file-item { display: flex; padding: 5px 10px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; align-items: center; gap: 15px; }
+        .file-item.selected { background-color: var(--color-selection-bg); border-color: var(--color-accent); }
+        .file-item-icon { font-size: 1.5em; }
+        .file-item-name { font-size: 0.9em; }
+        
+        .explorer-statusbar { height: 25px; background: var(--color-surface-2); border-top: 1px solid var(--color-border); padding: 0 15px; font-size: 0.8rem; color: var(--color-text-secondary); display: flex; align-items: center; }
+        
+        .hidden { display: none; }
+        .context-menu { position: fixed; background: #21262d; border: 1px solid #444; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); padding: 5px; z-index: 10001; opacity: 0; transform: scale(0.95); transition: all 0.1s ease-out; pointer-events: none; }
+        .context-menu.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+        .context-menu-item { padding: 8px 12px; cursor: pointer; border-radius: 4px; white-space: nowrap; }
+        .context-menu-item:hover:not(.disabled) { background-color: var(--color-accent); }
+        .context-menu-divider { height: 1px; background-color: var(--color-border); margin: 5px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--color-modal-bg); backdrop-filter: blur(5px); z-index: 20000; display: flex; justify-content: center; align-items: center; }
+        .modal-dialog { background: var(--color-surface-1); padding: 2rem; border-radius: 12px; border: 1px solid var(--color-border); text-align: center; max-width: 400px; }
+        .modal-dialog p { margin-bottom: 1.5rem; }
+        .modal-dialog button { background: var(--color-surface-2); border: 1px solid var(--color-border); color: var(--color-text-primary); padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 0 5px; }
+        .modal-dialog .confirm-btn { background: var(--color-danger); }
+    </style>
+</head>
+<body>
+    <main id="app-container" class="app-container"></main>
+    <div id="context-menu-container"></div>
+    <div id="modal-container"></div>
+    <input type="file" id="file-uploader" multiple class="hidden" />
+    <a id="file-downloader" class="hidden"></a>
+
+    <script>
+    /**
+     * JSDoc: @file FileExplorer.js v5.1 (Foundational Rebuild)
+     * @description A stable, functional rebuild focusing on core features.
+     */
+    const App = {
+        init() {
+            this.dom = { appContainer: document.getElementById('app-container'), contextMenuContainer: document.getElementById('context-menu-container'), modalContainer: document.getElementById('modal-container') };
+            this.VFS.init().then(() => { this.ContextMenu.init(this); this.Modal.init(this); this.FileExplorer.init(this); });
+        }
+    };
+
+    /** VFS: Virtual File System - Simplified and Robust */
+    App.VFS = {
+        DB_NAME: 'IndexSpace_VFS_v5.1', db: null,
+        init() { return new Promise((resolve, reject) => { const req = indexedDB.open(this.DB_NAME, 1); req.onupgradeneeded = e => { const db = e.target.result; if (!db.objectStoreNames.contains('nodes')) { const store = db.createObjectStore('nodes', { keyPath: 'id' }); store.createIndex('path', ['parentId', 'name'], { unique: true }); }}; req.onsuccess = async e => { this.db = e.target.result; await this.initDefaultFS(); resolve(); }; req.onerror = reject; }); },
+        async initDefaultFS() { if (!(await this.getNodeByPath('/'))) { await this.mkdir('/'); } },
+        async _runTx(storeName, mode, fn) { return new Promise((resolve, reject) => { try { const tx = this.db.transaction(storeName, mode); const store = tx.objectStore(storeName); const request = fn(store); if(request) { request.onsuccess = () => resolve(request.result); request.onerror = (e) => reject(e.target.error); } tx.oncomplete = () => resolve(); tx.onerror = (e) => reject(e.target.error); } catch (e) { reject(e); }}); },
+        async _getNewId() { return `node-${Date.now()}-${Math.random()}`; },
+        async mkdir(path) { if (path === '/') { await this._runTx('nodes', 'readwrite', store => store.add({ id: '/', type: 'folder', name: '' })); return '/'; } const { parentPath, name } = this._parsePath(path); const parent = await this.getNodeByPath(parentPath); if (!parent || parent.type !== 'folder') throw new Error(`Invalid path: ${parentPath}`); const id = await this._getNewId(); await this._runTx('nodes', 'readwrite', store => store.add({ id, parentId: parent.id, name, type: 'folder', ctime: new Date(), mtime: new Date() })); return id; },
+        async write(path, content = '') { const { parentPath, name } = this._parsePath(path); const parent = await this.getNodeByPath(parentPath); if (!parent || parent.type !== 'folder') throw new Error("Parent not found"); const id = await this._getNewId(); await this._runTx('nodes', 'readwrite', store => store.add({ id, parentId: parent.id, name, type: 'file', content, ctime: new Date(), mtime: new Date() })); return id; },
+        async list(path) { const parent = await this.getNodeByPath(path); if (!parent) return []; return this._runTx('nodes', 'readonly', store => store.index('path').getAll(IDBKeyRange.bound([parent.id, ''], [parent.id, '\uffff']))); },
+        async delete(id) { await this._runTx('nodes', 'readwrite', store => store.delete(id)); },
+        async getNode(id) { return this._runTx('nodes', 'readonly', store => store.get(id)); },
+        async getNodeByPath(path) { if (path === '/') return await this.getNode('/'); let parentId = '/'; let node = null; for (const name of path.split('/').filter(p => p)) { node = await this._runTx('nodes', 'readonly', store => store.index('path').get([parentId, name])); if (!node) return null; parentId = node.id; } return node; },
+        async constructPath(id) { if (id === '/') return '/'; let path = []; let node = await this.getNode(id); while (node && node.parentId) { path.unshift(node.name); if (node.parentId === '/') break; node = await this.getNode(node.parentId); } return `/${path.join('/')}`; },
+        _parsePath(path) { const parts = path.split('/').filter(p => p); const name = parts.pop() || ''; const parentPath = `/${parts.join('/')}`; return { parentPath, name }; },
+    };
+
+    /** ContextMenu & Modal Managers */
+    App.ContextMenu = { init(app) { this.app = app; this.container = app.dom.contextMenuContainer; window.addEventListener('click', () => this.hide(), true); this.container.addEventListener('contextmenu', e=>e.stopPropagation()); }, show(x, y, items) { this.hide(); const menu = document.createElement('div'); menu.className = 'context-menu'; menu.style.left = `${x}px`; menu.style.top = `${y}px`; items.forEach(item => { if (!item) { menu.appendChild(document.createElement('div')).className = 'context-menu-divider'; return; } const itemEl = document.createElement('div'); itemEl.className = `context-menu-item ${item.disabled ? 'disabled' : ''}`; itemEl.textContent = item.label; if (!item.disabled) itemEl.onclick = e => { e.stopPropagation(); this.hide(); item.action(); }; menu.appendChild(itemEl); }); this.container.appendChild(menu); setTimeout(() => menu.classList.add('visible'), 0); }, hide() { this.container.innerHTML = ''; } };
+    App.Modal = { init(app) { this.app = app; this.container = app.dom.modalContainer; }, confirm({ title, message, onConfirm }) { this.container.innerHTML = `<div class="modal-overlay"><div class="modal-dialog"><h3>${title}</h3><p>${message}</p><button class="cancel-btn">Cancel</button><button class="confirm-btn">Confirm</button></div></div>`; this.container.querySelector('.cancel-btn').onclick = () => this.container.innerHTML = ''; this.container.querySelector('.confirm-btn').onclick = () => { this.container.innerHTML = ''; onConfirm(); }; } };
+    
+    /** FileExplorerApp: Rebuilt for stability and core functionality. */
+    App.FileExplorer = {
+        init(app) {
+            this.app = app;
+            this.currentPath = '/';
+            this.selectedItemId = null;
+            this.app.dom.appContainer.innerHTML = `<div class="explorer-toolbar"><button class="nav-btn up-btn" title="Up">↑</button><input type="text" class="path-bar" /></div><div class="explorer-body"><div class="explorer-main"><div class="content-area"></div></div></div><div class="explorer-statusbar"></div>`;
+            this.dom = {
+                pathBar: app.dom.appContainer.querySelector('.path-bar'),
+                contentArea: app.dom.appContainer.querySelector('.content-area'),
+                statusBar: app.dom.appContainer.querySelector('.explorer-statusbar'),
+                toolbar: app.dom.appContainer.querySelector('.explorer-toolbar'),
+            };
+            this.render();
+        },
+        async render() {
+            const items = await this.app.VFS.list(this.currentPath);
+            this.dom.contentArea.innerHTML = '';
+            items.sort((a, b) => (b.type.localeCompare(a.type)) || a.name.localeCompare(b.name)).forEach(item => {
+                this.dom.contentArea.appendChild(this.createItemElement(item));
+            });
+            this.dom.pathBar.value = this.currentPath;
+            this.dom.toolbar.querySelector('.up-btn').disabled = this.currentPath === '/';
+            this.dom.statusBar.textContent = `${items.length} items`;
+            this.bindEvents(); // Re-bind events after every render
+        },
+        createItemElement(item) {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'file-item';
+            itemEl.dataset.id = item.id;
+            itemEl.innerHTML = `<div class="file-item-icon">${item.type === 'folder' ? '📁' : '📄'}</div><span class="file-item-name">${item.name}</span>`;
+            return itemEl;
+        },
+        bindEvents() {
+            this.dom.toolbar.querySelector('.up-btn').onclick = () => this.navigate(this.app.VFS._parsePath(this.currentPath).parentPath);
+            this.dom.pathBar.onkeydown = e => { if (e.key === 'Enter') this.navigate(this.dom.pathBar.value); };
+            
+            this.dom.contentArea.querySelectorAll('.file-item').forEach(itemEl => {
+                itemEl.addEventListener('click', () => {
+                    this.dom.contentArea.querySelectorAll('.file-item').forEach(el => el.classList.remove('selected'));
+                    itemEl.classList.add('selected');
+                    this.selectedItemId = itemEl.dataset.id;
+                });
+
+                itemEl.addEventListener('dblclick', async () => {
+                    const node = await this.app.VFS.getNode(itemEl.dataset.id);
+                    if (node.type === 'folder') {
+                        this.navigate(await this.app.VFS.constructPath(node.id));
+                    }
+                });
+            });
+
+            this.dom.contentArea.addEventListener('contextmenu', e => {
+                e.preventDefault(); e.stopPropagation();
+                const itemEl = e.target.closest('.file-item');
+                this.app.ContextMenu.show(e.clientX, e.clientY, itemEl ? this.getItemContextMenu(itemEl) : this.getGridContextMenu());
+            });
+        },
+        getItemContextMenu(itemEl) {
+            const id = itemEl.dataset.id;
+            return [{ label: 'Delete', action: () => this.deleteItem(id) }];
+        },
+        getGridContextMenu() {
+            return [{ label: 'New Folder', action: () => this.createNewItem('folder') }, { label: 'New Text File', action: () => this.createNewItem('file') }];
+        },
+        async createNewItem(type) {
+            const name = prompt(`Enter name for new ${type}:`, `New ${type}`);
+            if (!name) return;
+            const path = `${this.currentPath === '/' ? '' : this.currentPath}/${name}`;
+            try {
+                await (type === 'folder' ? this.app.VFS.mkdir(path) : this.app.VFS.write(path));
+            } catch (e) { alert(`Error: ${e.message}`); }
+            this.render();
+        },
+        async deleteItem(id) {
+            const node = await this.app.VFS.getNode(id);
+            this.app.Modal.confirm({
+                title: 'Delete Item',
+                message: `Are you sure you want to delete "${node.name}"?`,
+                onConfirm: async () => { await this.app.VFS.delete(id); this.render(); }
+            });
+        },
+        navigate(path) {
+            if (this.currentPath === path) return;
+            this.currentPath = path || '/';
+            this.render();
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+</body>
+</html>
