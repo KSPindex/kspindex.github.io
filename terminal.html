@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperIDE Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-family: 'Fira Code', monospace;
+            --bg-primary: #11111b;
+            --bg-secondary: #1a1b26;
+            --bg-tertiary: #161620;
+            --bg-hover: #2a2c3d;
+            --text-primary: #c0caf5;
+            --text-secondary: #a9b1d6;
+            --text-inactive: #5c637a;
+            --border-primary: #343b58;
+            --accent-primary: #7aa2f7;
+            --accent-secondary: #bb9af7;
+            --error-color: #f7768e;
+            --warning-color: #e0af68;
+        }
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-tertiary); }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+
+        #terminal-output {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        #terminal-input-container {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-top: 1px solid var(--border-primary);
+            background-color: var(--bg-secondary);
+        }
+        #terminal-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 0.9em;
+        }
+        .output-error { color: var(--error-color); }
+        .output-warn { color: var(--warning-color); }
+        .prompt-text { color: var(--accent-primary); margin-right: 8px; }
+    </style>
+</head>
+<body>
+    <div id="terminal-output"></div>
+    <div id="terminal-input-container">
+        <span class="prompt-text">$</span><input type="text" id="terminal-input" />
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <script src="https://unpkg.com/fengari-web/dist/fengari-web.js"></script>
+    <script>
+        const Terminal = {
+            dom: {},
+            state: {
+                pyodide: null,
+                pyodideReady: false,
+                terminalHistory: [],
+                historyIndex: -1,
+                currentCommand: '', // Store current input while navigating history
+            },
+
+            init() {
+                this.cacheDomElements();
+                this.bindEvents();
+                this.log('HyperIDE Terminal Initialized.');
+                this.log('Loading Python & Lua environments...');
+                
+                this.loadEnvironments();
+            },
+
+            cacheDomElements() {
+                this.dom.output = document.getElementById('terminal-output');
+                this.dom.input = document.getElementById('terminal-input');
+            },
+
+            bindEvents() {
+                this.dom.input.addEventListener('keydown', this.handleInput.bind(this));
+                // Listen for messages from other windows (e.g., editor.html)
+                window.addEventListener('message', this.handleMessage.bind(this));
+            },
+
+            async loadEnvironments() {
+                try {
+                    this.state.pyodide = await loadPyodide();
+                    // Redirect Pyodide stdout/stderr to terminal output
+                    this.state.pyodide.setStdout({ batched: (str) => this.log(str) });
+                    this.state.pyodide.setStderr({ batched: (str) => this.log(str, 'error') });
+                    this.state.pyodideReady = true;
+                    this.log('Python & Lua environments ready.');
+                } catch (error) {
+                    this.log(`Failed to load environments: ${error}`, 'error');
+                }
+            },
+
+            handleInput(e) {
+                if (e.key === 'Enter') {
+                    const cmdStr = e.target.value.trim();
+                    if (cmdStr) {
+                        this.exec(cmdStr);
+                        this.state.terminalHistory.unshift(cmdStr);
+                        this.state.historyIndex = -1; // Reset history index
+                        this.state.currentCommand = ''; // Clear current command buffer
+                    }
+                    e.target.value = '';
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault(); // Prevent cursor from moving to start of input
+                    if (this.state.historyIndex === -1) {
+                        this.state.currentCommand = e.target.value; // Save current input
+                    }
+                    if (this.state.terminalHistory.length > 0 && this.state.historyIndex < this.state.terminalHistory.length - 1) {
+                        this.state.historyIndex++;
+                        e.target.value = this.state.terminalHistory[this.state.historyIndex];
+                    }
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault(); // Prevent cursor from moving to end of input
+                    if (this.state.historyIndex > 0) {
+                        this.state.historyIndex--;
+                        e.target.value = this.state.terminalHistory[this.state.historyIndex];
+                    } else if (this.state.historyIndex === 0) {
+                        this.state.historyIndex = -1;
+                        e.target.value = this.state.currentCommand; // Restore from buffer
+                    } else {
+                        e.target.value = '';
+                    }
+                }
+            },
+
+            handleMessage(event) {
+                // Ensure message is from a trusted origin if deployed
+                // if (event.origin !== "http://localhost:8000") return; // Adjust as needed
+
+                const { type, payload } = event.data;
+
+                switch (type) {
+                    case 'terminalOutput':
+                        this.log(payload.message, payload.level);
+                        break;
+                    case 'terminalCommand':
+                        // Execute command sent from another window
+                        this.exec(payload.command);
+                        break;
+                    case 'runScript':
+                        // Execute a script content directly
+                        this.log(`$ Running ${payload.language} script from editor...`);
+                        this.runScriptContent(payload.language, payload.content);
+                        break;
+                    case 'clearTerminal':
+                        this.clear();
+                        break;
+                    // Add more message types as needed
+                }
+            },
+
+            log(msg, level = 'log') {
+                const line = document.createElement('div');
+                line.classList.add('output-line');
+                if (level === 'error') line.classList.add('output-error');
+                if (level === 'warn') line.classList.add('output-warn');
+
+                // Basic HTML escaping and newline conversion
+                line.innerHTML = String(msg)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;")
+                    .replace(/\n/g, '<br>')
+                    .replace(/ /g, '&nbsp;'); // Preserve spaces
+
+                this.dom.output.appendChild(line);
+                this.dom.output.scrollTop = this.dom.output.scrollHeight; // Scroll to bottom
+            },
+
+            clear() {
+                this.dom.output.innerHTML = '';
+                this.log('Terminal cleared.');
+            },
+
+            async exec(cmdStr) {
+                this.log(`$ ${cmdStr}`); // Log the command itself
+                const [cmd, ...args] = cmdStr.trim().split(/\s+/);
+                const path = args.join(' '); // For commands like 'python main.py'
+
+                // Check for built-in commands first
+                switch(cmd) {
+                    case 'clear':
+                        this.clear();
+                        return;
+                    case 'help':
+                        this.log('Available commands: python, node, lua, clear, help');
+                        this.log('To run a file: python <filename.py>, node <filename.js>, lua <filename.lua>');
+                        return;
+                    case 'echo':
+                        this.log(args.join(' '));
+                        return;
+                }
+
+                // If it's a script execution command, try to get content from localStorage (mock FS)
+                if (['python', 'node', 'lua'].includes(cmd)) {
+                    // In a real scenario, you'd load content from a shared IndexedDB or fetch from server
+                    // For this example, we'll assume content needs to be passed explicitly or the editor manages it.
+                    // If the editor is the source, it should use 'runScript' message type.
+                    this.log(`Currently, this terminal cannot directly access files from the VFS.`, 'error');
+                    this.log(`Please use the 'Run' button in the editor or 'runScript' message to execute code.`, 'error');
+                    return;
+                }
+
+                this.log(`Command not found: ${cmd}.`, 'error');
+            },
+
+            async runScriptContent(language, content) {
+                try {
+                    switch(language) {
+                        case 'javascript': // 'node' is an alias for JS in this context
+                        case 'node':
+                            // Redirect console.log/error to terminal output temporarily
+                            const originalConsoleLog = console.log;
+                            const originalConsoleError = console.error;
+                            const capturedLogs = [];
+                            const capturedErrors = [];
+
+                            console.log = (...args) => capturedLogs.push(args.map(a => String(a)).join(' '));
+                            console.error = (...args) => capturedErrors.push(args.map(a => String(a)).join(' '));
+
+                            try {
+                                new Function(content)(); // Execute JS code
+                            } catch (e) {
+                                capturedErrors.push(`Runtime Error: ${e.message}`);
+                            } finally {
+                                console.log = originalConsoleLog;
+                                console.error = originalConsoleError;
+                            }
+
+                            if (capturedLogs.length > 0) this.log(capturedLogs.join('\n'));
+                            if (capturedErrors.length > 0) this.log(capturedErrors.join('\n'), 'error');
+                            break;
+                        case 'python':
+                            if (this.state.pyodideReady) {
+                                await this.state.pyodide.runPythonAsync(content);
+                            } else {
+                                this.log('Python environment not ready.', 'error');
+                            }
+                            break;
+                        case 'lua':
+                            const fengari = window.fengari;
+                            const L = fengari.lauxlib.luaL_newstate();
+                            fengari.lualib.luaL_openlibs(L);
+
+                            const capturedLuaOutput = [];
+                            fengari.lua.lua_pushcfunction(L, () => {
+                                const nargs = fengari.lua.lua_gettop(L);
+                                let s = "";
+                                for (let i = 1; i <= nargs; i++) {
+                                    s += fengari.lua.lua_tojsstring(L, i);
+                                    if (i < nargs) s += "\t";
+                                }
+                                capturedLuaOutput.push(s);
+                                return 0;
+                            });
+                            fengari.lua.lua_setglobal(L, "print");
+
+                            const status = fengari.lauxlib.luaL_dostring(L, fengari.to_luastring(content));
+                            if (status !== 0) {
+                                this.log(fengari.lua.lua_tojsstring(L, -1), 'error');
+                            }
+                            if (capturedLuaOutput.length > 0) this.log(capturedLuaOutput.join('\n'));
+                            break;
+                        default:
+                            this.log(`No runtime available for ${language} scripts.`, 'error');
+                    }
+                } catch (e) {
+                    this.log(`Execution Error for ${language}: ${e.message}`, 'error');
+                    console.error(`Full error for ${language} execution:`, e);
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => Terminal.init());
+    </script>
+</body>
+</html>
