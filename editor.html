@@ -25,8 +25,8 @@
     <script src="https://unpkg.com/prettier@2.8.8/parser-html.js"></script>
     <script src="https://unpkg.com/prettier@2.8.8/parser-postcss.js"></script>
     
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script> 
-    <script src="https://unpkg.com/fengari-web/dist/fengari-web.js"></script> 
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <script src="https://unpkg.com/fengari-web/dist/fengari-web.js"></script>
     
     <style>
         /* Index-Space Theme Variables - Unified with Desktop */
@@ -61,75 +61,75 @@
             --ide-minimap-bg: rgba(13, 17, 23, 0.7); /* Slightly darker, more transparent background */
         }
 
-        body { 
-            font-family: var(--font-family); 
-            background-color: var(--ide-bg-primary); 
-            color: var(--ide-text-primary); 
-            overflow: hidden; 
-            font-size: 14px; 
+        body {
+            font-family: var(--font-family);
+            background-color: var(--ide-bg-primary);
+            color: var(--ide-text-primary);
+            overflow: hidden;
+            font-size: 14px;
             user-select: none;
         }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: var(--ide-bg-tertiary); }
         ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
         
-        #main-grid { 
-            display: grid; 
+        #main-grid {
+            display: grid;
             grid-template-columns: 48px 250px 5px 1fr; /* Activity Bar, Sidebar, Resizer, Main View */
             grid-template-rows: 35px 1fr 5px 200px 24px; /* Top Bar, Main Editor Area, Resizer, Bottom Panel, Status Bar */
-            height: 100vh; 
-            width: 100vw; 
+            height: 100vh;
+            width: 100vw;
         }
-        #top-bar { 
-            grid-area: 1 / 1 / 2 / 6; 
-            background-color: var(--ide-bg-tertiary); 
-            display: flex; 
-            align-items: center; 
-            padding: 0 10px; 
+        #top-bar {
+            grid-area: 1 / 1 / 2 / 6;
+            background-color: var(--ide-bg-tertiary);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
             z-index: 60;
             border-bottom: 1px solid var(--ide-border-primary);
         }
-        #activity-bar { 
-            grid-area: 2 / 1 / 5 / 2; 
-            background-color: var(--ide-bg-primary); 
-            z-index: 50; 
-            border-right: 1px solid var(--ide-border-primary); 
+        #activity-bar {
+            grid-area: 2 / 1 / 5 / 2;
+            background-color: var(--ide-bg-primary);
+            z-index: 50;
+            border-right: 1px solid var(--ide-border-primary);
         }
-        #sidebar { 
-            grid-area: 2 / 2 / 5 / 3; 
-            background-color: var(--ide-bg-tertiary); 
-            z-index: 40; 
-            display: flex; 
+        #sidebar {
+            grid-area: 2 / 2 / 5 / 3;
+            background-color: var(--ide-bg-tertiary);
+            z-index: 40;
+            display: flex;
             flex-direction: column;
             border-right: 1px solid var(--ide-border-primary);
         }
-        #resizer-v { 
-            grid-area: 2 / 3 / 5 / 4; 
-            cursor: col-resize; 
-            z-index: 99; 
+        #resizer-v {
+            grid-area: 2 / 3 / 5 / 4;
+            cursor: col-resize;
+            z-index: 99;
             background-color: var(--ide-border-primary);
         }
-        #main-view { 
-            grid-area: 2 / 4 / 3 / 5; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
+        #main-view {
+            grid-area: 2 / 4 / 3 / 5;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
-        #resizer-h { 
-            grid-area: 3 / 4 / 4 / 5; 
-            cursor: row-resize; 
-            z-index: 99; 
+        #resizer-h {
+            grid-area: 3 / 4 / 4 / 5;
+            cursor: row-resize;
+            z-index: 99;
             background-color: var(--ide-border-primary);
         }
-        #bottom-panel { 
-            grid-area: 4 / 4 / 5 / 5; 
+        #bottom-panel {
+            grid-area: 4 / 4 / 5 / 5;
             background-color: var(--ide-bg-secondary);
             border-top: 1px solid var(--ide-border-primary);
         }
-        #status-bar { 
-            grid-area: 5 / 1 / 6 / 6; 
-            background-color: var(--ide-accent-primary); 
-            color: var(--ide-bg-primary); 
+        #status-bar {
+            grid-area: 5 / 1 / 6 / 6;
+            background-color: var(--ide-accent-primary);
+            color: var(--ide-bg-primary);
             z-index: 100;
             display: flex;
             align-items: center;
@@ -152,39 +152,39 @@
         .ace_gutter-cell.ace_breakpoint { background-image: none !important; position: relative; }
         .ace_gutter-cell.ace_breakpoint::before { content: "●"; color: var(--ide-error-color); position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);}
         
-        .overlay { 
-            position: fixed; 
-            inset: 0; 
+        .overlay {
+            position: fixed;
+            inset: 0;
             background: rgba(13, 17, 23, 0.9); /* Use themed modal background */
-            backdrop-filter: blur(8px); 
-            z-index: 1000; 
-            display:flex; 
-            align-items: flex-start; 
-            justify-content:center; 
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display:flex;
+            align-items: flex-start;
+            justify-content:center;
         }
-        .modal-base { 
-            background: var(--ide-bg-secondary); 
-            margin-top:15vh; 
-            width: 600px; 
-            max-width: 90vw; 
-            border-radius:8px; 
-            box-shadow:0 10px 30px rgba(0,0,0,0.5); 
-            display:flex; 
-            flex-direction:column; 
-            border: 1px solid var(--ide-border-primary); 
+        .modal-base {
+            background: var(--ide-bg-secondary);
+            margin-top:15vh;
+            width: 600px;
+            max-width: 90vw;
+            border-radius:8px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.5);
+            display:flex;
+            flex-direction:column;
+            border: 1px solid var(--ide-border-primary);
             color: var(--ide-text-primary);
         }
-        .modal-input { 
-            background:var(--ide-bg-primary); 
-            border:1px solid var(--ide-border-primary); 
-            outline:none; 
-            padding:8px; 
-            width:100%; 
-            border-radius:4px; 
+        .modal-input {
+            background:var(--ide-bg-primary);
+            border:1px solid var(--ide-border-primary);
+            outline:none;
+            padding:8px;
+            width:100%;
+            border-radius:4px;
             color: var(--ide-text-primary);
         }
-        .context-menu-item:hover, .command-palette-item.active { 
-            background-color: var(--ide-bg-hover); 
+        .context-menu-item:hover, .command-palette-item.active {
+            background-color: var(--ide-bg-hover);
             color: var(--ide-text-primary); /* Ensure text color stays readable */
         }
 
@@ -203,8 +203,8 @@
         .activity-bar-icon:hover {
             color: var(--ide-text-primary);
         }
-        .activity-bar-icon.active { 
-            color: var(--ide-text-primary); 
+        .activity-bar-icon.active {
+            color: var(--ide-text-primary);
             box-shadow: inset 2px 0 0 var(--ide-accent-primary); /* Left border indicator */
         }
         .activity-bar-icon svg {
@@ -227,14 +227,14 @@
         .bottom-panel-tab:hover {
             background-color: var(--ide-bg-hover);
         }
-        .bottom-panel-tab.active { 
-            background-color: var(--ide-bg-secondary); 
-            color: var(--ide-text-primary); 
+        .bottom-panel-tab.active {
+            background-color: var(--ide-bg-secondary);
+            color: var(--ide-text-primary);
             border-bottom: 2px solid var(--ide-accent-primary); /* Active tab indicator */
         }
 
-        .editor-tab { 
-            position: relative; 
+        .editor-tab {
+            position: relative;
             background-color: var(--ide-bg-primary); /* Normal tab background */
             color: var(--ide-text-secondary);
             padding: 8px 12px;
@@ -251,9 +251,9 @@
             background-color: var(--ide-bg-hover);
             color: var(--ide-text-primary);
         }
-        .editor-tab.active { 
-            background-color: var(--ide-bg-secondary); 
-            color: var(--ide-text-primary); 
+        .editor-tab.active {
+            background-color: var(--ide-bg-secondary);
+            color: var(--ide-text-primary);
             border-top: 2px solid var(--ide-accent-primary); /* Active tab indicator */
             padding-top: 6px; /* Adjust for border */
         }
@@ -261,10 +261,10 @@
         
         #editor-groups-container { display: grid; grid-template-columns: 1fr; width: 100%; height: 100%; }
         #editor-groups-container.split { grid-template-columns: 1fr 5px 1fr; }
-        .editor-group { 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
+        .editor-group {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             border-left: 1px solid var(--ide-border-primary); /* For split view border */
         }
         .editor-pane { flex-grow: 1; position: relative; }
@@ -725,10 +725,21 @@
                 'setting-theme', 'setting-fontsize', 'setting-keymap', 'setting-linenumbers', 'setting-minimap', 'setting-wordwrap', 'setting-autosave', 'snippets-editor', 'save-snippets-btn',
                 'file-importer', 'view-explorer', 'view-search', 'view-settings', 
                 'panel-internal-terminal', 'panel-problems', 'panel-preview', 'preview-frame', 'problems-count',
+                'terminal-output-log', // 이 ID가 ids 배열에 포함되어 있는지 다시 확인
+                'terminal-loading-overlay',
+                'terminal-loading-text',
                 'explorer-search', 'search-input', 'search-results',
                 'back-btn', 'forward-btn'
             ];
-            ids.forEach(id => this.dom[id.replace(/-/g, '_')] = document.getElementById(id));
+            ids.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    this.dom[id.replace(/-/g, '_')] = element;
+                } else {
+                    console.error(`DOM element with ID '${id}' not found!`);
+                    // 개발 중에는 console.error가 가장 유용합니다.
+                }
+            });
             
             this.dom.editor_group_1 = {
                 group: document.getElementById('editor-group-1'),
@@ -821,7 +832,7 @@
                 if (path === '/') { 
                     const existingRoot = await this.getNode('/');
                     if (!existingRoot) {
-                         return this._runTx('nodes', 'readwrite', s => s.add({ id: '/', type: 'folder', name: '', parentId: null, ctime: new Date(), mtime: new Date(), size: 0 }));
+                            return this._runTx('nodes', 'readwrite', s => s.add({ id: '/', type: 'folder', name: '', parentId: null, ctime: new Date(), mtime: new Date(), size: 0 }));
                     }
                     return existingRoot.id;
                 }
@@ -999,7 +1010,7 @@
                     const ext = nameParts.length > 1 ? `.${nameParts[nameParts.length - 1]}` : '';
 
                     if (counter === 1) {
-                         newName = `${baseName}(Copy)${ext}`;
+                            newName = `${baseName}(Copy)${ext}`;
                     } else {
                         newName = `${baseName}(Copy ${counter})${ext}`;
                     }
@@ -1171,7 +1182,12 @@
         editor: {
             init() {
                 this.createEditorInstance('pane1');
-                App.state.snippetsEditor = this.createSnippetsEditor();
+                // Ensure snippets-editor element exists before creating the Ace editor instance
+                if (App.dom.snippets_editor) {
+                    App.state.snippetsEditor = this.createSnippetsEditor();
+                } else {
+                    console.warn("Snippets editor element not found. Snippets functionality may be limited.");
+                }
             },
             createEditorInstance(paneId) {
                 const domInfo = App.ui.getPaneDom(paneId);
@@ -1243,99 +1259,110 @@
                     pane: document.querySelector('#editor-group-2 .editor-pane'),
                 };
             },
-                      async renderExplorer() {
-                const container = App.dom.file_explorer; container.innerHTML = '';
-                const query = App.dom.explorer_search.value.toLowerCase();
-                // render 함수를 async로 선언합니다.
-                const render = async (parentId, pathPrefix = '', level = 0) => {
-                    let items = await App.fs.list(pathPrefix || '/'); // Fetch children from VFS
+            async renderExplorer() {
+                const container = App.dom.file_explorer; 
+                if (!container) {
+                    console.error("File explorer container not found, cannot render explorer.");
+                    return;
+                }
+                container.innerHTML = '';
+                const query = App.dom.explorer_search?.value.toLowerCase() || ''; // Add nullish coalescing for safety
+                
+                const render = async (parentId, pathPrefix = '', level = 0) => {
+                    let items = await App.fs.list(pathPrefix || '/'); // Fetch children from VFS
 
-                    // 비동기 필터링을 위해 Promise.all을 사용합니다.
-                    const itemsWithMatchStatus = await Promise.all(items.map(async item => {
-                        const nameMatches = item.name.toLowerCase().includes(query);
-                        let contentMatches = false;
-                        if (item.type === 'folder' && query) { // 쿼리가 있을 때만 폴더 내용 검색
-                            const folderPath = `${pathPrefix === '/' ? '' : pathPrefix}/${item.name}`;
-                            const foundInContent = await App.fs.findNodesByContent(query, folderPath);
-                            contentMatches = foundInContent && foundInContent.length > 0;
-                        }
-                        return { item, matches: nameMatches || contentMatches };
-                    }));
+                    const itemsWithMatchStatus = await Promise.all(items.map(async item => {
+                        const nameMatches = item.name.toLowerCase().includes(query);
+                        let contentMatches = false;
+                        if (item.type === 'folder' && query) { // Only search content if there's a query
+                            const folderPath = `${pathPrefix === '/' ? '' : pathPrefix}/${item.name}`;
+                            const foundInContent = await App.fs.findNodesByContent(query, folderPath);
+                            contentMatches = foundInContent && foundInContent.length > 0;
+                        }
+                        return { item, matches: nameMatches || contentMatches };
+                    }));
 
-                    // 필터링된 항목을 선택합니다.
-                    const filteredItems = itemsWithMatchStatus
-                        .filter(entry => entry.matches)
-                        .map(entry => entry.item);
+                    const filteredItems = itemsWithMatchStatus
+                        .filter(entry => entry.matches)
+                        .map(entry => entry.item);
 
-                    filteredItems.sort((a,b) => (a.type === 'folder' && b.type !== 'folder' ? -1 : (a.type !== 'folder' && b.type === 'folder' ? 1 : 0)) || a.name.localeCompare(b.name)).forEach(async (node) => {
-                        const path = await App.fs.constructPath(node.id);
-                        const el = document.createElement('div');
-                        el.className = 'file-item p-1 rounded cursor-pointer flex items-center hover:bg-[var(--ide-bg-hover)]';
-                        el.style.paddingLeft = `${level * 16 + 4}px`;
-                        el.dataset.path = path;
-                        el.dataset.id = node.id;
-                        el.draggable = true;
+                    // Sort items: folders first, then files, both alphabetically
+                    filteredItems.sort((a, b) => {
+                        if (a.type === 'folder' && b.type !== 'folder') return -1;
+                        if (a.type !== 'folder' && b.type === 'folder') return 1;
+                        return a.name.localeCompare(b.name);
+                    }).forEach(async (node) => { // Use async forEach if there are awaits inside
+                        const path = await App.fs.constructPath(node.id);
+                        const el = document.createElement('div');
+                        el.className = 'file-item p-1 rounded cursor-pointer flex items-center hover:bg-[var(--ide-bg-hover)]';
+                        el.style.paddingLeft = `${level * 16 + 4}px`;
+                        el.dataset.path = path;
+                        el.dataset.id = node.id;
+                        el.draggable = true;
+                        
+                        const icon = node.type === 'folder' ? (node.isOpen ? '📂' : '📁') : '📄';
+                        el.innerHTML = `<span class="mr-2 pointer-events-none">${icon}</span><span class="pointer-events-none">${node.name}</span>`;
+                        container.appendChild(el);
+                        
+                        el.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            if (node.type === 'folder') { 
+                                node.isOpen = !node.isOpen; 
+                                App.ui.renderExplorer(); 
+                            } else { 
+                                App.files.open(path); 
+                            }
+                        });
+                        
+                        el.addEventListener('dragstart', (e) => { 
+                            e.stopPropagation(); 
+                            e.dataTransfer.setData('text/plain', JSON.stringify({type: 'move', id: node.id})); 
+                            e.dataTransfer.effectAllowed = 'move';
+                        });
+                        el.addEventListener('dragover', (e) => { 
+                            e.preventDefault(); 
+                            e.stopPropagation(); 
+                            if(node.type === 'folder') el.classList.add('drag-over'); 
+                        });
+                        el.addEventListener('dragleave', (e) => { 
+                            e.preventDefault(); 
+                            e.stopPropagation(); 
+                            el.classList.remove('drag-over'); 
+                        });
+                        el.addEventListener('drop', async (e) => {
+                            e.preventDefault(); e.stopPropagation();
+                            el.classList.remove('drag-over');
+                            
+                            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                            if (data.type === 'move' && data.id) {
+                                const srcId = data.id;
+                                const destId = node.type === 'folder' ? node.id : node.parentId; 
+                                const destPath = await App.fs.constructPath(destId);
 
-                        const icon = node.type === 'folder' ? (node.isOpen ? '📂' : '📁') : '📄';
-                        el.innerHTML = `<span class="mr-2 pointer-events-none">${icon}</span><span class="pointer-events-none">${node.name}</span>`;
-                        container.appendChild(el);
+                                if (srcId === destId) return; 
 
-                        el.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            if (node.type === 'folder') {
-                                node.isOpen = !node.isOpen;
-                                App.ui.renderExplorer();
-                            } else {
-                                App.files.open(path);
-                            }
-                        });
+                                try {
+                                    await App.fs.move(srcId, destPath);
+                                    App.ui.showNotification(`Moved ${node.name} to ${destPath}`, 'success');
+                                    App.ui.renderExplorer();
+                                } catch (err) {
+                                    App.ui.showNotification(`Move failed: ${err.message}`, 'error');
+                                }
+                            }
+                        });
 
-                        el.addEventListener('dragstart', (e) => {
-                            e.stopPropagation();
-                            e.dataTransfer.setData('text/plain', JSON.stringify({type: 'move', id: node.id}));
-                            e.dataTransfer.effectAllowed = 'move';
-                        });
-                        el.addEventListener('dragover', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if(node.type === 'folder') el.classList.add('drag-over');
-                        });
-                        el.addEventListener('dragleave', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            el.classList.remove('drag-over');
-                        });
-                        el.addEventListener('drop', async (e) => {
-                            e.preventDefault(); e.stopPropagation();
-                            el.classList.remove('drag-over');
-
-                            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                            if (data.type === 'move' && data.id) {
-                                const srcId = data.id;
-                                const destId = node.type === 'folder' ? node.id : node.parentId;
-                                const destPath = await App.fs.constructPath(destId);
-
-                                if (srcId === destId) return;
-
-                                try {
-                                    await App.fs.move(srcId, destPath);
-                                    App.ui.showNotification(`Moved ${node.name} to ${destPath}`, 'success');
-                                    App.ui.renderExplorer();
-                                } catch (err) {
-                                    App.ui.showNotification(`Move failed: ${err.message}`, 'error');
-                                }
-                            }
-                        });
-
-                        if (node.type === 'folder' && node.isOpen) {
-                            await render(node.id, path, level + 1);
-                        }
-                    });
-                }
-                const rootNode = await App.fs.getNodeByPath('/');
-                await render(rootNode.id, '/', 0);
-            },
-
+                        if (node.type === 'folder' && node.isOpen) {
+                            await render(node.id, path, level + 1); 
+                        }
+                    });
+                };
+                const rootNode = await App.fs.getNodeByPath('/'); 
+                if (rootNode) {
+                    await render(rootNode.id, '/', 0); 
+                } else {
+                    console.warn("Root file system node not found. File explorer might be empty.");
+                }
+            },
             updateStatus() {
                 const editor = App.editor.getActiveEditor();
                 const paneId = App.state.activePane;
@@ -1344,10 +1371,19 @@
                 if (!path) { App.dom.line_col.textContent = ''; App.dom.language_status.textContent = ''; return; }
                 
                 const pos = editor.getCursorPosition();
-                App.dom.line_col.textContent = `Ln ${pos.row + 1}, Col ${pos.column + 1}`;
-                App.dom.language_status.textContent = ace.require("ace/ext/modelist").getModeForPath(path).caption;
+                if (App.dom.line_col) { // Add null check for safety
+                    App.dom.line_col.textContent = `Ln ${pos.row + 1}, Col ${pos.column + 1}`;
+                }
+                if (App.dom.language_status) { // Add null check for safety
+                    App.dom.language_status.textContent = ace.require("ace/ext/modelist").getModeForPath(path).caption;
+                }
             },
             switchSidebarView(viewId) {
+                if (!App.dom.sidebar || !App.dom.main_grid || !App.dom.resizer_v) {
+                    console.error("Sidebar or grid elements not found for switchSidebarView.");
+                    return;
+                }
+
                 if (App.state.activeSidebarView === viewId && App.dom.sidebar.style.display !== 'none') {
                     App.dom.main_grid.style.gridTemplateColumns = '48px 0px 0px 1fr';
                     App.dom.sidebar.style.display = 'none';
@@ -1365,6 +1401,11 @@
                 App.settings.resizeAllEditors();
             },
             switchBottomPanel(panelId) {
+                if (!App.dom.bottom_panel || !App.dom.resizer_h || !App.dom.main_grid) {
+                    console.error("Bottom panel or grid elements not found for switchBottomPanel.");
+                    return;
+                }
+
                 App.dom.bottom_panel.style.display = 'flex';
                 App.dom.resizer_h.style.display = 'block';
                 App.dom.main_grid.style.gridTemplateRows = `35px 1fr 5px ${App.state.settings.layout.panel} 24px`;
@@ -1376,6 +1417,11 @@
                 App.settings.resizeAllEditors();
             },
             toggleBottomPanel() {
+                if (!App.dom.bottom_panel || !App.dom.resizer_h || !App.dom.main_grid) {
+                    console.error("Bottom panel or grid elements not found for toggleBottomPanel.");
+                    return;
+                }
+
                 const isVisible = App.dom.bottom_panel.style.display !== 'none';
                 if (isVisible) {
                     App.dom.bottom_panel.style.display = 'none';
@@ -1388,53 +1434,126 @@
             },
             showNotification(msg, type = 'success') {
                 const toast = App.dom.notification_toast; 
+                if (!toast) {
+                    console.warn("Notification toast element not found.");
+                    return;
+                }
                 toast.textContent = msg;
                 toast.style.backgroundColor = type === 'error' ? 'var(--ide-error-color)' : (type === 'warning' ? 'var(--ide-warning-color)' : 'var(--ide-accent-primary)');
                 toast.classList.remove('opacity-0');
                 setTimeout(() => toast.classList.add('opacity-0'), 3000);
             },
             showModal(content) {
+                if (!App.dom.modal_overlay) {
+                    console.error("Modal overlay element not found, cannot show modal.");
+                    return;
+                }
                 App.dom.modal_overlay.innerHTML = ''; 
                 App.dom.modal_overlay.appendChild(content);
                 App.dom.modal_overlay.classList.remove('hidden');
             },
-            hideModal() { App.dom.modal_overlay.classList.add('hidden'); }
+            hideModal() { 
+                if (App.dom.modal_overlay) {
+                    App.dom.modal_overlay.classList.add('hidden'); 
+                } else {
+                    console.warn("Modal overlay element not found, cannot hide modal.");
+                }
+            },
+            // Helper function to get node from explorer; might need to be async if it queries DB
+            getCurrentNodeFromExplorer(nodeId) {
+                // For simplicity, assuming nodes in explorer are kept in a local structure or can be quickly retrieved.
+                // If this needs to hit IndexedDB, it should be async.
+                // For now, let's just return a dummy type based on the ID for context menu, or make it async and fetch from App.fs
+                // This is a placeholder, you might need to implement actual logic to retrieve the node object from your VFS.
+                // For a robust solution, you might query App.fs.getNode(nodeId) here (making showContextMenu async).
+                // But for now, we'll simulate based on common IDs.
+                if (nodeId === '/') return { type: 'folder' };
+                if (nodeId && nodeId.includes('file-')) return { type: 'file' }; // Dummy check for example
+                if (nodeId && nodeId.includes('folder-')) return { type: 'folder' }; // Dummy check for example
+                
+                // Fallback: If target element has a dataset.path, try to infer type from extension or fetch from FS
+                const selectedEl = document.querySelector(`.file-item[data-id="${nodeId}"]`);
+                if (selectedEl && selectedEl.dataset.path) {
+                    const path = selectedEl.dataset.path;
+                    const parts = path.split('.');
+                    const ext = parts[parts.length - 1];
+                    if (['py', 'js', 'html', 'lua', 'md', 'txt'].includes(ext)) {
+                        return { type: 'file' };
+                    }
+                    // This is a weak inference. A stronger solution would be to await App.fs.getNode(nodeId)
+                    // and use its actual `type` property.
+                }
+                return null;
+            }
         },
         
         layout: {
             init() {
-                const onDrag = (resizer, onMove, onEnd) => resizer.addEventListener('mousedown', e => { e.preventDefault(); const cb = (ev)=>onMove(ev); const upCb = () => { document.removeEventListener('mousemove', cb); if(onEnd) onEnd(); }; document.addEventListener('mousemove', cb); document.addEventListener('mouseup', upCb, { once: true }); });
-                
-                onDrag(App.dom.resizer_v, e => {
-                    const newSidebarWidth = e.clientX - 48; 
-                    if (newSidebarWidth > 150 && newSidebarWidth < window.innerWidth / 2) { 
-                        App.dom.main_grid.style.gridTemplateColumns = `48px ${newSidebarWidth}px 5px 1fr`;
-                    }
-                }, () => {
-                    App.state.settings.layout.sidebar = App.dom.main_grid.style.gridTemplateColumns.split(' ')[1];
-                    App.settings.save();
-                    App.settings.resizeAllEditors();
+                const onDrag = (resizer, onMove, onEnd) => resizer?.addEventListener('mousedown', e => { // Add nullish coalescing
+                    e.preventDefault(); 
+                    const cb = (ev)=>onMove(ev); 
+                    const upCb = () => { 
+                        document.removeEventListener('mousemove', cb); 
+                        if(onEnd) onEnd(); 
+                    }; 
+                    document.addEventListener('mousemove', cb); 
+                    document.addEventListener('mouseup', upCb, { once: true }); 
                 });
                 
-                onDrag(App.dom.resizer_h, e => {
-                    const newPanelHeight = window.innerHeight - e.clientY - 24; 
-                    if (newPanelHeight > 100 && newPanelHeight < window.innerHeight / 2) { 
-                        App.dom.main_grid.style.gridTemplateRows = `35px 1fr 5px ${newPanelHeight}px 24px`;
-                    }
-                }, () => {
-                    App.state.settings.layout.panel = App.dom.main_grid.style.gridTemplateRows.split(' ')[3];
-                    App.settings.save();
-                    App.settings.resizeAllEditors();
-                });
+                // Add null checks for resizers before attaching event listeners
+                if (App.dom.resizer_v) {
+                    onDrag(App.dom.resizer_v, e => {
+                        const newSidebarWidth = e.clientX - 48; 
+                        if (newSidebarWidth > 150 && newSidebarWidth < window.innerWidth / 2) { 
+                            App.dom.main_grid.style.gridTemplateColumns = `48px ${newSidebarWidth}px 5px 1fr`;
+                        }
+                    }, () => {
+                        App.state.settings.layout.sidebar = App.dom.main_grid.style.gridTemplateColumns.split(' ')[1];
+                        App.settings.save();
+                        App.settings.resizeAllEditors();
+                    });
+                } else {
+                    console.warn("Vertical resizer (resizer_v) not found.");
+                }
+
+                if (App.dom.resizer_h) {
+                    onDrag(App.dom.resizer_h, e => {
+                        const newPanelHeight = window.innerHeight - e.clientY - 24; 
+                        if (newPanelHeight > 100 && newPanelHeight < window.innerHeight / 2) { 
+                            App.dom.main_grid.style.gridTemplateRows = `35px 1fr 5px ${newPanelHeight}px 24px`;
+                        }
+                    }, () => {
+                        App.state.settings.layout.panel = App.dom.main_grid.style.gridTemplateRows.split(' ')[3];
+                        App.settings.save();
+                        App.settings.resizeAllEditors();
+                    });
+                } else {
+                    console.warn("Horizontal resizer (resizer_h) not found.");
+                }
             },
             toggleSplitView() {
+                if (!App.dom.editor_groups_container) {
+                    console.error("Editor groups container not found, cannot toggle split view.");
+                    return;
+                }
+
                 App.state.isSplitView = !App.state.isSplitView;
                 const container = App.dom.editor_groups_container;
                 if (App.state.isSplitView) {
                     container.classList.add('split');
                     const group2HTML = `<div id="editor-group-2" class="editor-group"><div class="editor-tabs flex-shrink-0 flex bg-[var(--ide-bg-tertiary)] overflow-x-auto"></div><div class="editor-pane flex-1 relative"></div></div>`;
-                    const resizerHTML = `<div id="editor-resizer-v"></div>`;
-                    App.dom.editor_group_1.group.insertAdjacentHTML('afterend', resizerHTML + group2HTML);
+                    const resizerHTML = `<div id="editor-resizer-v-editor"></div>`; // Renamed for clarity, to avoid conflict with main resizer-v
+                    // Insert adjacent HTML; must ensure the element exists
+                    if (App.dom.editor_group_1?.group) {
+                         App.dom.editor_group_1.group.insertAdjacentHTML('afterend', resizerHTML + group2HTML);
+                         // Re-cache specific elements after they are added to DOM
+                         App.dom.editor_resizer_v_editor = document.getElementById('editor-resizer-v-editor');
+                    } else {
+                        console.error("editor-group-1 not found for split view creation.");
+                        App.state.isSplitView = false; // Revert state if creation failed
+                        return;
+                    }
+                   
                     App.dom.editor_group_2 = {
                         group: document.getElementById('editor-group-2'),
                         tabs: document.querySelector('#editor-group-2 .editor-tabs'),
@@ -1443,17 +1562,79 @@
                     App.editor.createEditorInstance('pane2');
                     App.state.activePane = 'pane2'; 
                     App.state.editors.pane2.focus();
+
+                    // Add drag logic for the new editor-specific resizer
+                    if (App.dom.editor_resizer_v_editor) {
+                        const editorResizer = App.dom.editor_resizer_v_editor;
+                        editorResizer.style.backgroundColor = 'var(--ide-border-primary)'; // Apply style
+                        editorResizer.style.cursor = 'col-resize'; // Apply cursor
+                        
+                        editorResizer.addEventListener('mousedown', e => {
+                            e.preventDefault();
+                            const editorGroup1 = App.dom.editor_group_1.group;
+                            const editorGroup2 = App.dom.editor_group_2.group;
+                            const startX = e.clientX;
+                            const initialWidth1 = editorGroup1.offsetWidth;
+                            const initialWidth2 = editorGroup2.offsetWidth;
+                            const containerWidth = editorGroup1.parentElement.offsetWidth; // editor-groups-container
+
+                            const onMouseMove = (moveEvent) => {
+                                const deltaX = moveEvent.clientX - startX;
+                                let newWidth1 = initialWidth1 + deltaX;
+                                let newWidth2 = initialWidth2 - deltaX;
+
+                                // Prevent pane from becoming too small
+                                const minWidth = 100; 
+                                if (newWidth1 < minWidth) {
+                                    newWidth1 = minWidth;
+                                    newWidth2 = containerWidth - newWidth1 - editorResizer.offsetWidth;
+                                }
+                                if (newWidth2 < minWidth) {
+                                    newWidth2 = minWidth;
+                                    newWidth1 = containerWidth - newWidth2 - editorResizer.offsetWidth;
+                                }
+
+                                editorGroup1.style.flexBasis = `${newWidth1}px`;
+                                editorGroup2.style.flexBasis = `${newWidth2}px`;
+                                editorGroup1.style.flexGrow = '0'; // Fix flex-grow to maintain sizes during drag
+                                editorGroup2.style.flexGrow = '0';
+                            };
+
+                            const onMouseUp = () => {
+                                document.removeEventListener('mousemove', onMouseMove);
+                                document.removeEventListener('mouseup', onMouseUp);
+                                // Reset flex-grow to 1 to allow resizing with window, but retain proportions
+                                App.dom.editor_group_1.group.style.flexGrow = '1';
+                                App.dom.editor_group_2.group.style.flexGrow = '1';
+                                App.settings.resizeAllEditors();
+                            };
+
+                            document.addEventListener('mousemove', onMouseMove);
+                            document.addEventListener('mouseup', onMouseUp);
+                        });
+                    }
+
                 } else {
                     container.classList.remove('split');
-                    App.state.openFiles.pane2.forEach((fileData, path) => App.files.open(path, 'pane1', fileData.isUntitled, fileData.session.getValue()));
+                    // Merge pane2 files into pane1 before removing pane2
+                    App.state.openFiles.pane2.forEach((fileData, path) => {
+                        // Only open if not already open in pane1 to avoid duplicates
+                        if (!App.state.openFiles.pane1.has(path)) {
+                            App.files.open(path, 'pane1', fileData.isUntitled, fileData.session.getValue());
+                        }
+                    });
                     document.getElementById('editor-group-2')?.remove();
-                    document.getElementById('editor-resizer-v')?.remove();
+                    document.getElementById('editor-resizer-v-editor')?.remove(); // Remove the editor-specific resizer
                     App.state.editors.pane2 = null;
                     App.state.openFiles.pane2.clear();
                     App.state.activePaths.pane2 = null;
                     App.state.activePane = 'pane1'; 
+                    // Set focus back to pane1's current active file, or first file if available
                     if (App.state.openFiles.pane1.size > 0) {
                         App.files.switch([...App.state.openFiles.pane1.keys()][App.state.openFiles.pane1.size -1], 'pane1'); 
+                    } else {
+                        // If pane1 also has no open files, show welcome screen
+                        App.dom.welcome_screen.style.display = 'flex';
                     }
                 }
                 App.settings.resizeAllEditors();
@@ -1462,9 +1643,15 @@
 
         files: {
             async open(path, paneId = App.state.activePane, isUntitled = false, content = '') {
-                if (paneId === 'pane2' && !App.state.isSplitView) { App.layout.toggleSplitView(); }
+                // Ensure targetPaneId is valid even if split view is toggled off
                 const targetPaneId = App.state.isSplitView ? paneId : 'pane1';
-                
+
+                // If trying to open in pane2 but split view is off, toggle it on first
+                if (paneId === 'pane2' && !App.state.isSplitView) { 
+                    App.layout.toggleSplitView(); 
+                }
+
+                // If file is already open in the target pane, just switch to it
                 if (App.state.openFiles[targetPaneId].has(path)) return this.switch(path, targetPaneId);
                 
                 let fileContent = content;
@@ -1475,6 +1662,14 @@
                             App.ui.showNotification(`Could not open: ${path}. Not a file or not found.`, 'error');
                             return;
                         }
+                        // For non-text files (e.g., images), we should not attempt to read as string directly for Ace editor.
+                        // For this IDE, assuming most files opened in editor are text-based.
+                        // If it's a binary file, content will be a Blob, and Ace editor can't display it.
+                        // You might want a different handler for binary files (e.g., download or image preview)
+                        if (file.mimeType && !file.mimeType.startsWith('text/')) {
+                            App.ui.showNotification(`Cannot open binary file '${file.name}' in editor.`, 'warning');
+                            return;
+                        }
                         fileContent = await App.fs.read(file.id, 'string');
                     } catch (error) {
                         App.ui.showNotification(`Error reading file ${path}: ${error.message}`, 'error');
@@ -1482,8 +1677,13 @@
                     }
                 }
                 
-                App.dom.welcome_screen.style.display = 'none';
-                const session = ace.createEditSession(fileContent, ace.require("ace/ext/modelist").getModeForPath(path).mode);
+                if (App.dom.welcome_screen) { // Check if welcome screen element exists
+                    App.dom.welcome_screen.style.display = 'none';
+                }
+
+                const modelist = ace.require("ace/ext/modelist");
+                const mode = modelist.getModeForPath(path).mode;
+                const session = ace.createEditSession(fileContent, mode);
                 App.linter.setAnnotations(session, path);
 
                 const tabEl = document.createElement('div');
@@ -1493,10 +1693,20 @@
                 tabEl.innerHTML = `<span class="tab-name">${fileName}</span><span class="close-tab text-xs p-0.5 rounded-full hover:bg-black/20" title="Ctrl+Shift+W">x</span>`;
                 
                 const domInfo = App.ui.getPaneDom(targetPaneId);
-                domInfo.tabs.appendChild(tabEl);
+                if (domInfo.tabs) { // Check if tabs element exists
+                    domInfo.tabs.appendChild(tabEl);
+                } else {
+                    console.error(`Editor tabs element for pane '${targetPaneId}' not found.`);
+                    return;
+                }
                 
                 tabEl.onclick = () => this.switch(path, targetPaneId);
-                tabEl.querySelector('.close-tab').onclick = (e) => { e.stopPropagation(); this.close(path, false, targetPaneId); };
+                const closeButton = tabEl.querySelector('.close-tab');
+                if (closeButton) {
+                    closeButton.onclick = (e) => { e.stopPropagation(); this.close(path, false, targetPaneId); };
+                } else {
+                    console.warn("Close tab button not found for new tab.");
+                }
                 
                 App.state.openFiles[targetPaneId].set(path, { session, tabEl, isUntitled });
                 this.switch(path, targetPaneId);
@@ -1517,10 +1727,18 @@
             switch(path, paneId) {
                 if (App.state.activePaths[paneId] === path) return;
                 const oldPath = App.state.activePaths[paneId];
-                if(oldPath && App.state.openFiles[paneId].has(oldPath)) App.state.openFiles[paneId].get(oldPath).tabEl.classList.remove('active');
+                if(oldPath && App.state.openFiles[paneId].has(oldPath)) {
+                    App.state.openFiles[paneId].get(oldPath).tabEl.classList.remove('active');
+                }
                 
                 App.state.activePaths[paneId] = path;
                 const data = App.state.openFiles[paneId].get(path);
+                if (!data) {
+                    console.error(`No file data found for path: ${path} in pane: ${paneId}`);
+                    // Optionally close the tab if data is missing or switch to another valid tab
+                    this.close(path, true, paneId); 
+                    return;
+                }
                 data.tabEl.classList.add('active');
                 App.state.editors[paneId].setSession(data.session);
                 App.state.editors[paneId].focus();
@@ -1535,7 +1753,12 @@
                     if(!confirm(`'${path}' has unsaved changes. Close anyway?`)) return;
                 }
                 const domInfo = App.ui.getPaneDom(paneId);
-                domInfo.tabs.removeChild(data.tabEl); App.state.openFiles[paneId].delete(path);
+                if (domInfo.tabs && data.tabEl) { // Check before attempting to removeChild
+                    domInfo.tabs.removeChild(data.tabEl); 
+                } else {
+                    console.warn(`Could not remove tab element for path ${path} in pane ${paneId}.`);
+                }
+                App.state.openFiles[paneId].delete(path);
                 
                 if (App.state.activePaths[paneId] === path) {
                     const remainingPaths = [...App.state.openFiles[paneId].keys()];
@@ -1544,10 +1767,13 @@
                     else {
                         App.state.activePaths[paneId] = null;
                         if(App.state.openFiles.pane1.size === 0 && (!App.state.isSplitView || App.state.openFiles.pane2.size === 0)) {
-                           App.dom.welcome_screen.style.display = 'flex';
+                           if (App.dom.welcome_screen) { // Check if welcome screen element exists
+                               App.dom.welcome_screen.style.display = 'flex';
+                           }
                         }
                         if (App.state.activePane === paneId) this.updateRunButtonState(null);
                         App.ui.updateStatus();
+                        App.preview.update(null, ''); // Clear preview
                     }
                 }
             },
@@ -1569,7 +1795,9 @@
                 if(originalContent !== newContent) {
                     try {
                         await App.fs.write(path, newContent);
-                        data.tabEl.classList.remove('modified');
+                        if (data.tabEl) { // Check if tabEl exists
+                            data.tabEl.classList.remove('modified');
+                        }
                         App.linter.lintFile(path, newContent);
                         App.preview.update(path, newContent);
                         if (!App.state.settings.autoSave) App.ui.showNotification(`${path.split('/').pop()} saved.`, 'success');
@@ -1578,7 +1806,9 @@
                         console.error('Save error:', error);
                     }
                 } else {
-                    data.tabEl.classList.remove('modified');
+                    if (data.tabEl) { // Check if tabEl exists
+                       data.tabEl.classList.remove('modified');
+                    }
                 }
             },
             async runActive() {
@@ -1586,7 +1816,7 @@
                 const path = App.state.activePaths[paneId];
                 if (!path) return App.ui.showNotification('No active file to run.', 'error');
                 
-                this.save(paneId); // Auto-save before running
+                await this.save(paneId); // Auto-save before running
 
                 const ext = path.split('.').pop();
                 const languageMap = { 'js': 'javascript', 'py': 'python', 'lua': 'lua', 'html': 'html' };
@@ -1605,12 +1835,18 @@
                     App.terminal.runScriptContent(language, content, path); // Run in internal terminal
                     App.ui.switchBottomPanel('internal-terminal'); // Switch to internal terminal panel
                     // Notify desktop.html about terminal activity
-                    window.parent.postMessage({ type: 'terminalActivity' }, '*');
+                    if (window.parent) {
+                        window.parent.postMessage({ type: 'terminalActivity' }, '*');
+                    }
                 } else {
                     return App.ui.showNotification(`Cannot run .${ext} files directly.`, 'error');
                 }
             },
-           updateRunButtonState(path) {
+            updateRunButtonState(path) {
+                if (!App.dom.run_btn) { // Add null check for run_btn
+                    console.warn("Run button element not found, cannot update its state.");
+                    return;
+                }
                 if (!path) { 
                     App.dom.run_btn.disabled = true; 
                     return; 
@@ -1634,14 +1870,25 @@
                 luaReady: false,
             },
             async init() {
-                this.dom.output = App.dom.terminal_output_log; // <--- 1641번째 줄로 추정되는 부분
+                // Ensure DOM elements are cached and available before use
+                this.dom.output = App.dom.terminal_output_log;
                 this.dom.loadingOverlay = App.dom.terminal_loading_overlay;
                 this.dom.loadingText = App.dom.terminal_loading_text;
 
-                this.clear();
+                if (this.dom.output) { // Check if output element is available before clearing
+                    this.clear();
+                } else {
+                    console.error("Terminal output element not found, cannot initialize terminal display.");
+                    // Fallback or disable terminal features if core elements are missing
+                    this.log("Error: Terminal display is unavailable. Please check HTML structure.", "error"); 
+                }
 
-                this.dom.loadingOverlay.classList.remove('hidden');
-                this.dom.loadingText.textContent = 'Loading Python environment...';
+                if (this.dom.loadingOverlay && this.dom.loadingText) { // Check if loading overlay elements are available
+                    this.dom.loadingOverlay.classList.remove('hidden');
+                    this.dom.loadingText.textContent = 'Loading Python environment...';
+                } else {
+                    console.warn("Terminal loading overlay elements not found. Loading status may not be displayed.");
+                }
 
                 if (!this.state.pyodideLoading && !this.state.pyodideReady) {
                     this.state.pyodideLoading = true;
@@ -1653,12 +1900,15 @@
                         this.log('Python environment ready.', 'info');
                     } catch (error) {
                         this.log(`Failed to load Python environment: ${error}`, 'error');
+                        console.error("Python environment load error:", error); // Detailed console error
                     } finally {
                         this.state.pyodideLoading = false;
                     }
                 }
 
-                this.dom.loadingText.textContent = 'Loading Lua environment...';
+                if (this.dom.loadingText) { // Check before updating text
+                    this.dom.loadingText.textContent = 'Loading Lua environment...';
+                }
 
                 if (!this.state.luaLoading && !this.state.luaReady) {
                     this.state.luaLoading = true;
@@ -1672,15 +1922,22 @@
                         }
                     } catch (error) {
                         this.log(`Failed to load Lua environment: ${error}`, 'error');
+                        console.error("Lua environment load error:", error); // Detailed console error
                     } finally {
                         this.state.luaLoading = false;
                     }
                 }
 
-                this.dom.loadingOverlay.classList.add('hidden');
+                if (this.dom.loadingOverlay) { // Check before hiding overlay
+                    this.dom.loadingOverlay.classList.add('hidden');
+                }
                 App.files.updateRunButtonState(App.state.activePaths[App.state.activePane]); 
             },
             log(msg, level = 'log') {
+                if (!this.dom.output) { // Ensure output element is defined before appending
+                    console.error("Terminal output element is not defined, cannot log message:", msg);
+                    return;
+                }
                 const line = document.createElement('div');
                 line.className = 'terminal-output-line';
                 if (level === 'error') line.classList.add('terminal-output-error');
@@ -1700,9 +1957,13 @@
                 this.dom.output.scrollTop = this.dom.output.scrollHeight; 
             },
             clear() {
-                this.dom.output.innerHTML = ''; // <--- 1703번째 줄로 추정되는 부분
-                this.log('Index-Space IDE Terminal.', 'info');
-                this.log('Type your commands here or run scripts from the editor.', 'info');
+                if (this.dom.output) { // Ensure output element is defined before clearing
+                    this.dom.output.innerHTML = ''; 
+                    this.log('Index-Space IDE Terminal.', 'info');
+                    this.log('Type your commands here or run scripts from the editor.', 'info');
+                } else {
+                    console.warn("Attempted to clear terminal but output element is not defined.");
+                }
             },
 
             async runScriptContent(language, content, path = 'memory') {
@@ -1731,14 +1992,14 @@
                             if (capturedErrors.length > 0) this.log(capturedErrors.join('\n'), 'error');
                             break;
                         case 'python':
-                            if (this.state.pyodideReady) {
+                            if (this.state.pyodideReady && App.state.pyodide) {
                                 await App.state.pyodide.runPythonAsync(content);
                             } else {
-                                this.log('Python environment not ready.', 'error');
+                                this.log('Python environment not ready or not loaded.', 'error');
                             }
                             break;
                         case 'lua':
-                            if (this.state.luaReady) {
+                            if (this.state.luaReady && App.state.fengari) {
                                 const fengari = App.state.fengari;
                                 const L = fengari.lauxlib.luaL_newstate();
                                 fengari.lualib.luaL_openlibs(L);
@@ -1762,7 +2023,7 @@
                                 }
                                 if (capturedLuaOutput.length > 0) this.log(capturedLuaOutput.join('\n'));
                             } else {
-                                this.log('Lua environment not ready.', 'error');
+                                this.log('Lua environment not ready or not loaded.', 'error');
                             }
                             break;
                         case 'html': 
@@ -1777,7 +2038,9 @@
                     console.error(`Full error for ${language} execution:`, e);
                 } finally {
                     this.log(`--- End of ${language} execution ---`, 'info');
-                    this.dom.output.scrollTop = this.dom.output.scrollHeight;
+                    if (this.dom.output) { // Ensure output element exists before scrolling
+                        this.dom.output.scrollTop = this.dom.output.scrollHeight;
+                    }
                 }
             }
         },
@@ -1795,10 +2058,78 @@
                     if (ext === 'py' && /print\s/.test(line) && !/print\(/.test(line) && !line.trim().startsWith('#')) {
                         problems.push({ row: i, column: 0, text: 'Python 3 requires `print(...)` syntax.', type: 'error' });
                     }
-                    if (ext === 'html' && /<\/?([a-z][a-z0-9]*)\b[^>]*>/i.test(line) && !/<(\w+)[^>]*>.*<\/\1>/.test(line)) {
+                    // Basic HTML tag check for unclosed tags (very simple, not comprehensive)
+                    if (ext === 'html') {
+                        const openTags = [];
+                        const matches = line.match(/<(\/?)([a-z][a-z0-9]*)\b[^>]*>/ig);
+                        if (matches) {
+                            matches.forEach(match => {
+                                const isClosing = match.startsWith('</');
+                                const tagName = match.match(/<(\/?)(\w+)/i)?.[2]?.toLowerCase();
+                                if (tagName) {
+                                    if (isClosing) {
+                                        if (openTags.length > 0 && openTags[openTags.length - 1] === tagName) {
+                                            openTags.pop();
+                                        } else {
+                                            problems.push({ row: i, column: line.indexOf(match), text: `Unmatched closing tag '</${tagName}>'.`, type: 'error' });
+                                        }
+                                    } else {
+                                        // Self-closing tags in HTML (e.g., <img />, <br />) can be complex.
+                                        // For simplicity, this linter only flags unclosed pairs.
+                                        // A more robust HTML linter would need a proper HTML parser.
+                                        if (!match.endsWith('/>')) { // rudimentary check for non-self-closing
+                                            openTags.push(tagName);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        // After processing a line, check if any unclosed tags remain for that line (might be false positive for multiline tags)
+                        // A more precise linter would check after parsing the whole document.
+                        // For now, let's keep the simple line-by-line checks as per original.
+                        // Removed the original problematic HTML linting logic: `if (ext === 'html' && /<\/?([a-z][a-z0-9]*)\b[^>]*>/i.test(line) && !/<(\w+)[^>]*>.*<\/\1>/.test(line))`
+                        // This was too broad and could generate many false positives.
                     }
                 });
-                
+                // Final check for unclosed HTML tags after all lines (simplified; a proper linter would be more complex)
+                let tempOpenTags = [];
+                let lineNumMap = new Map(); // To track where a tag was opened
+                let charCount = 0; // To track character index for column
+
+                content.split('\n').forEach((line, i) => {
+                    // Reset character count for each line to get column accurately
+                    charCount = 0; 
+                    const matches = [...line.matchAll(/<(\/?)([a-z][a-z0-9]*)\b[^>]*>/ig)]; // Use matchAll for index
+                    matches.forEach(match => {
+                        const isClosing = match[1] === '/';
+                        const tagName = match[2]?.toLowerCase();
+                        const col = match.index; // Column is directly from match.index
+
+                        if (tagName) {
+                            if (isClosing) {
+                                const openTagIndex = tempOpenTags.lastIndexOf(tagName);
+                                if (openTagIndex !== -1) {
+                                    tempOpenTags.splice(openTagIndex, 1);
+                                } else {
+                                    problems.push({ row: i, column: col, text: `Unmatched closing tag '</${tagName}>'.`, type: 'error' });
+                                }
+                            } else {
+                                if (!match[0].endsWith('/>') && !['br', 'img', 'input', 'link', 'meta', 'hr', 'source', 'area', 'base', 'col', 'embed', 'keygen', 'param', 'track', 'wbr'].includes(tagName)) { // Self-closing exceptions
+                                    tempOpenTags.push(tagName);
+                                    lineNumMap.set(tagName, { row: i, column: col });
+                                }
+                            }
+                        }
+                    });
+                });
+
+                // Add problems for any remaining unclosed tags at the end of the document
+                tempOpenTags.forEach(tagName => {
+                    const originalPos = lineNumMap.get(tagName);
+                    problems.push({ row: originalPos.row, column: originalPos.column, text: `Unclosed tag '<${tagName}>'.`, type: 'error' });
+                });
+
+
                 App.state.lintResults[path] = problems;
                 this.setAnnotationsForPath(path);
                 this.renderProblemsPanel();
@@ -1812,11 +2143,15 @@
                 });
             },
             setAnnotations(session, path) {
-                 const problems = App.state.lintResults[path] || [];
-                 session.setAnnotations(problems);
+                   const problems = App.state.lintResults[path] || [];
+                   session.setAnnotations(problems);
             },
             renderProblemsPanel() {
                 const container = App.dom.panel_problems;
+                if (!container) {
+                    console.error("Problems panel container not found, cannot render problems.");
+                    return;
+                }
                 container.innerHTML = '';
                 let totalProblems = 0;
                 
@@ -1842,21 +2177,33 @@
                         });
                     }
                 });
-                App.dom.problems_count.textContent = totalProblems;
+                if (App.dom.problems_count) { // Check before updating textContent
+                    App.dom.problems_count.textContent = totalProblems;
+                }
             }
         },
         
         search: {
             init() {
-                App.dom.search_input.addEventListener('keydown', e => { if (e.key === 'Enter') this.performSearch(); });
+                if (App.dom.search_input) { // Add null check for search_input
+                    App.dom.search_input.addEventListener('keydown', e => { if (e.key === 'Enter') this.performSearch(); });
+                } else {
+                    console.warn("Search input element not found, search functionality may be limited.");
+                }
             },
             async performSearch() {
-                const query = App.dom.search_input.value;
+                const query = App.dom.search_input?.value || ''; // Add nullish coalescing
                 if (query.length < 2) {
-                    App.dom.search_results.innerHTML = '';
+                    if (App.dom.search_results) {
+                        App.dom.search_results.innerHTML = '';
+                    }
                     return;
                 }
                 const resultsContainer = App.dom.search_results;
+                if (!resultsContainer) {
+                    console.error("Search results container not found, cannot perform search.");
+                    return;
+                }
                 resultsContainer.innerHTML = '';
                 
                 const rootNode = await App.fs.getNodeByPath('/');
@@ -1895,12 +2242,12 @@
                             const itemDiv = document.createElement('div');
                             itemDiv.className = 'search-result-item p-1 pl-3 ml-2 text-sm cursor-pointer hover:bg-[var(--ide-bg-hover)]';
                             itemDiv.innerHTML = `<span class="text-[var(--ide-text-inactive)]">${res.lineNum}: </span>` + 
-                                                res.lineContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                                                .replace(searchRegex, match => `<span style="background-color: var(--ide-accent-primary); color: var(--ide-bg-primary);">${match}</span>`); 
+                                                 res.lineContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                                                 .replace(searchRegex, match => `<span style="background-color: var(--ide-accent-primary); color: var(--ide-bg-primary);">${match}</span>`); 
 
                             itemDiv.onclick = () => {
                                 App.files.open(path);
-                                setTimeout(() => App.editor.getActiveEditor().gotoLine(res.lineNum, 0, true), 100);
+                                setTimeout(() => App.editor.getActiveEditor()?.gotoLine(res.lineNum, 0, true), 100); // Add null check
                                 App.ui.switchSidebarView('explorer'); 
                             };
                             resultsContainer.appendChild(itemDiv);
@@ -1912,6 +2259,10 @@
 
         preview: {
             update(path, content) {
+                if (!App.dom.preview_frame) {
+                    console.warn("Preview frame element not found, cannot update preview.");
+                    return;
+                }
                 if (path && path.endsWith('.html') && App.state.activePaths[App.state.activePane] === path) {
                     const blob = new Blob([content], { type: 'text/html' });
                     const url = URL.createObjectURL(blob);
@@ -1956,7 +2307,7 @@
             formatCode(editor) {
                 if (!editor) editor = App.editor.getActiveEditor();
                 const path = App.state.activePaths[App.state.activePane];
-                if (!path) return;
+                if (!path || !editor) return; // Ensure editor exists before proceeding
 
                 const ext = path.split('.').pop();
                 const parserMap = { 'js': 'babel', 'py': 'python', 'html': 'html', 'css': 'css' }; 
@@ -1997,41 +2348,45 @@
         
         events: {
             init() {
-                App.dom.activity_bar.addEventListener('click', e => { const view = e.target.closest('.activity-bar-icon')?.dataset.view; if (view) App.ui.switchSidebarView(view); });
-                App.dom.bottom_panel.querySelector('.tabs').addEventListener('click', e => { const panel = e.target.closest('.bottom-panel-tab')?.dataset.panel; if (panel) App.ui.switchBottomPanel(panel); });
+                // Add null checks for DOM elements before attaching event listeners
+                App.dom.activity_bar?.addEventListener('click', e => { const view = e.target.closest('.activity-bar-icon')?.dataset.view; if (view) App.ui.switchSidebarView(view); });
+                App.dom.bottom_panel?.querySelector('.tabs')?.addEventListener('click', e => { const panel = e.target.closest('.bottom-panel-tab')?.dataset.panel; if (panel) App.ui.switchBottomPanel(panel); });
                 
-                App.dom.new_untitled_file_global.onclick = () => this.showNewFileModal();
-                App.dom.welcome_new_file_btn.onclick = () => this.showNewFileModal(); 
-                App.dom.new_folder_global.onclick = () => this.showNewItemModal('folder');
+                App.dom.new_untitled_file_global?.onclick = () => this.showNewFileModal();
+                App.dom.welcome_new_file_btn?.onclick = () => this.showNewFileModal(); 
+                App.dom.new_folder_global?.onclick = () => this.showNewItemModal('folder');
                 
-                App.dom.file_explorer.oncontextmenu = (e) => this.showContextMenu(e);
+                App.dom.file_explorer?.oncontextmenu = (e) => this.showContextMenu(e);
                 
-                App.dom.cmd_palette_btn.onclick = () => this.showCommandPalette();
-                App.dom.beta_palette_btn.onclick = () => this.showBetaFeaturesPalette();
-                App.dom.run_btn.onclick = () => App.files.runActive();
-                App.dom.split_view_btn.onclick = () => App.layout.toggleSplitView();
-                App.dom.save_snippets_btn.onclick = () => App.snippets.save(App.state.snippetsEditor.getValue());
+                App.dom.cmd_palette_btn?.onclick = () => this.showCommandPalette();
+                App.dom.beta_palette_btn?.onclick = () => this.showBetaFeaturesPalette();
+                App.dom.run_btn?.onclick = () => App.files.runActive();
+                App.dom.split_view_btn?.onclick = () => App.layout.toggleSplitView();
+                App.dom.save_snippets_btn?.onclick = () => App.snippets.save(App.state.snippetsEditor?.getValue() || ''); // Add null check for snippetsEditor
 
-                App.dom.explorer_search.oninput = () => App.ui.renderExplorer();
-                App.dom.search_input.oninput = () => App.search.performSearch(); 
+                App.dom.explorer_search?.oninput = () => App.ui.renderExplorer();
+                App.dom.search_input?.oninput = () => App.search.performSearch(); 
                 
-                App.dom.setting_theme.onchange = (e) => App.settings.update('theme', e.target.value);
-                App.dom.setting_fontsize.oninput = (e) => App.settings.update('fontSize', parseInt(e.target.value));
-                App.dom.setting_keymap.onchange = (e) => App.settings.update('keymap', e.target.value);
-                App.dom.setting_linenumbers.onchange = (e) => App.settings.update('showLineNumbers', e.target.checked);
-                App.dom.setting_minimap.onchange = (e) => App.settings.update('showMinimap', e.target.checked);
-                App.dom.setting_wordwrap.onchange = (e) => App.settings.update('wordWrap', e.target.checked);
-                App.dom.setting_autosave.onchange = (e) => App.settings.update('autoSave', e.target.checked);
+                App.dom.setting_theme?.onchange = (e) => App.settings.update('theme', e.target.value);
+                App.dom.setting_fontsize?.oninput = (e) => App.settings.update('fontSize', parseInt(e.target.value));
+                App.dom.setting_keymap?.onchange = (e) => App.settings.update('keymap', e.target.value);
+                App.dom.setting_linenumbers?.onchange = (e) => App.settings.update('showLineNumbers', e.target.checked);
+                App.dom.setting_minimap?.onchange = (e) => App.settings.update('showMinimap', e.target.checked);
+                App.dom.setting_wordwrap?.onchange = (e) => App.settings.update('wordWrap', e.target.checked);
+                App.dom.setting_autosave?.onchange = (e) => App.settings.update('autoSave', e.target.checked);
                 
-                App.dom.file_importer.onchange = (e) => this.readAndCreateFiles(e.target.files);
-                const explorerEl = App.dom.view_explorer;
-                explorerEl.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
-                explorerEl.addEventListener('drop', e => { e.preventDefault(); this.handleFileDrop(e); });
+                App.dom.file_importer?.onchange = (e) => this.readAndCreateFiles(e.target.files);
+                App.dom.view_explorer?.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }); // Changed from explorerEl to App.dom.view_explorer
+                App.dom.view_explorer?.addEventListener('drop', e => { e.preventDefault(); this.handleFileDrop(e); }); // Changed from explorerEl to App.dom.view_explorer
                 
-                document.addEventListener('click', (e) => { if (!e.target.closest('#context-menu')) App.dom.context_menu.classList.add('hidden'); });
+                document.addEventListener('click', (e) => { 
+                    if (App.dom.context_menu && !e.target.closest('#context-menu')) { // Add null check
+                        App.dom.context_menu.classList.add('hidden'); 
+                    }
+                });
                 document.addEventListener('keydown', (e) => {
                     const activeEl = document.activeElement;
-                    const isInputFocused = activeEl instanceof HTMLInputElement || activeEl instanceof HTMLTextAreaElement || activeEl.classList.contains('renaming');
+                    const isInputFocused = activeEl instanceof HTMLInputElement || activeEl instanceof HTMLTextAreaElement || activeEl?.classList.contains('renaming'); // Add null check
                     if (isInputFocused && !['Enter', 'Escape'].includes(e.key)) {
                         return;
                     }
@@ -2041,15 +2396,15 @@
                     switch (e.key) {
                         case 'Delete':
                         case 'Backspace': 
-                            const selectedItems = App.dom.file_explorer.querySelectorAll('.file-item.selected');
-                            if (selectedItems.length > 0) {
+                            const selectedItems = App.dom.file_explorer?.querySelectorAll('.file-item.selected'); // Add null check
+                            if (selectedItems?.length > 0) { // Add null check
                                 e.preventDefault(); 
                                 this.showDeleteConfirmModal([...selectedItems].map(el => el.dataset.path));
                             }
                             break;
                         case 'F2':
                             e.preventDefault();
-                            const selectedExplorerItem = App.dom.file_explorer.querySelector('.file-item.selected');
+                            const selectedExplorerItem = App.dom.file_explorer?.querySelector('.file-item.selected'); // Add null check
                             if (selectedExplorerItem) {
                                 this.showRenameModal(selectedExplorerItem.dataset.path);
                             }
@@ -2078,13 +2433,13 @@
                             break;
                         case 'Escape': 
                             App.ui.hideModal(); 
-                            App.dom.context_menu.classList.add('hidden'); 
+                            App.dom.context_menu?.classList.add('hidden'); // Add null check
                             App.editor.getActiveEditor()?.focus(); 
                             break;
                     }
                 });
 
-                App.dom.file_explorer.addEventListener('click', e => {
+                App.dom.file_explorer?.addEventListener('click', e => { // Add null check
                     const itemEl = e.target.closest('.file-item');
                     App.dom.file_explorer.querySelectorAll('.file-item.selected').forEach(el => el.classList.remove('selected'));
                     if (itemEl) itemEl.classList.add('selected');
@@ -2111,22 +2466,27 @@
                 const content = document.createElement('div'); content.className = 'modal-base p-4';
                 content.innerHTML = `<h3 class="text-lg font-bold mb-4">New ${type === 'folder' ? 'Folder' : 'File'}</h3><input type="text" id="modal-input-name" class="modal-input" placeholder="Enter name...">`;
                 App.ui.showModal(content);
-                const input = document.getElementById('modal-input-name'); input.focus();
-                input.onkeydown = async (e) => { 
-                    if (e.key === 'Enter' && input.value) { 
-                        const name = input.value.trim();
-                        if (!name) { App.ui.showNotification('Name cannot be empty.', 'error'); return; }
-                        const path = `${basePath === '/' ? '' : basePath}/${name}`; 
-                        try {
-                            if (type === 'folder') await App.fs.mkdir(path);
-                            else await App.fs.write(path, ''); // Empty content for new file
-                            App.ui.hideModal(); 
-                            App.ui.renderExplorer(); 
-                        } catch (error) {
-                            App.ui.showNotification(`Error creating ${type}: ${error.message}`, 'error');
-                        }
-                    } else if (e.key === 'Escape') App.ui.hideModal(); 
-                };
+                const input = document.getElementById('modal-input-name'); 
+                if (input) { // Check input before focusing
+                    input.focus();
+                    input.onkeydown = async (e) => { 
+                        if (e.key === 'Enter' && input.value) { 
+                            const name = input.value.trim();
+                            if (!name) { App.ui.showNotification('Name cannot be empty.', 'error'); return; }
+                            const path = `${basePath === '/' ? '' : basePath}/${name}`; 
+                            try {
+                                if (type === 'folder') await App.fs.mkdir(path);
+                                else await App.fs.write(path, ''); // Empty content for new file
+                                App.ui.hideModal(); 
+                                App.ui.renderExplorer(); 
+                            } catch (error) {
+                                App.ui.showNotification(`Error creating ${type}: ${error.message}`, 'error');
+                            }
+                        } else if (e.key === 'Escape') App.ui.hideModal(); 
+                    };
+                } else {
+                    console.error("Modal input element (modal-input-name) not found for new item modal.");
+                }
             },
             // showContextMenu 함수는 이전 내용에서 이미 전체적으로 제공되었으므로, 여기서는 함수 정의만 남깁니다.
             // 전체 함수 내용은 이전 답변의 'editor.html' 최종 버전을 참고하시거나,
@@ -2144,7 +2504,9 @@
                     // 더 복잡한 노드 정보가 필요하면 async/await로 getNode 호출이 필요합니다.
                     // 편의를 위해 일단 type은 DOM에서 가져올 수 있다고 가정합니다 (예: data-type 속성 추가).
                     // 또는 컨텍스트 메뉴를 열 때 getNode를 호출하여 메뉴 항목의 disabled 상태를 동적으로 결정할 수 있습니다.
-                    const nodeFromExplorer = App.ui.getCurrentNodeFromExplorer(nodeId); // Helper function needed
+                    // IMPORTANT: The getCurrentNodeFromExplorer helper below is a dummy. For robust production, 
+                    // make this showContextMenu async and fetch the actual node: `const nodeFromExplorer = await App.fs.getNode(nodeId);`
+                    const nodeFromExplorer = App.ui.getCurrentNodeFromExplorer(nodeId); 
                     const isFile = nodeFromExplorer?.type === 'file';
                     const isFolder = nodeFromExplorer?.type === 'folder';
 
@@ -2160,18 +2522,27 @@
                         items.push({ label: 'New File', action: () => this.showNewFileModal(path) });
                         items.push({ label: 'New Folder', action: () => this.showNewItemModal('folder', path) });
                     }
-                } else { // Context menu for empty space in explorer
-                    items.push({ label: 'New File', action: () => this.showNewFileModal('/') });
-                    items.push({ label: 'New Folder', action: () => this.showNewItemModal('folder', '/') });
+                } else { // Context menu for empty space in explorer (assumed to be root or current view's base path)
+                    // If no specific file/folder clicked, assume context is for the current folder being displayed
+                    // For now, hardcode to root for simplicity, but in a real app, you'd get the current explorer path
+                    const currentExplorerPath = '/'; // Or from a state variable like App.state.currentExplorerViewPath
+                    items.push({ label: 'New File', action: () => this.showNewFileModal(currentExplorerPath) });
+                    items.push({ label: 'New Folder', action: () => this.showNewItemModal('folder', currentExplorerPath) });
+                    items.push(null); // Divider
+                    items.push({ label: 'Refresh Explorer', action: () => App.ui.renderExplorer() });
                 }
 
                 const menuEl = App.dom.context_menu;
+                if (!menuEl) {
+                    console.error("Context menu element not found.");
+                    return;
+                }
                 menuEl.innerHTML = items.map(item => item ? `<div class="context-menu-item px-4 py-2" data-label="${item.label}">${item.label}</div>` : '<div class="context-menu-divider"></div>').join('');
                 
                 menuEl.onclick = (ev) => { 
-                    const actionLabel = ev.target.dataset.label; 
+                    const actionLabel = ev.target.closest('.context-menu-item')?.dataset.label; // Use closest for safety
                     if(actionLabel) {
-                        const actionItem = items.find(i => i.label === actionLabel);
+                        const actionItem = items.find(i => i && i.label === actionLabel); // Check for null item
                         actionItem?.action(); 
                     }
                     menuEl.classList.add('hidden'); 
@@ -2184,35 +2555,51 @@
                 const content = document.createElement('div'); content.className = 'modal-base p-4';
                 content.innerHTML = `<h3 class="text-lg font-bold mb-4">Rename</h3><input type="text" id="modal-input-rename" class="modal-input">`;
                 App.ui.showModal(content);
-                const input = document.getElementById('modal-input-rename'); input.value = oldName; input.focus(); input.select();
-                input.onkeydown = async (e) => { 
-                    if (e.key === 'Enter' && input.value) { 
-                        const newName = input.value.trim();
-                        if (!newName) { App.ui.showNotification('Name cannot be empty.', 'error'); return; }
-                        try {
-                            await App.fs.rename((await App.fs.getNodeByPath(path)).id, newName);
-                            App.ui.hideModal(); 
-                            App.ui.renderExplorer();
-                            // Update open tab if renamed file is open
-                            ['pane1', 'pane2'].forEach(paneId => {
-                                if (App.state.openFiles[paneId].has(path)) {
-                                    const fileData = App.state.openFiles[paneId].get(path);
-                                    App.state.openFiles[paneId].delete(path);
-                                    const newPath = path.substring(0, path.lastIndexOf('/') + 1) + newName;
-                                    App.state.openFiles[paneId].set(newPath, fileData);
-                                    fileData.tabEl.dataset.path = newPath;
-                                    fileData.tabEl.querySelector('.tab-name').textContent = newName;
-                                    if (App.state.activePaths[paneId] === path) {
-                                        App.state.activePaths[paneId] = newPath;
-                                    }
+                const input = document.getElementById('modal-input-rename'); 
+                if (input) { // Check input before focusing
+                    input.value = oldName; input.focus(); input.select();
+                    input.onkeydown = async (e) => { 
+                        if (e.key === 'Enter' && input.value) { 
+                            const newName = input.value.trim();
+                            if (!newName) { App.ui.showNotification('Name cannot be empty.', 'error'); return; }
+                            try {
+                                const nodeToRename = await App.fs.getNodeByPath(path);
+                                if (nodeToRename) {
+                                    await App.fs.rename(nodeToRename.id, newName);
+                                    App.ui.hideModal(); 
+                                    App.ui.renderExplorer();
+                                    // Update open tab if renamed file is open
+                                    ['pane1', 'pane2'].forEach(paneId => {
+                                        if (App.state.openFiles[paneId].has(path)) {
+                                            const fileData = App.state.openFiles[paneId].get(path);
+                                            App.state.openFiles[paneId].delete(path);
+                                            const newPath = path.substring(0, path.lastIndexOf('/') + 1) + newName;
+                                            App.state.openFiles[paneId].set(newPath, fileData);
+                                            if (fileData.tabEl) { // Check before accessing tabEl
+                                                fileData.tabEl.dataset.path = newPath;
+                                                fileData.tabEl.title = newPath;
+                                                const tabNameSpan = fileData.tabEl.querySelector('.tab-name');
+                                                if (tabNameSpan) {
+                                                    tabNameSpan.textContent = newName;
+                                                }
+                                            }
+                                            if (App.state.activePaths[paneId] === path) {
+                                                App.state.activePaths[paneId] = newPath;
+                                            }
+                                        }
+                                    });
+                                    App.ui.updateStatus(); // Update status bar if needed
+                                } else {
+                                    App.ui.showNotification(`Rename failed: Original node not found.`, 'error');
                                 }
-                            });
-                            App.ui.updateStatus(); // Update status bar if needed
-                        } catch (error) {
-                            App.ui.showNotification(`Rename failed: ${error.message}`, 'error');
-                        }
-                    } else if (e.key === 'Escape') App.ui.hideModal(); 
-                };
+                            } catch (error) {
+                                App.ui.showNotification(`Rename failed: ${error.message}`, 'error');
+                            }
+                        } else if (e.key === 'Escape') App.ui.hideModal(); 
+                    };
+                } else {
+                    console.error("Modal input element (modal-input-rename) not found for rename modal.");
+                }
             },
             showDeleteConfirmModal(pathsToDelete) {
                 if (!pathsToDelete || pathsToDelete.length === 0) return;
@@ -2228,19 +2615,26 @@
                     </div>
                 `;
                 App.ui.showModal(content);
-                document.getElementById('modal-cancel-btn').onclick = () => App.ui.hideModal();
-                document.getElementById('modal-confirm-btn').onclick = async () => {
+                document.getElementById('modal-cancel-btn')?.onclick = () => App.ui.hideModal(); // Add null check
+                document.getElementById('modal-confirm-btn')?.onclick = async () => { // Add null check
                     for (const path of pathsToDelete) {
                         try {
                             const node = await App.fs.getNodeByPath(path);
                             if (node) {
-                                App.files.close(path, true, 'pane1'); // Close open tabs before deleting
-                                if(App.state.isSplitView) App.files.close(path, true, 'pane2');
+                                // Ensure any open editors for this file are closed first
+                                ['pane1', 'pane2'].forEach(paneId => {
+                                    if (App.state.openFiles[paneId].has(path)) {
+                                        App.files.close(path, true, paneId); // Force close
+                                    }
+                                });
                                 await App.fs.delete(node.id);
                                 App.ui.showNotification(`Deleted '${node.name}'`, 'success');
+                            } else {
+                                App.ui.showNotification(`Item '${path.split('/').pop()}' not found, skipping delete.`, 'warning');
                             }
                         } catch (error) {
                             App.ui.showNotification(`Failed to delete '${path.split('/').pop()}': ${error.message}`, 'error');
+                            console.error('Delete error:', error);
                         }
                     }
                     App.ui.hideModal();
@@ -2251,25 +2645,37 @@
                 const content = document.createElement('div'); content.className = 'modal-base p-4';
                 content.innerHTML = `<h3 class="text-lg font-bold mb-4">Save As</h3><input type="text" id="modal-input-save" class="modal-input" placeholder="Enter file path (e.g., my-projects/app.js)">`;
                 App.ui.showModal(content);
-                const input = document.getElementById('modal-input-save'); input.focus();
-                input.onkeydown = async (e) => {
-                    if (e.key === 'Enter' && input.value) {
-                        const newPath = input.value.trim();
-                        if (!newPath) { App.ui.showNotification('Path cannot be empty.', 'error'); return; }
-                        const data = App.state.openFiles[paneId].get(untitledPath); if (!data) return App.ui.hideModal();
-                        try {
-                            await App.fs.write(newPath, data.session.getValue());
-                            App.files.close(untitledPath, true, paneId);
-                            App.files.open(newPath, paneId); 
-                            App.ui.hideModal();
-                            App.ui.showNotification(`File saved as ${newPath}`, 'success');
-                        } catch (error) {
-                            App.ui.showNotification(`Save failed: ${error.message}`, 'error');
-                        }
-                    } else if (e.key === 'Escape') App.ui.hideModal();
-                };
+                const input = document.getElementById('modal-input-save'); 
+                if (input) { // Check input before focusing
+                    input.focus();
+                    input.onkeydown = async (e) => {
+                        if (e.key === 'Enter' && input.value) {
+                            const newPath = input.value.trim();
+                            if (!newPath) { App.ui.showNotification('Path cannot be empty.', 'error'); return; }
+                            const data = App.state.openFiles[paneId].get(untitledPath); 
+                            if (!data) { 
+                                App.ui.hideModal(); 
+                                console.error(`No data for untitled file: ${untitledPath}`);
+                                return;
+                            }
+                            try {
+                                await App.fs.write(newPath, data.session.getValue());
+                                App.files.close(untitledPath, true, paneId);
+                                App.files.open(newPath, paneId); 
+                                App.ui.hideModal();
+                                App.ui.showNotification(`File saved as ${newPath}`, 'success');
+                            } catch (error) {
+                                App.ui.showNotification(`Save failed: ${error.message}`, 'error');
+                                console.error("Save As error:", error);
+                            }
+                        } else if (e.key === 'Escape') App.ui.hideModal();
+                    };
+                } else {
+                    console.error("Modal input element (modal-input-save) not found for save as modal.");
+                }
             },
             async readAndCreateFiles(files) {
+                if (!files || files.length === 0) return;
                 for(const file of files) {
                     const reader = new FileReader();
                     reader.onload = async (e) => {
@@ -2277,13 +2683,16 @@
                         // Determine if it's a text file based on MIME type or extension
                         const isTextFile = file.type.startsWith('text/') || ['js', 'py', 'html', 'css', 'json', 'md', 'txt', 'lua'].some(ext => file.name.endsWith(`.${ext}`));
                         try {
-                            // Default upload to root folder ('/') if no path selected, or current explorer path if available
+                            // Default upload to root folder ('/')
                             const targetPath = '/'; 
-                            await App.fs.write(`${targetPath}${file.name.startsWith('/') ? file.name : '/' + file.name}`, isTextFile ? content : file); // Pass file Blob for binary
+                            // Ensure file.name starts with a slash if it's going into root directly
+                            const fullTargetPath = `${targetPath}${file.name.startsWith('/') ? file.name.substring(1) : file.name}`;
+                            await App.fs.write(fullTargetPath, isTextFile ? content : new Blob([content], {type: file.type})); // Pass Blob for non-text files
                             App.ui.showNotification(`Uploaded '${file.name}'`, 'success');
                             App.ui.renderExplorer();
                         } catch (error) {
                             App.ui.showNotification(`Failed to upload '${file.name}': ${error.message}`, 'error');
+                            console.error("File upload error:", error);
                         }
                     };
                     // Read as text for known text types, otherwise as ArrayBuffer (for Blob)
@@ -2296,59 +2705,120 @@
             },
             handleFileImport(event) { this.readAndCreateFiles(event.target.files); },
             handleFileDrop(event) { this.readAndCreateFiles(event.dataTransfer.files); },
-            showCommandPalette() {
+            async showCommandPalette() { // Changed to async because of App.fs.getNodeByPath
                 const content = document.createElement('div'); content.className = 'modal-base';
                 content.innerHTML = `<input type="text" id="cmd-input" class="modal-input m-2" placeholder="Search files and commands..."><div id="cmd-list" class="overflow-y-auto max-h-[50vh]"></div>`;
                 App.ui.showModal(content);
-                const input = document.getElementById('cmd-input'); const list = document.getElementById('cmd-list');
+                const input = document.getElementById('cmd-input'); 
+                const list = document.getElementById('cmd-list');
+
+                if (!input || !list) {
+                    console.error("Command palette input or list element not found.");
+                    App.ui.hideModal();
+                    return;
+                }
+
                 const commands = [
                     { label: 'File: New File...', action: () => this.showNewFileModal() },
                     { label: 'File: Save Active File', action: () => App.files.save() },
                     { label: 'Edit: Format Document', action: () => App.formatter.formatCode() },
                     { label: 'View: Toggle Split View', action: () => App.layout.toggleSplitView() },
                     { label: 'Run: Run Active File', action: () => App.files.runActive() },
+                    { label: 'View: Toggle Terminal', action: () => App.ui.toggleBottomPanel() },
+                    { label: 'Explorer: New Folder', action: () => this.showNewItemModal('folder') },
+                    { label: 'Editor: Increase Font Size', action: () => App.settings.update('fontSize', App.state.settings.fontSize + 1) },
+                    { label: 'Editor: Decrease Font Size', action: () => App.settings.update('fontSize', App.state.settings.fontSize - 1) },
                 ];
-                // Get all file paths from the new VFS structure
-                App.fs.getAllFilePaths(App.fs.getNodeByPath('/')).then(filePaths => {
-                    const allFiles = filePaths.map(p => ({ label: `📄 ${p}`, action: () => App.files.open(p) }));
-                    const allItems = [...commands, ...allFiles];
-                    this.setupPalette(input, list, allItems);
-                });
+                
+                const rootNode = await App.fs.getNodeByPath('/'); // Await this call
+                let allFiles = [];
+                if (rootNode) {
+                    const filePaths = await App.fs.getAllFilePaths(rootNode);
+                    allFiles = filePaths.map(p => ({ label: `📄 ${p}`, action: () => App.files.open(p) }));
+                } else {
+                    console.warn("Root node not found for command palette file listing.");
+                }
+                
+                const allItems = [...commands, ...allFiles];
+                this.setupPalette(input, list, allItems);
             },
             showBetaFeaturesPalette() {
                 const content = document.createElement('div'); content.className = 'modal-base';
                 content.innerHTML = `<input type="text" id="cmd-input" class="modal-input m-2" placeholder="Search Beta Features..."><div id="cmd-list" class="overflow-y-auto max-h-[50vh]"></div>`;
                 App.ui.showModal(content);
-                const input = document.getElementById('cmd-input'); const list = document.getElementById('cmd-list');
+                const input = document.getElementById('cmd-input'); 
+                const list = document.getElementById('cmd-list');
+
+                if (!input || !list) {
+                    console.error("Beta palette input or list element not found.");
+                    App.ui.hideModal();
+                    return;
+                }
+
                 const commands = [
                     { "label": "Beta: UI: Increase Font Size", "action": () => App.settings.update('fontSize', App.state.settings.fontSize + 1) },
                     { "label": "Beta: UI: Decrease Font Size", "action": () => App.settings.update('fontSize', App.state.settings.fontSize - 1) },
                     { "label": "Beta: Workspace: Clear All Data (Danger!)", "action": () => {
                         if (confirm("Are you sure you want to delete ALL IDE data (files, settings, snippets)? This cannot be undone.")) {
-                           indexedDB.deleteDatabase(App.fs.DB_NAME);
-                           localStorage.clear(); // Clear all local storage settings etc.
-                           App.ui.showNotification("All IDE data cleared. Please refresh the page.", "error");
-                           window.location.reload();
+                            indexedDB.deleteDatabase(App.fs.DB_NAME);
+                            localStorage.clear(); // Clear all local storage settings etc.
+                            App.ui.showNotification("All IDE data cleared. Please refresh the page.", "error");
+                            window.location.reload();
                         }
                     }},
                 ];
                 this.setupPalette(input, list, commands);
             },
             setupPalette(input, list, items) {
+                let activeItemIndex = -1; // Track active item for keyboard navigation
+
                 const renderList = (query='') => {
-                    const filtered = items.filter(c=>c.label.toLowerCase().includes(query.toLowerCase()));
-                    list.innerHTML = filtered.map(c=>`<div class="command-palette-item p-2 cursor-pointer hover:bg-[var(--ide-bg-hover)]" data-label="${c.label}">${c.label}</div>`).join('');
+                    const filtered = items.filter(c => c.label.toLowerCase().includes(query.toLowerCase()));
+                    list.innerHTML = filtered.map((c, index) => 
+                        `<div class="command-palette-item p-2 cursor-pointer hover:bg-[var(--ide-bg-hover)] ${index === activeItemIndex ? 'active' : ''}" data-label="${c.label}">${c.label}</div>`
+                    ).join('');
+                    if (filtered.length > 0 && activeItemIndex === -1) {
+                        activeItemIndex = 0; // Set first item as active by default
+                        list.children[0]?.classList.add('active');
+                    }
                 };
                 const executeAction = (label) => {
                     items.find(c=>c.label===label)?.action(); 
                     App.ui.hideModal();
                 };
-                list.onclick = (e) => { const label = e.target.closest('.command-palette-item')?.dataset.label; if(label) executeAction(label); };
-                input.oninput = () => renderList(input.value);
+                list.onclick = (e) => { 
+                    const label = e.target.closest('.command-palette-item')?.dataset.label; 
+                    if(label) executeAction(label); 
+                };
+                input.oninput = () => {
+                    activeItemIndex = -1; // Reset active item on input change
+                    renderList(input.value);
+                };
                 input.onkeydown = (e) => {
-                    if (e.key === 'Enter') {
-                       const firstItem = list.querySelector('.command-palette-item');
-                       if (firstItem) executeAction(firstItem.dataset.label);
+                    const currentItems = Array.from(list.children);
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (activeItemIndex < currentItems.length - 1) {
+                            if (activeItemIndex !== -1) currentItems[activeItemIndex].classList.remove('active');
+                            activeItemIndex++;
+                            currentItems[activeItemIndex].classList.add('active');
+                            currentItems[activeItemIndex].scrollIntoView({ block: 'nearest' });
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (activeItemIndex > 0) {
+                            currentItems[activeItemIndex].classList.remove('active');
+                            activeItemIndex--;
+                            currentItems[activeItemIndex].classList.add('active');
+                            currentItems[activeItemIndex].scrollIntoView({ block: 'nearest' });
+                        }
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (activeItemIndex !== -1 && currentItems[activeItemIndex]) {
+                            executeAction(currentItems[activeItemIndex].dataset.label);
+                        } else if (currentItems.length > 0) { // If nothing active, but items exist, execute first
+                             executeAction(currentItems[0].dataset.label);
+                        }
                     } else if (e.key === 'Escape') {
                         App.ui.hideModal();
                     }
