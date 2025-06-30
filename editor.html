@@ -1610,7 +1610,7 @@
                     return App.ui.showNotification(`Cannot run .${ext} files directly.`, 'error');
                 }
             },
-            updateRunButtonState(path) {
+           updateRunButtonState(path) {
                 if (!path) { 
                     App.dom.run_btn.disabled = true; 
                     return; 
