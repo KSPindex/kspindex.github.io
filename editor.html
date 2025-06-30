@@ -1243,115 +1243,99 @@
                     pane: document.querySelector('#editor-group-2 .editor-pane'),
                 };
             },
-            async renderExplorer() {
-                const container = App.dom.file_explorer; container.innerHTML = '';
-                const query = App.dom.explorer_search.value.toLowerCase();
-                const render = async (parentId, pathPrefix = '', level = 0) => {
-                    let items = await App.fs.list(pathPrefix || '/'); // Fetch children from VFS
-                    
-                    const filteredItems = items.filter(item => {
-                        if (!query) return true;
-                        if (item.type === 'file') return item.name.toLowerCase().includes(query);
-                        const folderPath = `${pathPrefix === '/' ? '' : pathPrefix}/${item.name}`; 
-                        return item.name.toLowerCase().includes(query) || 
-                               (item.type === 'folder' && (item.id === '/' ? await App.fs.findNodesByContent(query, '/') : await App.fs.findNodesByContent(query, folderPath))); 
-                    });
-                        async getAllFilePaths(nodeOrId, currentPath = '/') {
-                let dirNode;
-                // nodeOrId가 ID (문자열)이면, 노드를 가져옵니다.
-                if (typeof nodeOrId === 'string') {
-                    dirNode = await this.getNode(nodeOrId);
-                } else {
-                    dirNode = nodeOrId; // 이미 노드 객체인 경우
-                }
+                      async renderExplorer() {
+                const container = App.dom.file_explorer; container.innerHTML = '';
+                const query = App.dom.explorer_search.value.toLowerCase();
+                // render 함수를 async로 선언합니다.
+                const render = async (parentId, pathPrefix = '', level = 0) => {
+                    let items = await App.fs.list(pathPrefix || '/'); // Fetch children from VFS
 
-                if (!dirNode || dirNode.type !== 'folder') return []; // 폴더가 아니면 빈 배열 반환
+                    // 비동기 필터링을 위해 Promise.all을 사용합니다.
+                    const itemsWithMatchStatus = await Promise.all(items.map(async item => {
+                        const nameMatches = item.name.toLowerCase().includes(query);
+                        let contentMatches = false;
+                        if (item.type === 'folder' && query) { // 쿼리가 있을 때만 폴더 내용 검색
+                            const folderPath = `${pathPrefix === '/' ? '' : pathPrefix}/${item.name}`;
+                            const foundInContent = await App.fs.findNodesByContent(query, folderPath);
+                            contentMatches = foundInContent && foundInContent.length > 0;
+                        }
+                        return { item, matches: nameMatches || contentMatches };
+                    }));
 
-                let filePaths = [];
-                // 'currentPath'에 해당하는 자식 노드들을 IndexedDB에서 가져옵니다.
-                const children = await this.list(currentPath); 
-                
-                for (const node of children) {
-                    const fullPath = `${currentPath === '/' ? '' : currentPath}/${node.name}`;
-                    if (node.type === 'file') {
-                        filePaths.push(fullPath);
-                    } else if (node.type === 'folder') {
-                        // 재귀 호출 시에는 노드 객체 (node)를 넘겨주고, 새로운 경로 (fullPath)를 업데이트합니다.
-                        // 이 재귀 호출이 비동기적으로 처리되어야 하므로 await를 사용합니다.
-                        filePaths = filePaths.concat(await this.getAllFilePaths(node, fullPath));
-                    }
-                }
-                return filePaths;
-            },
+                    // 필터링된 항목을 선택합니다.
+                    const filteredItems = itemsWithMatchStatus
+                        .filter(entry => entry.matches)
+                        .map(entry => entry.item);
 
-                    filteredItems.sort((a,b) => (a.type === 'folder' && b.type !== 'folder' ? -1 : (a.type !== 'folder' && b.type === 'folder' ? 1 : 0)) || a.name.localeCompare(b.name)).forEach(async (node) => {
-                        const path = await App.fs.constructPath(node.id); 
-                        const el = document.createElement('div');
-                        el.className = 'file-item p-1 rounded cursor-pointer flex items-center hover:bg-[var(--ide-bg-hover)]';
-                        el.style.paddingLeft = `${level * 16 + 4}px`;
-                        el.dataset.path = path;
-                        el.dataset.id = node.id; 
-                        el.draggable = true;
-                        
-                        const icon = node.type === 'folder' ? (node.isOpen ? '📂' : '📁') : '📄';
-                        el.innerHTML = `<span class="mr-2 pointer-events-none">${icon}</span><span class="pointer-events-none">${node.name}</span>`;
-                        container.appendChild(el);
-                        
-                        el.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            if (node.type === 'folder') { 
-                                node.isOpen = !node.isOpen; 
-                                App.ui.renderExplorer(); 
-                            } else { 
-                                App.files.open(path); 
-                            }
-                        });
-                        
-                        el.addEventListener('dragstart', (e) => { 
-                            e.stopPropagation(); 
-                            e.dataTransfer.setData('text/plain', JSON.stringify({type: 'move', id: node.id})); 
-                            e.dataTransfer.effectAllowed = 'move';
-                        });
-                        el.addEventListener('dragover', (e) => { 
-                            e.preventDefault(); 
-                            e.stopPropagation(); 
-                            if(node.type === 'folder') el.classList.add('drag-over'); 
-                        });
-                        el.addEventListener('dragleave', (e) => { 
-                            e.preventDefault(); 
-                            e.stopPropagation(); 
-                            el.classList.remove('drag-over'); 
-                        });
-                        el.addEventListener('drop', async (e) => {
-                            e.preventDefault(); e.stopPropagation();
-                            el.classList.remove('drag-over');
-                            
-                            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                            if (data.type === 'move' && data.id) {
-                                const srcId = data.id;
-                                const destId = node.type === 'folder' ? node.id : node.parentId; 
-                                const destPath = await App.fs.constructPath(destId);
+                    filteredItems.sort((a,b) => (a.type === 'folder' && b.type !== 'folder' ? -1 : (a.type !== 'folder' && b.type === 'folder' ? 1 : 0)) || a.name.localeCompare(b.name)).forEach(async (node) => {
+                        const path = await App.fs.constructPath(node.id);
+                        const el = document.createElement('div');
+                        el.className = 'file-item p-1 rounded cursor-pointer flex items-center hover:bg-[var(--ide-bg-hover)]';
+                        el.style.paddingLeft = `${level * 16 + 4}px`;
+                        el.dataset.path = path;
+                        el.dataset.id = node.id;
+                        el.draggable = true;
 
-                                if (srcId === destId) return; 
+                        const icon = node.type === 'folder' ? (node.isOpen ? '📂' : '📁') : '📄';
+                        el.innerHTML = `<span class="mr-2 pointer-events-none">${icon}</span><span class="pointer-events-none">${node.name}</span>`;
+                        container.appendChild(el);
 
-                                try {
-                                    await App.fs.move(srcId, destPath);
-                                    App.ui.showNotification(`Moved ${node.name} to ${destPath}`, 'success');
-                                    App.ui.renderExplorer();
-                                } catch (err) {
-                                    App.ui.showNotification(`Move failed: ${err.message}`, 'error');
-                                }
-                            }
-                        });
+                        el.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            if (node.type === 'folder') {
+                                node.isOpen = !node.isOpen;
+                                App.ui.renderExplorer();
+                            } else {
+                                App.files.open(path);
+                            }
+                        });
 
-                        if (node.type === 'folder' && node.isOpen) {
-                            await render(node.id, path, level + 1); 
-                        }
-                    });
-                }
-                const rootNode = await App.fs.getNodeByPath('/'); 
-                await render(rootNode.id, '/', 0); 
-            },
+                        el.addEventListener('dragstart', (e) => {
+                            e.stopPropagation();
+                            e.dataTransfer.setData('text/plain', JSON.stringify({type: 'move', id: node.id}));
+                            e.dataTransfer.effectAllowed = 'move';
+                        });
+                        el.addEventListener('dragover', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if(node.type === 'folder') el.classList.add('drag-over');
+                        });
+                        el.addEventListener('dragleave', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            el.classList.remove('drag-over');
+                        });
+                        el.addEventListener('drop', async (e) => {
+                            e.preventDefault(); e.stopPropagation();
+                            el.classList.remove('drag-over');
+
+                            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                            if (data.type === 'move' && data.id) {
+                                const srcId = data.id;
+                                const destId = node.type === 'folder' ? node.id : node.parentId;
+                                const destPath = await App.fs.constructPath(destId);
+
+                                if (srcId === destId) return;
+
+                                try {
+                                    await App.fs.move(srcId, destPath);
+                                    App.ui.showNotification(`Moved ${node.name} to ${destPath}`, 'success');
+                                    App.ui.renderExplorer();
+                                } catch (err) {
+                                    App.ui.showNotification(`Move failed: ${err.message}`, 'error');
+                                }
+                            }
+                        });
+
+                        if (node.type === 'folder' && node.isOpen) {
+                            await render(node.id, path, level + 1);
+                        }
+                    });
+                }
+                const rootNode = await App.fs.getNodeByPath('/');
+                await render(rootNode.id, '/', 0);
+            },
+
             updateStatus() {
                 const editor = App.editor.getActiveEditor();
                 const paneId = App.state.activePane;
