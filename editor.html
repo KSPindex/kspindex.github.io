@@ -1256,6 +1256,33 @@
                         return item.name.toLowerCase().includes(query) || 
                                (item.type === 'folder' && (item.id === '/' ? await App.fs.findNodesByContent(query, '/') : await App.fs.findNodesByContent(query, folderPath))); 
                     });
+                        async getAllFilePaths(nodeOrId, currentPath = '/') {
+                let dirNode;
+                // nodeOrId가 ID (문자열)이면, 노드를 가져옵니다.
+                if (typeof nodeOrId === 'string') {
+                    dirNode = await this.getNode(nodeOrId);
+                } else {
+                    dirNode = nodeOrId; // 이미 노드 객체인 경우
+                }
+
+                if (!dirNode || dirNode.type !== 'folder') return []; // 폴더가 아니면 빈 배열 반환
+
+                let filePaths = [];
+                // 'currentPath'에 해당하는 자식 노드들을 IndexedDB에서 가져옵니다.
+                const children = await this.list(currentPath); 
+                
+                for (const node of children) {
+                    const fullPath = `${currentPath === '/' ? '' : currentPath}/${node.name}`;
+                    if (node.type === 'file') {
+                        filePaths.push(fullPath);
+                    } else if (node.type === 'folder') {
+                        // 재귀 호출 시에는 노드 객체 (node)를 넘겨주고, 새로운 경로 (fullPath)를 업데이트합니다.
+                        // 이 재귀 호출이 비동기적으로 처리되어야 하므로 await를 사용합니다.
+                        filePaths = filePaths.concat(await this.getAllFilePaths(node, fullPath));
+                    }
+                }
+                return filePaths;
+            },
 
                     filteredItems.sort((a,b) => (a.type === 'folder' && b.type !== 'folder' ? -1 : (a.type !== 'folder' && b.type === 'folder' ? 1 : 0)) || a.name.localeCompare(b.name)).forEach(async (node) => {
                         const path = await App.fs.constructPath(node.id); 
