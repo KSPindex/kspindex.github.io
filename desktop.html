@@ -90,7 +90,7 @@
     /**
      * JSDoc: @file desktop.js (Unified Version)
      * @description Index-Space 가상 OS의 핵심 데스크톱. iframe 로딩과 네이티브 앱을 모두 지원.
-     * @version 2.5 - Editor 및 Terminal 재구축에 따른 연동 업데이트
+     * @version 2.8 - fileExplorer 앱 복원 및 404 오류 문제 해결.
      */
     const IndexSpaceOS = {
         state: { windows: new Map(), activeWindowId: null, maxZIndex: 100 },
@@ -120,30 +120,30 @@
                         `;
                     }
                 },
-                { id: 'fileExplorer', name: 'File Explorer', icon: '📁', url: './FileExplorer.html' }, // Example for consistency, though editor handles file Browse
+                // File Explorer 앱을 다시 추가
+                { id: 'fileExplorer', name: 'File Explorer', icon: '📁', url: './fileExplorer.html' }, 
                 { id: 'terminal', name: 'Terminal', icon: '👨‍💻', url: './terminal.html' }, 
                 { id: 'editor', name: 'Code Editor', icon: '📝', url: './editor.html' },   
-                { id: 'settings', name: 'Settings', icon: '⚙️', url: './Settings.html' },
-                { id: 'arcade', name: 'Arcade', icon: '🎮', url: './Arcade.html' },
+                // settings, arcade는 아직 파일이 없으므로 주석 처리 상태 유지
+                // { id: 'settings', name: 'Settings', icon: '⚙️', url: './Settings.html' }, 
+                // { id: 'arcade', name: 'Arcade', icon: '🎮', url: './Arcade.html' },       
             ]
         },
         dom: {},
-        terminalDotTimeout: null, // For managing the notification dot timeout
+        terminalDotTimeout: null, 
         
         init() {
             this.dom = { desktop: document.getElementById('desktop'), taskbarIcons: document.getElementById('taskbar-icons') };
             this.TaskbarManager.init(this);
             this.WindowManager.init(this);
-            this.setupInterWindowCommunication(); // Setup message listener
+            this.setupInterWindowCommunication(); 
             
-            // Launch Welcome app on startup
             const welcomeApp = this.config.apps.find(a => a.id === 'welcome');
             if (welcomeApp) {
                 this.WindowManager.launchApp(welcomeApp);
             }
         },
 
-        // Function to handle terminal activity notification
         handleTerminalActivity() {
             const terminalAppIcon = document.querySelector('.app-icon[data-app-id="terminal"]');
             if (!terminalAppIcon) return;
@@ -151,47 +151,36 @@
             let notificationDot = terminalAppIcon.querySelector('.notification-dot');
             if (!notificationDot) {
                 notificationDot = document.createElement('div');
-                notificationDot.id = 'terminal-notification-dot'; // Add ID for direct access if needed
-                notificationDot.className = 'notification-dot';
+                notificationDot.id = 'terminal-notification-dot'; 
+                notificationDot.className = 'notification-dot hidden'; 
                 terminalAppIcon.appendChild(notificationDot);
             }
-            notificationDot.classList.remove('hidden'); // Show the dot
+            notificationDot.classList.remove('hidden'); 
             
-            // Clear any previous timeout to keep the dot visible longer
             clearTimeout(this.terminalDotTimeout);
             this.terminalDotTimeout = setTimeout(() => {
                 notificationDot.classList.add('hidden');
-                // Optionally remove dot from DOM if hidden to clean up
-                // notificationDot.remove(); 
-            }, 5000); // Hide after 5 seconds of no activity
+            }, 5000); 
         },
 
         setupInterWindowCommunication() {
             window.addEventListener('message', (event) => {
-                // Ensure messages are from expected origins for security (in production)
-                // if (event.origin !== window.location.origin) return; 
-
                 const { type, payload } = event.data;
 
                 switch (type) {
                     case 'terminalActivity':
-                        // Message from editor.html indicating terminal output
                         this.handleTerminalActivity();
                         break;
                     case 'appReady':
-                        // When an app (like editor.html or terminal.html) sends 'appReady'
                         const appInstance = this.config.apps.find(app => app.id === payload.appId);
                         if (appInstance) {
-                            // Find the iframe associated with this app window
                             const windowEl = document.querySelector(`#${payload.windowId} iframe`);
                             if (windowEl && windowEl.contentWindow) {
-                                // Store the iframe's contentWindow object directly in the app config
                                 appInstance.iframeWindow = windowEl.contentWindow;
                                 console.log(`Desktop: ${payload.appId} iframe ready and contentWindow stored.`);
                             }
                         }
                         break;
-                    // Add other message types if needed
                 }
             });
         }
@@ -204,7 +193,7 @@
             this.app = app;
             this.os = os;
             this.options = options;
-            this.iframe = null; // To store iframe element if applicable
+            this.iframe = null; 
             this.create();
             this.bindEvents();
         }
@@ -214,7 +203,6 @@
             this.el.id = this.id;
             this.el.className = 'window';
             
-            // Window sizing - flexible based on content type
             if (this.app.id === 'welcome') {
                 this.el.style.width = this.options.width || '720px';
                 this.el.style.height = this.options.height || '500px';
@@ -223,14 +211,12 @@
                 this.el.style.height = this.options.height || '70vh';
             }
             
-            // Window positioning with smart offset
             const windowCount = this.os.state.windows.size;
             const offsetX = (windowCount % 10) * 20;
             const offsetY = (windowCount % 10) * 20;
             this.el.style.left = `calc(50% - ${parseInt(this.el.style.width) / 2}px + ${offsetX}px)`;
             this.el.style.top = `calc(50% - ${parseInt(this.el.style.height) / 2}px + ${offsetY}px)`;
             
-            // Initial content setup
             let contentHTML = `<div class="placeholder-content">Loading ${this.app.name}...</div>`;
             
             this.el.innerHTML = `
@@ -247,7 +233,6 @@
             
             this.os.dom.desktop.appendChild(this.el);
             
-            // Load content based on app type
             this.loadContent();
         }
         
@@ -255,24 +240,18 @@
             const contentEl = this.el.querySelector('.window-content');
             
             if (this.app.launch) {
-                // Native app with custom launch function
-                contentEl.innerHTML = ''; // Clear placeholder
-                contentEl.classList.add('has-content'); // Ensure proper padding/line-height
-                this.app.launch(this.id); // Pass window ID to native app for content rendering
+                contentEl.innerHTML = ''; 
+                contentEl.classList.add('has-content'); 
+                this.app.launch(this.id); 
             } else if (this.app.url) {
-                // iframe-based app
                 contentEl.classList.add('has-iframe');
-                contentEl.innerHTML = ''; // Clear placeholder
-                this.iframe = document.createElement('iframe'); // Store reference to iframe
+                contentEl.innerHTML = ''; 
+                this.iframe = document.createElement('iframe'); 
                 this.iframe.src = this.app.url;
                 this.iframe.onload = () => {
-                    // Send appReady message from iframe to parent (desktop)
-                    // The iframe itself will post 'appReady' to its parent (desktop.html)
-                    // The desktop.html will then store iframeWindow on its app config
                 };
                 contentEl.appendChild(this.iframe);
             } else {
-                // Fallback placeholder
                 contentEl.classList.add('has-content');
                 contentHTML = `<div class="placeholder-content">Content for ${this.app.name} will be loaded here.</div>`;
                 contentEl.innerHTML = contentHTML;
@@ -285,7 +264,6 @@
             const minimizeBtn = this.el.querySelector('.minimize-btn');
             const maximizeBtn = this.el.querySelector('.maximize-btn');
             
-            // Window dragging
             header.addEventListener('mousedown', (e) => {
                 if (e.target.closest('.control-btn')) return;
                 this.os.WindowManager.focus(this.id);
@@ -308,14 +286,11 @@
                 document.addEventListener('mouseup', stopDrag);
             });
             
-            // Close button
             closeBtn.addEventListener('click', () => this.os.WindowManager.close(this.id));
             
-            // Minimize button (simple hide/show for now)
             minimizeBtn.addEventListener('click', () => {
                 this.el.style.display = 'none';
-                this.os.TaskbarManager.update(); // Update taskbar icon active state
-                // If minimized window was active, focus another or null
+                this.os.TaskbarManager.update(); 
                 if (this.os.state.activeWindowId === this.id) {
                     const remainingWindows = Array.from(this.os.state.windows.keys()).filter(winId => this.os.state.windows.get(winId).el.style.display !== 'none' && winId !== this.id);
                     this.os.state.activeWindowId = remainingWindows.length > 0 ? remainingWindows[0] : null;
@@ -325,42 +300,36 @@
                 }
             });
 
-            // Maximize button (toggle full screen/restore)
             maximizeBtn.addEventListener('click', () => {
                 if (this.el.classList.contains('maximized')) {
-                    // Restore from maximized
                     this.el.style.width = this.lastWidth || '80vw';
                     this.el.style.height = this.lastHeight || '70vh';
                     this.el.style.left = this.lastLeft || 'calc(50% - 40vw)';
                     this.el.style.top = this.lastTop || 'calc(50% - 35vh)';
                     this.el.classList.remove('maximized');
-                    this.el.style.resize = 'both'; // Enable resize
+                    this.el.style.resize = 'both'; 
                 } else {
-                    // Maximize
                     this.lastWidth = this.el.style.width;
                     this.lastHeight = this.el.style.height;
                     this.lastLeft = this.el.style.left;
                     this.lastTop = this.el.style.top;
 
                     this.el.style.width = '100vw';
-                    this.el.style.height = 'calc(100vh - 55px)'; // Full height minus taskbar
+                    this.el.style.height = 'calc(100vh - 55px)'; 
                     this.el.style.left = '0';
                     this.el.style.top = '0';
                     this.el.classList.add('maximized');
-                    this.el.style.resize = 'none'; // Disable resize when maximized
+                    this.el.style.resize = 'none'; 
                 }
-                // Important: Trigger resize on iframe content if it exists
                 if (this.iframe && this.iframe.contentWindow && this.iframe.contentWindow.App && this.iframe.contentWindow.App.settings) {
-                    this.iframe.contentWindow.App.settings.resizeAllEditors(); // For editor.html specifically
+                    this.iframe.contentWindow.App.settings.resizeAllEditors(); 
                 }
             });
             
-            // Focus on click
-            this.el.addEventListener('mousedown', () => this.os.WindowManager.focus(this.id), true);
+            closeBtn.addEventListener('click', () => this.os.WindowManager.close(this.id));
         }
         
         destroy() {  
-            // Clean up iframeWindow reference in app config when window is closed
             if (this.app.iframeWindow) {
                 this.app.iframeWindow = null;
             }
@@ -375,11 +344,10 @@
         },
         
         launchApp(app, options = {}) {
-            // Check if app is already open. If so, focus it or restore it if minimized.
             for (const win of this.os.state.windows.values()) {
                 if (win.app.id === app.id) {
-                    if (win.el.style.display === 'none') { // If minimized
-                        win.el.style.display = 'flex'; // Restore it
+                    if (win.el.style.display === 'none') { 
+                        win.el.style.display = 'flex'; 
                     }
                     this.focus(win.id);
                     return;
@@ -433,7 +401,6 @@
         render() {
             this.os.dom.taskbarIcons.innerHTML = '';
             this.os.config.apps.forEach(app => {
-                // Welcome 앱은 작업 표시줄에 표시하지 않음 (시작 시에만 자동 실행)
                 if (app.id === 'welcome') return;
                 
                 const iconEl = document.createElement('div');
@@ -442,11 +409,10 @@
                 iconEl.title = app.name;
                 iconEl.textContent = app.icon;
 
-                // Add notification dot placeholder for terminal
                 if (app.id === 'terminal') {
                     const dot = document.createElement('div');
                     dot.id = 'terminal-notification-dot';
-                    dot.className = 'notification-dot hidden'; // Initially hidden
+                    dot.className = 'notification-dot hidden'; 
                     iconEl.appendChild(dot);
                 }
 
@@ -470,7 +436,7 @@
         update() {
             const openAppIds = new Set();
             this.os.state.windows.forEach(win => {
-                if (win.el.style.display !== 'none') { // Only count visible windows as "open"
+                if (win.el.style.display !== 'none') { 
                     openAppIds.add(win.app.id);
                 }
             });
