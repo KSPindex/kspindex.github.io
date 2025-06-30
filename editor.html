@@ -1634,11 +1634,11 @@
                 luaReady: false,
             },
             async init() {
-                this.dom.output = App.dom.terminal_output_log; 
+                this.dom.output = App.dom.terminal_output_log; // <--- 1641번째 줄로 추정되는 부분
                 this.dom.loadingOverlay = App.dom.terminal_loading_overlay;
                 this.dom.loadingText = App.dom.terminal_loading_text;
 
-                this.clear(); 
+                this.clear();
 
                 this.dom.loadingOverlay.classList.remove('hidden');
                 this.dom.loadingText.textContent = 'Loading Python environment...';
@@ -1700,7 +1700,7 @@
                 this.dom.output.scrollTop = this.dom.output.scrollHeight; 
             },
             clear() {
-                this.dom.output.innerHTML = '';
+                this.dom.output.innerHTML = ''; // <--- 1703번째 줄로 추정되는 부분
                 this.log('Index-Space IDE Terminal.', 'info');
                 this.log('Type your commands here or run scripts from the editor.', 'info');
             },
