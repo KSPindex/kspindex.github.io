@@ -491,11 +491,6 @@
 <body>
 
     <div id="main-grid">
-        </div>
-
-    <script type="module" src="main.js"></script>
-    
-    <div id="main-grid">
         <div id="top-bar">
             <button id="back-btn" title="Back" class="p-1.5 rounded hover:bg-[var(--ide-bg-hover)] disabled:text-[var(--ide-text-inactive)] disabled:cursor-not-allowed">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
@@ -646,6 +641,8 @@
     <div id="context-menu" class="absolute z-[2000] bg-[var(--ide-bg-secondary)] border border-[var(--ide-border-primary)] rounded-md shadow-lg text-sm hidden py-1"></div>
     <div id="notification-toast" class="fixed bottom-4 right-4 bg-[var(--ide-accent-primary)] text-white px-4 py-2 rounded-md shadow-lg opacity-0 transition-opacity duration-300 z-[20001]"></div>
     <input type="file" id="file-importer" class="hidden" multiple>
+
+    <script type="module" src="main.js"></script>
 
 <script type="module">
     // Define the parent iframe window reference for desktop.html communication
