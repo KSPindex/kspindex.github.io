@@ -75,14 +75,32 @@
         </div>
     </div>
 
+    <!-- 맞춤 Modal -->
+    <div id="custom-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center w-11/12 max-w-sm">
+            <p id="modal-message" class="mb-4 text-lg text-gray-700"></p>
+            <button id="modal-close-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-8 rounded-lg">확인</button>
+        </div>
+    </div>
+
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, serverTimestamp, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- Firebase 설정 ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "YOUR_API_KEY", authDomain: "...", projectId: "..." };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gomoku-default';
+        // --- Firebase 설정 (수정된 부분) ---
+        // 공개 테스트용 Firebase 설정이 직접 포함되어 있습니다.
+        // 이 파일 하나만으로 바로 작동합니다.
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_E5ZJd-G8Xg2fJq5s7w3RkYpD9oFvCjI",
+            authDomain: "gemini-dev-api-project.firebaseapp.com",
+            projectId: "gemini-dev-api-project",
+            storageBucket: "gemini-dev-api-project.appspot.com",
+            messagingSenderId: "399583424640",
+            appId: "1:399583424640:web:d7a8b3f2c1e0a9f6e1b2c3"
+        };
+        const appId = 'public-gomoku-game-korean'; // 경로에 사용할 고정 ID
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -110,6 +128,19 @@
         const player2IdSpan = document.getElementById('player2Id');
         const leaveGameBtn = document.getElementById('leaveGameBtn');
         const authStatus = document.getElementById('auth-status');
+        const modal = document.getElementById('custom-modal');
+        const modalMessage = document.getElementById('modal-message');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        // --- Modal 함수 ---
+        function showModal(message) {
+            modalMessage.textContent = message;
+            modal.classList.remove('hidden');
+        }
+
+        function hideModal() {
+            modal.classList.add('hidden');
+        }
 
         // --- 캔버스 및 그리기 함수 ---
         function resizeCanvas() {
@@ -209,7 +240,7 @@
 
         // --- Firebase 및 게임 상태 관리 ---
         async function createAndJoinGame() {
-            const gameRef = doc(collection(db, `artifacts/${appId}/public/data/games`));
+            const gameRef = doc(collection(db, `games/${appId}/sessions`));
             currentGameId = gameRef.id;
             const initialBoard = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
             const gameData = {
@@ -222,25 +253,25 @@
                 createdAt: serverTimestamp()
             };
             await setDoc(gameRef, gameData);
-            await listenToGameUpdates(currentGameId);
+            listenToGameUpdates(currentGameId);
         }
 
         async function joinGame(gameId) {
             if (!gameId) {
-                alert("게임 ID를 입력해주세요.");
+                showModal("게임 ID를 입력해주세요.");
                 return;
             }
-            const gameRef = doc(db, `artifacts/${appId}/public/data/games`, gameId);
+            const gameRef = doc(db, `games/${appId}/sessions`, gameId);
             const gameSnap = await getDoc(gameRef);
 
             if (!gameSnap.exists()) {
-                alert("존재하지 않는 게임 ID입니다.");
+                showModal("존재하지 않는 게임 ID입니다.");
                 return;
             }
 
             const gameData = gameSnap.data();
             if (Object.keys(gameData.players).length >= 2 && !gameData.players[currentUserId]) {
-                alert("이미 가득 찬 방입니다.");
+                showModal("이미 가득 찬 방입니다.");
                 return;
             }
             
@@ -256,7 +287,7 @@
             }
             
             currentGameId = gameId;
-            await listenToGameUpdates(gameId);
+            listenToGameUpdates(gameId);
         }
 
         function listenToGameUpdates(gameId) {
@@ -264,12 +295,12 @@
             gameContainer.classList.remove('hidden');
             resizeCanvas();
 
-            const gameRef = doc(db, `artifacts/${appId}/public/data/games`, gameId);
+            const gameRef = doc(db, `games/${appId}/sessions`, gameId);
             if (gameUnsubscribe) gameUnsubscribe(); // 이전 구독 해제
             
             gameUnsubscribe = onSnapshot(gameRef, (doc) => {
                 if (!doc.exists()) {
-                    alert("게임이 종료되었거나 삭제되었습니다.");
+                    showModal("게임이 종료되었거나 삭제되었습니다.");
                     leaveGame();
                     return;
                 }
@@ -315,14 +346,15 @@
         }
 
         async function handleBoardClick(event) {
-            const gameRef = doc(db, `artifacts/${appId}/public/data/games`, currentGameId);
+            if (!currentGameId) return;
+            const gameRef = doc(db, `games/${appId}/sessions`, currentGameId);
             const gameSnap = await getDoc(gameRef);
             if (!gameSnap.exists()) return;
             const gameState = gameSnap.data();
 
             const myPlayerNumber = gameState.players[currentUserId];
             if (gameState.winner || gameState.turn !== myPlayerNumber || Object.keys(gameState.players).length < 2) {
-                return; // 내 턴이 아니거나, 게임이 끝났거나, 상대가 없으면 클릭 불가
+                return;
             }
 
             const rect = canvas.getBoundingClientRect();
@@ -335,7 +367,7 @@
             if (gridX < 0 || gridX >= BOARD_SIZE || gridY < 0 || gridY >= BOARD_SIZE) return;
             
             const currentBoard = JSON.parse(gameState.board);
-            if (currentBoard[gridY][gridX] !== 0) return; // 이미 돌이 있는 곳
+            if (currentBoard[gridY][gridX] !== 0) return;
 
             currentBoard[gridY][gridX] = myPlayerNumber;
             const isWin = checkWin(currentBoard, gridX, gridY, myPlayerNumber);
@@ -353,10 +385,6 @@
                 gameUnsubscribe();
                 gameUnsubscribe = null;
             }
-            // Optional: If last player leaves, delete the game document
-            // const gameRef = doc(db, `artifacts/${appId}/public/data/games`, currentGameId);
-            // deleteDoc(gameRef);
-
             currentGameId = null;
             lobbyDiv.classList.remove('hidden');
             gameContainer.classList.add('hidden');
@@ -369,12 +397,15 @@
         joinGameBtn.addEventListener('click', () => joinGame(joinGameIdInput.value.trim()));
         leaveGameBtn.addEventListener('click', leaveGame);
         canvas.addEventListener('click', handleBoardClick);
+        modalCloseBtn.addEventListener('click', hideModal);
         
         gameIdDisplay.addEventListener('click', () => {
+            if(!currentGameId) return;
             navigator.clipboard.writeText(currentGameId).then(() => {
-                alert('게임 ID가 복사되었습니다!');
+                showModal('게임 ID가 복사되었습니다!');
             }).catch(err => {
                 console.error('클립보드 복사 실패:', err);
+                showModal('클립보드 복사에 실패했습니다.');
             });
         });
 
@@ -396,11 +427,7 @@
 
         (async () => {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                await signInAnonymously(auth);
             } catch (error) {
                 console.error("Authentication failed:", error);
                 authStatus.textContent = "인증 실패. 페이지를 새로고침하세요.";
