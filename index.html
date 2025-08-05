@@ -1,438 +1,320 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 멀티 오목 게임</title>
+    <title>IndexSpace — BetaTest </title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* Inter 폰트와 다크 테마 기본 설정 */
         body {
-            font-family: 'Noto Sans KR', sans-serif;
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #e3e3e3;
+            overflow-x: hidden;
         }
-        canvas {
-            background-color: #e6b883;
-            cursor: pointer;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+        /* 그라데이션 글로우 효과 */
+        .glow-effect {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
         }
-        .stone-shadow {
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+
+        .glow-effect::before,
+        .glow-effect::after {
+            content: '';
+            position: absolute;
+            filter: blur(120px);
+            will-change: transform;
+        }
+
+        .glow-effect::before {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.3), transparent 70%);
+            animation: drift1 20s infinite alternate ease-in-out;
+        }
+
+        .glow-effect::after {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent 70%);
+            animation: drift2 25s infinite alternate ease-in-out;
+            top: 100px;
+            left: -200px;
+        }
+
+        @keyframes drift1 {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(150px, -100px) rotate(30deg); }
+        }
+
+        @keyframes drift2 {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-100px, 120px) rotate(-40deg); }
+        }
+
+        /* 스크롤 시 나타나는 애니메이션 */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 헤더 그라데이션 보더 */
+        .header-border {
+            background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,0.1), rgba(255,255,255,0));
+            height: 1px;
+        }
+
+        /* 버튼 호버 효과 */
+        .hero-button {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hero-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+        }
+        
+        /* 기능 카드 스타일 */
+        .feature-card {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* 이미지 컨테이너 스타일 */
+        .feature-image-container {
+            position: relative;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #0d0d0d;
+            padding: 0.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="antialiased">
 
-    <div id="app" class="w-full max-w-4xl mx-auto p-4 md:p-6 bg-white rounded-xl shadow-lg">
-        <h1 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-4">실시간 멀티 오목</h1>
+    <!-- 전체 래퍼 -->
+    <div class="relative min-h-screen">
+        
+        <!-- 배경 글로우 효과 -->
+        <div class="glow-effect"></div>
 
-        <!-- 게임 시작 전 UI -->
-        <div id="lobby" class="text-center">
-            <p class="text-gray-600 mb-6">새 게임을 시작하거나 친구의 게임에 참여하세요.</p>
-            <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-                <button id="newGameBtn" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105">새 게임 만들기</button>
-                <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <input type="text" id="joinGameIdInput" placeholder="게임 ID 입력" class="flex-grow p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <button id="joinGameBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105">참여하기</button>
+        <!-- 헤더 -->
+        <header class="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-md">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center space-x-8">
+                        <a href="/" class="text-xl font-bold tracking-tighter">IndexSpace</a>
+                        <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-gray-300">
+                            <a href="#features" class="hover:text-white transition-colors">Features</a>
+                            <a href="#" class="hover:text-white transition-colors">AI Assistant</a>
+                            <a href="#" class="hover:text-white transition-colors">Collaboration</a>
+                            <a href="#" class="hover:text-white transition-colors">Pricing</a>
+                        </nav>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <a href="#" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Log in</a>
+                        <!-- --- 코드 수정점 --- -->
+                        <a href="/register.html" class="px-4 py-1.5 text-sm font-medium text-white bg-white/10 rounded-full hover:bg-white/20 transition-colors">Sign up</a>
+                    </div>
                 </div>
             </div>
-             <p id="auth-status" class="mt-4 text-sm text-gray-500">서버에 연결 중...</p>
-        </div>
+            <div class="header-border"></div>
+        </header>
 
-        <!-- 게임 진행 중 UI -->
-        <div id="game-container" class="hidden">
-            <div class="flex flex-col md:flex-row gap-6">
-                <!-- 게임 정보 패널 -->
-                <div class="w-full md:w-1/3 lg:w-1/4 bg-gray-50 p-4 rounded-lg border order-first md:order-last">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-700">게임 정보</h2>
-                    <div class="space-y-3">
-                        <div>
-                            <label class="font-medium text-gray-600">게임 ID:</label>
-                            <p id="gameIdDisplay" class="text-sm bg-gray-200 p-2 rounded break-all cursor-pointer" title="클릭하여 복사"></p>
-                        </div>
-                        <div id="playerInfo" class="space-y-2 pt-2">
-                             <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 rounded-full bg-black border-2 border-gray-400 stone-shadow"></div>
-                                <span id="player1Id" class="text-sm truncate">플레이어 1 (대기중...)</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 rounded-full bg-white border-2 border-gray-400 stone-shadow"></div>
-                                <span id="player2Id" class="text-sm truncate">플레이어 2 (대기중...)</span>
-                            </div>
-                        </div>
+        <!-- 메인 컨텐츠 -->
+        <main class="pt-32 pb-24">
+            <!-- 히어로 섹션 -->
+            <section class="text-center container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="reveal visible">
+                    <a href="#" class="inline-flex items-center space-x-2 bg-white/10 px-3 py-1 rounded-full text-sm hover:bg-white/20 transition-colors mb-4">
+                        <span>Introducing the IndexSpace Beta</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-tight">
+                        <span class="bg-clip-text text-transparent bg-gradient-to-br from-white to-gray-400">IndexSpace. The new standard</span><br>
+                        <span class="bg-clip-text text-transparent bg-gradient-to-br from-white to-gray-400">for modern development.</span>
+                    </h1>
+                    <p class="mt-6 max-w-2xl mx-auto text-lg text-gray-400">
+                        Empower your team to build better products, faster. From planning and tracking to delivery, IndexSpace is the ultimate tool for high-performance teams.
+                    </p>
+                    <div class="mt-8 flex justify-center gap-4">
+                        <!-- --- 코드 수정점 --- -->
+                        <a href="/register.html" class="hero-button inline-block px-8 py-3 font-semibold text-white bg-purple-600 rounded-full shadow-lg shadow-purple-600/30 hover:bg-purple-700">
+                            Get Started
+                        </a>
                     </div>
-                     <div id="status" class="mt-4 text-lg font-bold text-center p-3 rounded-md bg-yellow-100 text-yellow-800">
-                        게임을 시작하세요!
-                    </div>
-                     <button id="leaveGameBtn" class="w-full mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">게임 나가기</button>
                 </div>
 
-                <!-- 오목판 -->
-                <div class="flex-grow flex items-center justify-center">
-                    <canvas id="gomoku-board"></canvas>
+                <div class="mt-20 reveal">
+                    <p class="text-sm text-gray-500 uppercase tracking-widest">A project by</p>
+                    <p class="mt-4 text-2xl font-medium tracking-widest text-gray-400">INDEx SpaCE team</p>
+                </div>
+            </section>
+
+            <!-- 기능 소개 섹션 (확장) -->
+            <section id="features" class="mt-32 sm:mt-48 container mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
+                
+                <!-- 기능 1: AI 코드 어시스턴트 -->
+                <div class="grid md:grid-cols-2 gap-12 items-center reveal">
+                    <div class="md:pr-8">
+                        <h2 class="text-3xl sm:text-4xl font-bold tracking-tighter">Your AI Partner in Code</h2>
+                        <p class="mt-4 text-lg text-gray-400">
+                            Meet your new AI co-pilot. Generate boilerplate, write complex functions, find bugs, and optimize performance with natural language. It's like pair programming with a genius.
+                        </p>
+                        <ul class="mt-6 space-y-3 text-gray-300">
+                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Context-aware code completion and generation.</span></li>
+                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Automated debugging and vulnerability scanning.</span></li>
+                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Convert legacy code to modern frameworks.</span></li>
+                        </ul>
+                    </div>
+                    <div class="feature-image-container">
+                        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="AI assisting with code on a screen" class="rounded-lg w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/1200x800/0d0d0d/171717?text=AI+Code+Assistant';">
+                    </div>
+                </div>
+
+                <!-- 기능 2: 실시간 협업 -->
+                <div class="grid md:grid-cols-2 gap-12 items-center reveal">
+                     <div class="feature-image-container md:order-last">
+                        <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Team collaborating in real-time" class="rounded-lg w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/1200x800/0d0d0d/171717?text=Real-time+Collaboration';">
+                    </div>
+                    <div class="md:pl-8">
+                        <h2 class="text-3xl sm:text-4xl font-bold tracking-tighter">Create in Perfect Sync</h2>
+                        <p class="mt-4 text-lg text-gray-400">
+                           No more merge conflicts or stale branches. IndexSpace provides a real-time collaborative environment where your team can design, code, and review together in one unified space.
+                        </p>
+                        <ul class="mt-6 space-y-3 text-gray-300">
+                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Multiplayer code editor and design canvas.</span></li>
+                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>In-line comments, threads, and video chat.</span></li>
+                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Shared project boards and documentation.</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 기능 3: 자동화된 워크플로우 -->
+                 <div class="grid md:grid-cols-2 gap-12 items-center reveal">
+                    <div class="md:pr-8">
+                        <h2 class="text-3xl sm:text-4xl font-bold tracking-tighter">From Idea to Deployment, Automated</h2>
+                        <p class="mt-4 text-lg text-gray-400">
+                            Build, test, and deploy with unparalleled speed. Our integrated CI/CD pipelines automate the entire workflow, so you can focus on building features, not managing infrastructure.
+                        </p>
+                         <ul class="mt-6 space-y-3 text-gray-300">
+                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Git-powered workflows with zero configuration.</span></li>
+                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Automatic preview deployments for every commit.</span></li>
+                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Scalable infrastructure that grows with you.</span></li>
+                        </ul>
+                    </div>
+                    <div class="feature-image-container">
+                        <!-- 수정된 이미지 링크 -->
+                        <img src="https://images.unsplash.com/photo-1618477388954-7852f32655ec?q=80&w=1964&auto=format&fit=crop" alt="Automated workflow diagram" class="rounded-lg w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/1200x800/0d0d0d/171717?text=Automated+Workflows';">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 최종 CTA 섹션 -->
+            <section class="mt-32 sm:mt-48 text-center container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="reveal">
+                    <h2 class="text-4xl sm:text-5xl font-bold tracking-tighter">Experience the Future of Development</h2>
+                    <p class="mt-4 max-w-xl mx-auto text-lg text-gray-400">
+                        Join the beta and be the first to build with IndexSpace.
+                    </p>
+                    <div class="mt-8">
+                        <a href="#" class="hero-button inline-block px-8 py-3 font-semibold text-white bg-purple-600 rounded-full shadow-lg shadow-purple-600/30 hover:bg-purple-700">
+                            Request Access
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- 푸터 -->
+        <footer class="border-t border-white/10 mt-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-8">
+                    <div class="col-span-2 md:col-span-1">
+                        <h3 class="text-lg font-bold">IndexSpace</h3>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold">Product</h4>
+                        <ul class="mt-4 space-y-2 text-gray-400">
+                            <li><a href="#" class="hover:text-white">Features</a></li>
+                            <li><a href="#" class="hover:text-white">Integrations</a></li>
+                            <li><a href="#" class="hover:text-white">Pricing</a></li>
+                            <li><a href="#" class="hover:text-white">Changelog</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold">Company</h4>
+                        <ul class="mt-4 space-y-2 text-gray-400">
+                            <li><a href="#" class="hover:text-white">About us</a></li>
+                            <li><a href="#" class="hover:text-white">Blog</a></li>
+                            <li><a href="#" class="hover:text-white">Careers</a></li>
+                            <li><a href="#" class="hover:text-white">Contact</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold">Resources</h4>
+                        <ul class="mt-4 space-y-2 text-gray-400">
+                            <li><a href="#" class="hover:text-white">Community</a></li>
+                            <li><a href="#" class="hover:text-white">Documentation</a></li>
+                            <li><a href="#" class="hover:text-white">API</a></li>
+                            <li><a href="#" class="hover:text-white">Status</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold">Legal</h4>
+                        <ul class="mt-4 space-y-2 text-gray-400">
+                            <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
+                            <li><a href="#" class="hover:text-white">Terms of Service</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-12 text-center text-sm text-gray-500">
+                    &copy; 2024 INDEx SpaCE team. All rights reserved.
                 </div>
             </div>
-        </div>
+        </footer>
     </div>
 
-    <!-- 맞춤 Modal -->
-    <div id="custom-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-xl text-center w-11/12 max-w-sm">
-            <p id="modal-message" class="mb-4 text-lg text-gray-700"></p>
-            <button id="modal-close-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-8 rounded-lg">확인</button>
-        </div>
-    </div>
-
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, serverTimestamp, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // --- Firebase 설정 (수정된 부분) ---
-        // 공개 테스트용 Firebase 설정이 직접 포함되어 있습니다.
-        // 이 파일 하나만으로 바로 작동합니다.
-        const firebaseConfig = {
-            apiKey: "AIzaSyB_E5ZJd-G8Xg2fJq5s7w3RkYpD9oFvCjI",
-            authDomain: "gemini-dev-api-project.firebaseapp.com",
-            projectId: "gemini-dev-api-project",
-            storageBucket: "gemini-dev-api-project.appspot.com",
-            messagingSenderId: "399583424640",
-            appId: "1:399583424640:web:d7a8b3f2c1e0a9f6e1b2c3"
-        };
-        const appId = 'public-gomoku-game-korean'; // 경로에 사용할 고정 ID
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // --- 게임 상수 및 변수 ---
-        const BOARD_SIZE = 15;
-        const canvas = document.getElementById('gomoku-board');
-        const ctx = canvas.getContext('2d');
-        let cellSize;
-        let localBoard = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
-        let currentUserId = null;
-        let currentGameId = null;
-        let gameUnsubscribe = null;
-
-        // --- UI 요소 ---
-        const lobbyDiv = document.getElementById('lobby');
-        const gameContainer = document.getElementById('game-container');
-        const newGameBtn = document.getElementById('newGameBtn');
-        const joinGameBtn = document.getElementById('joinGameBtn');
-        const joinGameIdInput = document.getElementById('joinGameIdInput');
-        const gameIdDisplay = document.getElementById('gameIdDisplay');
-        const statusDiv = document.getElementById('status');
-        const player1IdSpan = document.getElementById('player1Id');
-        const player2IdSpan = document.getElementById('player2Id');
-        const leaveGameBtn = document.getElementById('leaveGameBtn');
-        const authStatus = document.getElementById('auth-status');
-        const modal = document.getElementById('custom-modal');
-        const modalMessage = document.getElementById('modal-message');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
-
-        // --- Modal 함수 ---
-        function showModal(message) {
-            modalMessage.textContent = message;
-            modal.classList.remove('hidden');
-        }
-
-        function hideModal() {
-            modal.classList.add('hidden');
-        }
-
-        // --- 캔버스 및 그리기 함수 ---
-        function resizeCanvas() {
-            const container = canvas.parentElement;
-            const size = Math.min(container.clientWidth, window.innerHeight * 0.7, 600);
-            canvas.width = size;
-            canvas.height = size;
-            cellSize = canvas.width / (BOARD_SIZE + 1);
-            drawBoard();
-            drawStones(localBoard);
-        }
-
-        function drawBoard() {
-            ctx.fillStyle = '#e6b883';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = '#5c3d24';
-            ctx.lineWidth = 1;
-
-            for (let i = 0; i < BOARD_SIZE; i++) {
-                ctx.beginPath();
-                ctx.moveTo(cellSize, cellSize * (i + 1));
-                ctx.lineTo(cellSize * BOARD_SIZE, cellSize * (i + 1));
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(cellSize * (i + 1), cellSize);
-                ctx.lineTo(cellSize * (i + 1), cellSize * BOARD_SIZE);
-                ctx.stroke();
-            }
-            
-            const starPoints = [3, 7, 11];
-            ctx.fillStyle = '#5c3d24';
-            starPoints.forEach(x => {
-                starPoints.forEach(y => {
-                    ctx.beginPath();
-                    ctx.arc(cellSize * (x + 1), cellSize * (y + 1), cellSize / 5, 0, 2 * Math.PI);
-                    ctx.fill();
-                });
-            });
-        }
-
-        function drawStone(x, y, player) {
-            if (player === 0) return;
-            const gridX = cellSize * (x + 1);
-            const gridY = cellSize * (y + 1);
-            
-            ctx.beginPath();
-            ctx.arc(gridX, gridY, cellSize / 2.2, 0, 2 * Math.PI);
-            
-            const gradient = ctx.createRadialGradient(gridX - cellSize*0.1, gridY - cellSize*0.1, cellSize*0.1, gridX, gridY, cellSize/2);
-            if (player === 1) { // 흑돌
-                gradient.addColorStop(0, '#666');
-                gradient.addColorStop(1, '#000');
-            } else { // 백돌
-                gradient.addColorStop(0, '#fff');
-                gradient.addColorStop(1, '#ccc');
-            }
-            ctx.fillStyle = gradient;
-            ctx.fill();
-        }
-
-        function drawStones(boardData) {
-            for (let y = 0; y < BOARD_SIZE; y++) {
-                for (let x = 0; x < BOARD_SIZE; x++) {
-                    drawStone(x, y, boardData[y][x]);
-                }
-            }
-        }
-        
-        // --- 게임 로직 ---
-        function checkWin(board, x, y, player) {
-            if (!player) return false;
-            const directions = [ {x:1, y:0}, {x:0, y:1}, {x:1, y:1}, {x:1, y:-1} ];
-            for (const dir of directions) {
-                let count = 1;
-                for (let i = 1; i < 5; i++) {
-                    const nx = x + dir.x * i;
-                    const ny = y + dir.y * i;
-                    if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && board[ny][nx] === player) {
-                        count++;
-                    } else {
-                        break;
+    <script>
+        // Intersection Observer를 사용하여 스크롤 시 요소가 나타나는 애니메이션 구현
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
                     }
-                }
-                for (let i = 1; i < 5; i++) {
-                    const nx = x - dir.x * i;
-                    const ny = y - dir.y * i;
-                    if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && board[ny][nx] === player) {
-                        count++;
-                    } else {
-                        break;
-                    }
-                }
-                if (count >= 5) return true;
-            }
-            return false;
-        }
-
-        // --- Firebase 및 게임 상태 관리 ---
-        async function createAndJoinGame() {
-            const gameRef = doc(collection(db, `games/${appId}/sessions`));
-            currentGameId = gameRef.id;
-            const initialBoard = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
-            const gameData = {
-                players: { [currentUserId]: 1 }, // Player 1 (흑돌)
-                playerIds: [currentUserId, null],
-                board: JSON.stringify(initialBoard),
-                turn: 1,
-                winner: null,
-                lastMove: null,
-                createdAt: serverTimestamp()
-            };
-            await setDoc(gameRef, gameData);
-            listenToGameUpdates(currentGameId);
-        }
-
-        async function joinGame(gameId) {
-            if (!gameId) {
-                showModal("게임 ID를 입력해주세요.");
-                return;
-            }
-            const gameRef = doc(db, `games/${appId}/sessions`, gameId);
-            const gameSnap = await getDoc(gameRef);
-
-            if (!gameSnap.exists()) {
-                showModal("존재하지 않는 게임 ID입니다.");
-                return;
-            }
-
-            const gameData = gameSnap.data();
-            if (Object.keys(gameData.players).length >= 2 && !gameData.players[currentUserId]) {
-                showModal("이미 가득 찬 방입니다.");
-                return;
-            }
-            
-            if (!gameData.players[currentUserId]) {
-                const playerNumber = gameData.playerIds[0] ? 2 : 1;
-                const newPlayerIds = [...gameData.playerIds];
-                newPlayerIds[playerNumber - 1] = currentUserId;
-
-                await updateDoc(gameRef, {
-                    [`players.${currentUserId}`]: playerNumber,
-                    playerIds: newPlayerIds
                 });
-            }
-            
-            currentGameId = gameId;
-            listenToGameUpdates(gameId);
-        }
-
-        function listenToGameUpdates(gameId) {
-            lobbyDiv.classList.add('hidden');
-            gameContainer.classList.remove('hidden');
-            resizeCanvas();
-
-            const gameRef = doc(db, `games/${appId}/sessions`, gameId);
-            if (gameUnsubscribe) gameUnsubscribe(); // 이전 구독 해제
-            
-            gameUnsubscribe = onSnapshot(gameRef, (doc) => {
-                if (!doc.exists()) {
-                    showModal("게임이 종료되었거나 삭제되었습니다.");
-                    leaveGame();
-                    return;
-                }
-                const gameState = doc.data();
-                updateUI(gameState);
+            }, {
+                threshold: 0.1 // 요소가 10% 보일 때 애니메이션 시작
             });
-        }
 
-        function updateUI(gameState) {
-            gameIdDisplay.textContent = currentGameId;
-            
-            const p1Id = gameState.playerIds[0];
-            const p2Id = gameState.playerIds[1];
-            player1IdSpan.textContent = `흑: ${p1Id ? (p1Id === currentUserId ? '나' : p1Id.substring(0,6)) : '대기중...'}`;
-            player2IdSpan.textContent = `백: ${p2Id ? (p2Id === currentUserId ? '나' : p2Id.substring(0,6)) : '대기중...'}`;
-
-            localBoard = JSON.parse(gameState.board);
-            drawBoard();
-            drawStones(localBoard);
-
-            const myPlayerNumber = gameState.players[currentUserId];
-            let statusText = "";
-            let statusClass = "bg-yellow-100 text-yellow-800";
-
-            if (gameState.winner) {
-                if (gameState.winner === myPlayerNumber) {
-                    statusText = "승리했습니다!";
-                    statusClass = "bg-green-100 text-green-800";
-                } else {
-                    statusText = "패배했습니다.";
-                    statusClass = "bg-red-100 text-red-800";
-                }
-            } else if (!p1Id || !p2Id) {
-                statusText = "상대방을 기다리는 중...";
-            } else if (gameState.turn === myPlayerNumber) {
-                statusText = "당신 차례입니다.";
-                statusClass = "bg-blue-100 text-blue-800";
-            } else {
-                statusText = "상대방 차례입니다.";
-            }
-            statusDiv.textContent = statusText;
-            statusDiv.className = `mt-4 text-lg font-bold text-center p-3 rounded-md ${statusClass}`;
-        }
-
-        async function handleBoardClick(event) {
-            if (!currentGameId) return;
-            const gameRef = doc(db, `games/${appId}/sessions`, currentGameId);
-            const gameSnap = await getDoc(gameRef);
-            if (!gameSnap.exists()) return;
-            const gameState = gameSnap.data();
-
-            const myPlayerNumber = gameState.players[currentUserId];
-            if (gameState.winner || gameState.turn !== myPlayerNumber || Object.keys(gameState.players).length < 2) {
-                return;
-            }
-
-            const rect = canvas.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
-
-            const gridX = Math.round(x / cellSize) - 1;
-            const gridY = Math.round(y / cellSize) - 1;
-
-            if (gridX < 0 || gridX >= BOARD_SIZE || gridY < 0 || gridY >= BOARD_SIZE) return;
-            
-            const currentBoard = JSON.parse(gameState.board);
-            if (currentBoard[gridY][gridX] !== 0) return;
-
-            currentBoard[gridY][gridX] = myPlayerNumber;
-            const isWin = checkWin(currentBoard, gridX, gridY, myPlayerNumber);
-
-            await updateDoc(gameRef, {
-                board: JSON.stringify(currentBoard),
-                turn: gameState.turn === 1 ? 2 : 1,
-                winner: isWin ? myPlayerNumber : null,
-                lastMove: {x: gridX, y: gridY}
-            });
-        }
-        
-        function leaveGame() {
-            if (gameUnsubscribe) {
-                gameUnsubscribe();
-                gameUnsubscribe = null;
-            }
-            currentGameId = null;
-            lobbyDiv.classList.remove('hidden');
-            gameContainer.classList.add('hidden');
-        }
-
-        // --- 초기화 및 이벤트 리스너 ---
-        window.addEventListener('resize', resizeCanvas);
-
-        newGameBtn.addEventListener('click', createAndJoinGame);
-        joinGameBtn.addEventListener('click', () => joinGame(joinGameIdInput.value.trim()));
-        leaveGameBtn.addEventListener('click', leaveGame);
-        canvas.addEventListener('click', handleBoardClick);
-        modalCloseBtn.addEventListener('click', hideModal);
-        
-        gameIdDisplay.addEventListener('click', () => {
-            if(!currentGameId) return;
-            navigator.clipboard.writeText(currentGameId).then(() => {
-                showModal('게임 ID가 복사되었습니다!');
-            }).catch(err => {
-                console.error('클립보드 복사 실패:', err);
-                showModal('클립보드 복사에 실패했습니다.');
+            const elementsToReveal = document.querySelectorAll('.reveal');
+            elementsToReveal.forEach(el => {
+                observer.observe(el);
             });
         });
-
-        // Firebase 익명 인증
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUserId = user.uid;
-                authStatus.textContent = "온라인";
-                authStatus.className = "mt-4 text-sm text-green-600";
-                newGameBtn.disabled = false;
-                joinGameBtn.disabled = false;
-            } else {
-                authStatus.textContent = "오프라인";
-                authStatus.className = "mt-4 text-sm text-red-600";
-                newGameBtn.disabled = true;
-                joinGameBtn.disabled = true;
-            }
-        });
-
-        (async () => {
-            try {
-                await signInAnonymously(auth);
-            } catch (error) {
-                console.error("Authentication failed:", error);
-                authStatus.textContent = "인증 실패. 페이지를 새로고침하세요.";
-            }
-        })();
     </script>
+
 </body>
 </html>
