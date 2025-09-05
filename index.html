@@ -1,320 +1,1006 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndexSpace — BetaTest </title>
+    <title>도토리 키우기 2</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
     <style>
-        /* Inter 폰트와 다크 테마 기본 설정 */
+        :root {
+            --brand-brown: #5D4037;
+            --brand-yellow: #FFB300;
+        }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #000000;
-            color: #e3e3e3;
-            overflow-x: hidden;
-        }
-
-        /* 그라데이션 글로우 효과 */
-        .glow-effect {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: -1;
-        }
-
-        .glow-effect::before,
-        .glow-effect::after {
-            content: '';
-            position: absolute;
-            filter: blur(120px);
-            will-change: transform;
-        }
-
-        .glow-effect::before {
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(168, 85, 247, 0.3), transparent 70%);
-            animation: drift1 20s infinite alternate ease-in-out;
-        }
-
-        .glow-effect::after {
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent 70%);
-            animation: drift2 25s infinite alternate ease-in-out;
-            top: 100px;
-            left: -200px;
-        }
-
-        @keyframes drift1 {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(150px, -100px) rotate(30deg); }
-        }
-
-        @keyframes drift2 {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(-100px, 120px) rotate(-40deg); }
-        }
-
-        /* 스크롤 시 나타나는 애니메이션 */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
-
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* 헤더 그라데이션 보더 */
-        .header-border {
-            background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,0.1), rgba(255,255,255,0));
-            height: 1px;
-        }
-
-        /* 버튼 호버 효과 */
-        .hero-button {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .hero-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
-        }
-        
-        /* 기능 카드 스타일 */
-        .feature-card {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.02);
-            transition: background 0.3s ease, border-color 0.3s ease;
-        }
-        .feature-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        /* 이미지 컨테이너 스타일 */
-        .feature-image-container {
-            position: relative;
-            border-radius: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background-color: #0d0d0d;
-            padding: 0.5rem;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            font-family: 'Jua', sans-serif;
+            background: linear-gradient(135deg, #a8e063, #56ab2f);
+            color: #3E2723;
+            user-select: none;
             overflow: hidden;
+        }
+        .game-container {
+            background-image: url('https://www.transparenttextures.com/patterns/forest-breeze.png');
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border: 10px solid var(--brand-brown);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5), inset 0 0 25px rgba(0,0,0,0.3);
+        }
+        .modal {
+            background-color: rgba(255, 248, 225, 0.98);
+            backdrop-filter: blur(12px);
+            border: 8px solid #795548;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            animation: fadeIn 0.3s ease-out;
+        }
+        .btn {
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border-bottom-width: 5px;
+            font-weight: 600;
+        }
+        .btn:active {
+            transform: translateY(3px);
+            border-bottom-width: 2px;
+        }
+        .btn-new {
+            animation: new-feature-pulse 2s infinite;
+        }
+        .pet {
+            cursor: pointer;
+            transition: transform 0.15s ease;
+            filter: drop-shadow(6px 6px 6px rgba(0,0,0,0.4));
+        }
+        .pet:hover { transform: scale(1.1) rotate(5deg); }
+        .pet:active { transform: scale(1.05); }
+
+        .floating-text {
+            position: absolute;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--brand-yellow);
+            -webkit-text-stroke: 1.5px black;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+        }
+        @keyframes floatUp {
+            from { transform: translateY(0) scale(1); opacity: 1; }
+            to { transform: translateY(-120px) scale(1.5); opacity: 0; }
+        }
+        
+        .shop-alert { animation: pulse-red 1.5s infinite; }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.8); }
+            70% { box-shadow: 0 0 0 12px rgba(255, 82, 82, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }
+        }
+        @keyframes new-feature-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        
+        /* Gacha Animation */
+        .gacha-box { animation: shake 0.5s infinite; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-3deg); } 75% { transform: translateX(5px) rotate(3deg); } }
+        .gacha-result { animation: reveal 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes reveal { from { transform: scale(0) rotate(-180deg); opacity: 0; } to { transform: scale(1) rotate(0deg); opacity: 1; } }
+
+        /* Minigame Canvas */
+        #minigameCanvas {
+            background-color: #a2d2ff;
+            cursor: none;
+            border: 4px solid var(--brand-brown);
+            border-radius: 1rem;
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="bg-green-200 flex items-center justify-center min-h-screen p-2 md:p-4">
 
-    <!-- 전체 래퍼 -->
-    <div class="relative min-h-screen">
+    <!-- Game Container -->
+    <div id="gameContainer" class="game-container w-full max-w-5xl h-[95vh] max-h-[900px] rounded-3xl p-4 flex flex-col relative overflow-hidden">
         
-        <!-- 배경 글로우 효과 -->
-        <div class="glow-effect"></div>
-
-        <!-- 헤더 -->
-        <header class="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-md">
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between h-16">
-                    <div class="flex items-center space-x-8">
-                        <a href="/" class="text-xl font-bold tracking-tighter">IndexSpace</a>
-                        <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-gray-300">
-                            <a href="#features" class="hover:text-white transition-colors">Features</a>
-                            <a href="#" class="hover:text-white transition-colors">AI Assistant</a>
-                            <a href="#" class="hover:text-white transition-colors">Collaboration</a>
-                            <a href="#" class="hover:text-white transition-colors">Pricing</a>
-                        </nav>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <a href="#" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Log in</a>
-                        <!-- --- 코드 수정점 --- -->
-                        <a href="/register.html" class="px-4 py-1.5 text-sm font-medium text-white bg-white/10 rounded-full hover:bg-white/20 transition-colors">Sign up</a>
-                    </div>
-                </div>
+        <!-- Top UI -->
+        <div class="flex justify-between items-center bg-yellow-100/80 p-3 rounded-xl border-4 border-yellow-700 shadow-lg mb-4">
+            <h1 class="text-2xl md:text-4xl font-bold text-orange-800">🐿️ 도토리 키우기 2 🐿️</h1>
+            <div class="text-xl md:text-3xl font-bold bg-stone-800 text-white px-4 py-2 rounded-full shadow-inner shadow-black/50">
+                💰 <span id="moneyDisplay">0</span> 원
             </div>
-            <div class="header-border"></div>
-        </header>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="gameScreen" class="flex-grow bg-green-200/60 rounded-2xl border-4 border-green-700 relative flex items-center justify-center flex-wrap gap-8 p-4">
+            <!-- Pets will be spawned here -->
+        </div>
 
-        <!-- 메인 컨텐츠 -->
-        <main class="pt-32 pb-24">
-            <!-- 히어로 섹션 -->
-            <section class="text-center container mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="reveal visible">
-                    <a href="#" class="inline-flex items-center space-x-2 bg-white/10 px-3 py-1 rounded-full text-sm hover:bg-white/20 transition-colors mb-4">
-                        <span>Introducing the IndexSpace Beta</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-tight">
-                        <span class="bg-clip-text text-transparent bg-gradient-to-br from-white to-gray-400">IndexSpace. The new standard</span><br>
-                        <span class="bg-clip-text text-transparent bg-gradient-to-br from-white to-gray-400">for modern development.</span>
-                    </h1>
-                    <p class="mt-6 max-w-2xl mx-auto text-lg text-gray-400">
-                        Empower your team to build better products, faster. From planning and tracking to delivery, IndexSpace is the ultimate tool for high-performance teams.
-                    </p>
-                    <div class="mt-8 flex justify-center gap-4">
-                        <!-- --- 코드 수정점 --- -->
-                        <a href="/register.html" class="hero-button inline-block px-8 py-3 font-semibold text-white bg-purple-600 rounded-full shadow-lg shadow-purple-600/30 hover:bg-purple-700">
-                            Get Started
-                        </a>
-                    </div>
-                </div>
-
-                <div class="mt-20 reveal">
-                    <p class="text-sm text-gray-500 uppercase tracking-widest">A project by</p>
-                    <p class="mt-4 text-2xl font-medium tracking-widest text-gray-400">INDEx SpaCE team</p>
-                </div>
-            </section>
-
-            <!-- 기능 소개 섹션 (확장) -->
-            <section id="features" class="mt-32 sm:mt-48 container mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
-                
-                <!-- 기능 1: AI 코드 어시스턴트 -->
-                <div class="grid md:grid-cols-2 gap-12 items-center reveal">
-                    <div class="md:pr-8">
-                        <h2 class="text-3xl sm:text-4xl font-bold tracking-tighter">Your AI Partner in Code</h2>
-                        <p class="mt-4 text-lg text-gray-400">
-                            Meet your new AI co-pilot. Generate boilerplate, write complex functions, find bugs, and optimize performance with natural language. It's like pair programming with a genius.
-                        </p>
-                        <ul class="mt-6 space-y-3 text-gray-300">
-                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Context-aware code completion and generation.</span></li>
-                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Automated debugging and vulnerability scanning.</span></li>
-                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Convert legacy code to modern frameworks.</span></li>
-                        </ul>
-                    </div>
-                    <div class="feature-image-container">
-                        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="AI assisting with code on a screen" class="rounded-lg w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/1200x800/0d0d0d/171717?text=AI+Code+Assistant';">
-                    </div>
-                </div>
-
-                <!-- 기능 2: 실시간 협업 -->
-                <div class="grid md:grid-cols-2 gap-12 items-center reveal">
-                     <div class="feature-image-container md:order-last">
-                        <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Team collaborating in real-time" class="rounded-lg w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/1200x800/0d0d0d/171717?text=Real-time+Collaboration';">
-                    </div>
-                    <div class="md:pl-8">
-                        <h2 class="text-3xl sm:text-4xl font-bold tracking-tighter">Create in Perfect Sync</h2>
-                        <p class="mt-4 text-lg text-gray-400">
-                           No more merge conflicts or stale branches. IndexSpace provides a real-time collaborative environment where your team can design, code, and review together in one unified space.
-                        </p>
-                        <ul class="mt-6 space-y-3 text-gray-300">
-                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Multiplayer code editor and design canvas.</span></li>
-                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>In-line comments, threads, and video chat.</span></li>
-                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Shared project boards and documentation.</span></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- 기능 3: 자동화된 워크플로우 -->
-                 <div class="grid md:grid-cols-2 gap-12 items-center reveal">
-                    <div class="md:pr-8">
-                        <h2 class="text-3xl sm:text-4xl font-bold tracking-tighter">From Idea to Deployment, Automated</h2>
-                        <p class="mt-4 text-lg text-gray-400">
-                            Build, test, and deploy with unparalleled speed. Our integrated CI/CD pipelines automate the entire workflow, so you can focus on building features, not managing infrastructure.
-                        </p>
-                         <ul class="mt-6 space-y-3 text-gray-300">
-                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Git-powered workflows with zero configuration.</span></li>
-                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Automatic preview deployments for every commit.</span></li>
-                            <li class="flex items-start"><svg class="w-5 h-5 mr-3 mt-1 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Scalable infrastructure that grows with you.</span></li>
-                        </ul>
-                    </div>
-                    <div class="feature-image-container">
-                        <!-- 수정된 이미지 링크 -->
-                        <img src="https://images.unsplash.com/photo-1618477388954-7852f32655ec?q=80&w=1964&auto=format&fit=crop" alt="Automated workflow diagram" class="rounded-lg w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/1200x800/0d0d0d/171717?text=Automated+Workflows';">
-                    </div>
-                </div>
-            </section>
-
-            <!-- 최종 CTA 섹션 -->
-            <section class="mt-32 sm:mt-48 text-center container mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="reveal">
-                    <h2 class="text-4xl sm:text-5xl font-bold tracking-tighter">Experience the Future of Development</h2>
-                    <p class="mt-4 max-w-xl mx-auto text-lg text-gray-400">
-                        Join the beta and be the first to build with IndexSpace.
-                    </p>
-                    <div class="mt-8">
-                        <a href="#" class="hero-button inline-block px-8 py-3 font-semibold text-white bg-purple-600 rounded-full shadow-lg shadow-purple-600/30 hover:bg-purple-700">
-                            Request Access
-                        </a>
-                    </div>
-                </div>
-            </section>
-
-        </main>
-
-        <!-- 푸터 -->
-        <footer class="border-t border-white/10 mt-24">
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-8">
-                    <div class="col-span-2 md:col-span-1">
-                        <h3 class="text-lg font-bold">IndexSpace</h3>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold">Product</h4>
-                        <ul class="mt-4 space-y-2 text-gray-400">
-                            <li><a href="#" class="hover:text-white">Features</a></li>
-                            <li><a href="#" class="hover:text-white">Integrations</a></li>
-                            <li><a href="#" class="hover:text-white">Pricing</a></li>
-                            <li><a href="#" class="hover:text-white">Changelog</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold">Company</h4>
-                        <ul class="mt-4 space-y-2 text-gray-400">
-                            <li><a href="#" class="hover:text-white">About us</a></li>
-                            <li><a href="#" class="hover:text-white">Blog</a></li>
-                            <li><a href="#" class="hover:text-white">Careers</a></li>
-                            <li><a href="#" class="hover:text-white">Contact</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold">Resources</h4>
-                        <ul class="mt-4 space-y-2 text-gray-400">
-                            <li><a href="#" class="hover:text-white">Community</a></li>
-                            <li><a href="#" class="hover:text-white">Documentation</a></li>
-                            <li><a href="#" class="hover:text-white">API</a></li>
-                            <li><a href="#" class="hover:text-white">Status</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold">Legal</h4>
-                        <ul class="mt-4 space-y-2 text-gray-400">
-                            <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
-                            <li><a href="#" class="hover:text-white">Terms of Service</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="mt-12 text-center text-sm text-gray-500">
-                    &copy; 2024 INDEx SpaCE team. All rights reserved.
-                </div>
-            </div>
-        </footer>
+        <!-- Buffs -->
+        <div id="buffContainer" class="absolute top-24 left-1/2 -translate-x-1/2 flex flex-col gap-2 items-center z-10"></div>
+        
+        <!-- Bottom UI Controls -->
+        <div class="grid grid-cols-3 gap-2 mt-4">
+            <button onclick="showModal('adoptionModal')" class="btn bg-orange-500 text-white p-3 rounded-lg border-orange-700 shadow-md">펫 상점</button>
+            <button id="gachaBtn" onclick="showModal('gachaModal')" class="btn bg-teal-500 text-white p-3 rounded-lg border-teal-700 shadow-md">펫 뽑기</button>
+            <button onclick="showMinigameSelector()" class="btn bg-cyan-500 text-white p-3 rounded-lg border-cyan-700 shadow-md">미니게임</button>
+            <button id="shopBtn" onclick="showModal('shopModal')" class="btn bg-blue-500 text-white p-3 rounded-lg border-blue-700 shadow-md disabled:opacity-50" disabled>상점</button>
+            <button onclick="showModal('inventoryModal')" class="btn bg-purple-500 text-white p-3 rounded-lg border-purple-700 shadow-md">내 펫</button>
+            <button onclick="showModal('enhanceModal')" class="btn bg-red-500 text-white p-3 rounded-lg border-red-700 shadow-md">강화</button>
+            <button onclick="showModal('evolveModal')" class="btn bg-indigo-500 text-white p-3 rounded-lg border-indigo-700 shadow-md">진화</button>
+            <button onclick="showModal('achievementModal')" class="btn bg-amber-500 text-white p-3 rounded-lg border-amber-700 shadow-md">업적</button>
+            <button id="rebirthBtn" onclick="showModal('rebirthModal')" class="btn bg-gray-700 text-yellow-300 p-3 rounded-lg border-black shadow-md hidden">환생</button>
+        </div>
     </div>
+    
+    <!-- Modals -->
+    <div id="modalContainer" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden p-4">
+        
+        <!-- Dynamic Modal Content Area -->
+        <div id="modalContent" class="w-full max-w-lg">
+            <!-- Modals will be rendered here by JS -->
+        </div>
+
+        <!-- Minigame Modal -->
+        <div id="minigameContainer" class="modal w-full max-w-3xl p-6 rounded-2xl hidden flex-col items-center">
+            <h2 id="minigameTitle" class="text-3xl font-bold mb-4">미니게임</h2>
+            <div id="minigameSelector" class="w-full text-center">
+                <p class="mb-4">플레이할 미니게임을 선택하세요!</p>
+                <button onclick="startMinigame('rain')" class="btn bg-blue-500 text-white p-4 rounded-lg border-blue-700 w-full mb-4">도토리 비 피하기</button>
+                <button onclick="startMinigame('whack')" class="btn bg-green-500 text-white p-4 rounded-lg border-green-700 w-full">두더지토리 잡기</button>
+                 <button onclick="closeMinigame()" class="btn mt-6 w-full bg-gray-400 p-2 rounded-lg border-gray-600">닫기</button>
+            </div>
+            <div id="minigameView" class="hidden w-full flex flex-col items-center">
+                <canvas id="minigameCanvas" width="600" height="400"></canvas>
+                <div id="minigameInfo" class="mt-2 text-xl font-bold"></div>
+                <button onclick="closeMinigame()" class="btn mt-4 w-1/2 bg-red-500 text-white p-2 rounded-lg border-red-700">포기하기</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Message -->
+    <div id="toast" class="fixed bottom-10 right-10 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-xl text-lg opacity-0 transform translate-y-5 transition-all duration-500 z-[100]"></div>
 
     <script>
-        // Intersection Observer를 사용하여 스크롤 시 요소가 나타나는 애니메이션 구현
-        document.addEventListener('DOMContentLoaded', () => {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, {
-                threshold: 0.1 // 요소가 10% 보일 때 애니메이션 시작
-            });
+    // --- DATA CONSTANTS ---
+    const PET_DATA = {
+        acorn: { name: '도토리', baseClick: 1, cost: 100, img: '🌰', typeName: '도토리', rarity: '일반' },
+        jitori: { name: '지토리', baseClick: 3, cost: 1000, img: '🥜', typeName: '지토리', rarity: '일반' },
+        rocktori: { name: '돌토리', baseClick: 10, cost: 25000, img: '🗿', typeName: '돌토리', rarity: '희귀' },
+        goldtori: { name: '황금토리', baseClick: 50, cost: 500000, img: '✨', typeName: '황금토리', rarity: '영웅' },
+        crystaltori: { name: '크리스탈토리', baseClick: 250, cost: 10000000, img: '💎', typeName: '크리스탈토리', rarity: '전설' },
+        darktori: { name: '다크토리', baseClick: 1500, cost: 250000000, img: '😈', typeName: '다크토리', rarity: '신화' },
+        superJitori: { name: '[시크릿]슈퍼지토리', baseClick: 500000, cost: 100000, img: '⭐', typeName: '슈퍼지토리', rarity: '이벤트' },
+    };
 
-            const elementsToReveal = document.querySelectorAll('.reveal');
-            elementsToReveal.forEach(el => {
-                observer.observe(el);
-            });
+    const ENHANCE_DATA = [
+        { success: 100, bonus: 0.15 }, { success: 95, bonus: 0.35 }, { success: 90, bonus: 0.50 },
+        { success: 75, bonus: 1.20 }, { success: 65, bonus: 2.84 }, { success: 50, bonus: 7.71 },
+        { success: 49, bonus: 12.04 }, { success: 30, bonus: 39.40 }, { success: 29, bonus: 103.93 },
+        { success: 22, bonus: 1038.58 }
+    ];
+
+    const EVOLVE_DATA = [
+        { name: '발전된', bonus: 1.00, success: 90 },
+        { name: '진화한', bonus: 2.00, success: 75 },
+        { name: '최고의', bonus: 5.00, success: 50 },
+        { name: '전설의', bonus: 100.00, success: 20 },
+        { name: '악마의', bonus: 350.00, success: 10 },
+        { name: '신의', bonus: 1000.00, success: 2 }
+    ];
+
+    const GACHA_RATES = [
+        { type: 'acorn', weight: 40 },
+        { type: 'jitori', weight: 30 },
+        { type: 'rocktori', weight: 20 },
+        { type: 'goldtori', weight: 7 },
+        { type: 'crystaltori', weight: 2.5 },
+        { type: 'darktori', weight: 0.5 },
+    ];
+    
+    let ACHIEVEMENTS = {};
+
+    // --- GAME STATE ---
+    let gameState = {};
+    const initialGameState = {
+        money: 0,
+        pets: [],
+        equippedPetIds: [],
+        petLimit: 3,
+        upgrades: { autoClickLevel: 0 },
+        couponUsed: false,
+        shopUnlocked: false, shopAlert: false,
+        buffs: {},
+        lastSaveTime: Date.now(),
+        achievements: {},
+        rebirths: 0,
+        gachaTickets: 0
+    };
+
+    // --- DOM ELEMENTS ---
+    const moneyDisplay = document.getElementById('moneyDisplay');
+    const gameScreen = document.getElementById('gameScreen');
+    const modalContainer = document.getElementById('modalContainer');
+    const modalContent = document.getElementById('modalContent');
+    const minigameContainer = document.getElementById('minigameContainer');
+    
+    let nextPetId = 0;
+    let enhanceSelection = [];
+    let evolveSelection = [];
+
+    // --- GAME INITIALIZATION ---
+    function init() {
+        loadGame();
+        initAchievements();
+        if (gameState.pets.length === 0) {
+            showModal('startModal');
+        } else {
+            handleOfflineProgress();
+        }
+        setInterval(gameLoop, 1000);
+        renderAll();
+    }
+
+    function startGame() {
+        addPet('acorn');
+        closeModal();
+        renderAll();
+    }
+    
+    // --- MAIN GAME LOOP ---
+    function gameLoop() {
+        // Auto-clicker
+        if (gameState.upgrades.autoClickLevel > 0) {
+            const clicksPerSecond = gameState.upgrades.autoClickLevel;
+            const moneyPerSecond = calculateTotalClickValue() * clicksPerSecond * 0.1; // 10% effectiveness
+            changeMoney(moneyPerSecond);
+        }
+        
+        // Buff timers, etc. (reduced for brevity)
+        gameState.lastSaveTime = Date.now();
+        saveGame();
+    }
+
+    // --- CORE GAMEPLAY ---
+    function handlePetClick(event) {
+        const totalClickValue = calculateTotalClickValue();
+        changeMoney(totalClickValue);
+        
+        const floatingText = document.createElement('div');
+        floatingText.className = 'floating-text';
+        floatingText.textContent = `+${formatNumber(totalClickValue)}`;
+        const rect = gameScreen.getBoundingClientRect();
+        floatingText.style.left = `${event.clientX - rect.left}px`;
+        floatingText.style.top = `${event.clientY - rect.top}px`;
+        gameScreen.appendChild(floatingText);
+        setTimeout(() => floatingText.remove(), 1000);
+
+        checkAchievement('clicks', 1);
+    }
+    
+    function calculateTotalClickValue() {
+        let total = 0;
+        let equippedPets = gameState.equippedPetIds.map(id => findPetById(id)).filter(p => p);
+        if (equippedPets.length === 0 && gameState.pets.length > 0) {
+            equippedPets = [gameState.pets[0]];
+        }
+        
+        equippedPets.forEach(pet => {
+            const base = PET_DATA[pet.type].baseClick;
+            let multiplier = 1;
+            if (pet.enhancement > 0) multiplier += ENHANCE_DATA[pet.enhancement - 1].bonus;
+            if (pet.evolution > 0) multiplier += EVOLVE_DATA[pet.evolution - 1].bonus;
+            total += Math.ceil(base * multiplier);
         });
-    </script>
 
+        total *= (1 + (gameState.rebirths * 0.5)); // Rebirth bonus: +50% per rebirth
+
+        return total;
+    }
+
+    function buyPet(type) {
+        const petData = PET_DATA[type];
+        if (gameState.money >= petData.cost) {
+            changeMoney(-petData.cost);
+            addPet(type);
+            showToast(`${petData.name}을(를) 입양했습니다!`, 'success');
+            renderAll();
+        } else {
+            showToast('돈이 부족합니다!', 'error');
+        }
+    }
+
+    function changeMoney(amount) {
+        gameState.money += amount;
+        if (amount > 0) {
+            checkAchievement('earnMoney', Math.floor(amount));
+        }
+        renderMoney();
+        checkRebirthStatus();
+    }
+    
+    function addPet(type, enhancement = 0, evolution = 0) {
+        const newPet = { id: nextPetId++, type, enhancement, evolution };
+        gameState.pets.push(newPet);
+        if (gameState.equippedPetIds.length < gameState.petLimit) {
+            gameState.equippedPetIds.push(newPet.id);
+        }
+        checkAchievement('collectPets', 1);
+    }
+
+    function removePetById(id) {
+        gameState.pets = gameState.pets.filter(p => p.id !== id);
+        gameState.equippedPetIds = gameState.equippedPetIds.filter(eqId => eqId !== id);
+    }
+
+    // --- NEW SYSTEMS ---
+
+    function handleOfflineProgress() {
+        const timeOffline = Date.now() - gameState.lastSaveTime;
+        const maxOfflineTime = 2 * 60 * 60 * 1000; // 2 hours
+        const effectiveTime = Math.min(timeOffline, maxOfflineTime);
+        
+        if (effectiveTime > 60000) { // More than 1 minute
+            const passiveIncomeRate = (calculateTotalClickValue() * 0.1); // 10% of click value per second
+            const earned = Math.floor(passiveIncomeRate * (effectiveTime / 1000));
+            
+            showModal('offlineProgressModal', { time: formatTime(effectiveTime), amount: formatNumber(earned) });
+            changeMoney(earned);
+        }
+    }
+
+    function initAchievements() {
+        const baseAchievements = {
+            clicks: { title: "성실한 클릭커", tiers: [100, 1000, 10000, 100000], rewards: [10, 100, 500, 2500], progress: 0, claimedTier: -1 },
+            earnMoney: { title: "부자 도토리", tiers: [10000, 100000, 1000000, 10000000], rewards: [50, 250, 1000, 5000], progress: 0, claimedTier: -1 },
+            collectPets: { title: "펫 수집가", tiers: [5, 10, 20, 50], rewards: [100, 500, 2000, 10000], progress: 0, claimedTier: -1 },
+        };
+        ACHIEVEMENTS = baseAchievements;
+        for (const key in baseAchievements) {
+            if (!gameState.achievements[key]) {
+                gameState.achievements[key] = JSON.parse(JSON.stringify(baseAchievements[key]));
+            } else {
+                gameState.achievements[key].title = baseAchievements[key].title;
+                gameState.achievements[key].tiers = baseAchievements[key].tiers;
+                gameState.achievements[key].rewards = baseAchievements[key].rewards;
+            }
+        }
+    }
+
+    function checkAchievement(key, amount) {
+        const achievement = gameState.achievements[key];
+        if (!achievement || achievement.claimedTier >= achievement.tiers.length - 1) return;
+        
+        if (key === 'collectPets') {
+            achievement.progress = gameState.pets.length;
+        } else {
+            achievement.progress += amount;
+        }
+        
+        const nextTierIndex = achievement.claimedTier + 1;
+        if (nextTierIndex < achievement.tiers.length && achievement.progress >= achievement.tiers[nextTierIndex]) {
+            showToast(`업적 달성: ${achievement.title}!`, 'info');
+        }
+    }
+    
+    function claimAchievement(key) {
+        const achievement = gameState.achievements[key];
+        const nextTierIndex = achievement.claimedTier + 1;
+        if (nextTierIndex < achievement.tiers.length && achievement.progress >= achievement.tiers[nextTierIndex]) {
+            const reward = achievement.rewards[nextTierIndex];
+            changeMoney(reward);
+            achievement.claimedTier = nextTierIndex;
+            showToast(`업적 보상으로 ${formatNumber(reward)}원을 받았습니다!`, 'success');
+            showModal('achievementModal');
+        }
+    }
+
+    function doGacha() {
+        if (gameState.money < 50000) {
+            showToast('펫 뽑기에는 50,000원이 필요합니다.', 'error');
+            return;
+        }
+        changeMoney(-50000);
+        
+        const gachaBox = document.getElementById('gachaResultContainer');
+        gachaBox.innerHTML = `<div class="gacha-box text-8xl">🎁</div>`;
+        
+        setTimeout(() => {
+            const totalWeight = GACHA_RATES.reduce((sum, pet) => sum + pet.weight, 0);
+            let random = Math.random() * totalWeight;
+            let resultPetType = '';
+            for (const pet of GACHA_RATES) {
+                if (random < pet.weight) {
+                    resultPetType = pet.type;
+                    break;
+                }
+                random -= pet.weight;
+            }
+            
+            addPet(resultPetType);
+            renderAll();
+            
+            const petData = PET_DATA[resultPetType];
+            gachaBox.innerHTML = `
+                <div class="gacha-result text-center">
+                    <div class="text-7xl">${petData.img}</div>
+                    <div class="text-2xl font-bold mt-2">${petData.name}</div>
+                    <div class="text-lg px-3 py-1 rounded-full mt-1 bg-yellow-200">${petData.rarity}</div>
+                </div>
+            `;
+        }, 1500);
+    }
+    
+    function checkRebirthStatus() {
+        const rebirthCost = 1e12; // 1조
+        const rebirthBtn = document.getElementById('rebirthBtn');
+        if (gameState.money >= rebirthCost) {
+            rebirthBtn.classList.remove('hidden');
+        } else {
+            rebirthBtn.classList.add('hidden');
+        }
+    }
+
+    function doRebirth() {
+        const rebirthCost = 1e12;
+        if (gameState.money < rebirthCost) {
+            showToast('환생하기에 돈이 부족합니다.', 'error');
+            return;
+        }
+        const rebirths = gameState.rebirths + 1;
+        const achievements = gameState.achievements; 
+        
+        gameState = JSON.parse(JSON.stringify(initialGameState)); 
+        gameState.rebirths = rebirths;
+        gameState.achievements = achievements;
+        
+        addPet('acorn'); 
+        closeModal();
+        showToast(`${rebirths}번째 환생! 모든 클릭 수입이 영구적으로 50% 증가합니다!`, 'success');
+        renderAll();
+    }
+
+    // --- ENHANCE & EVOLVE LOGIC ---
+    function selectForEnhance(petId) {
+        const index = enhanceSelection.indexOf(petId);
+        if (index > -1) {
+            enhanceSelection.splice(index, 1);
+        } else {
+            if (enhanceSelection.length < 2) {
+                const pet = findPetById(petId);
+                if (enhanceSelection.length === 1) {
+                    const firstPet = findPetById(enhanceSelection[0]);
+                    if (firstPet.type === pet.type && firstPet.enhancement === pet.enhancement && firstPet.evolution === pet.evolution) {
+                        enhanceSelection.push(petId);
+                    } else {
+                        showToast('동일한 종류, 강화, 진화 단계의 펫만 선택 가능합니다.', 'error');
+                    }
+                } else {
+                    enhanceSelection.push(petId);
+                }
+            }
+        }
+        showModal('enhanceModal');
+    }
+
+    function doEnhance() {
+        if (enhanceSelection.length !== 2) return;
+        const pet1 = findPetById(enhanceSelection[0]);
+        const pet2 = findPetById(enhanceSelection[1]);
+        if (!pet1 || !pet2) { enhanceSelection = []; showModal('enhanceModal'); return; }
+
+        const targetEnhancement = pet1.enhancement;
+        if (targetEnhancement >= 10) {
+            showToast('최대 강화 레벨입니다.', 'error');
+            return;
+        }
+
+        const successRate = ENHANCE_DATA[targetEnhancement].success;
+        const rand = Math.random() * 100;
+
+        if (rand < successRate) {
+            pet1.enhancement++;
+            showToast(`강화 성공! +${pet1.enhancement} ${PET_DATA[pet1.type].name}이(가) 되었습니다!`, 'success');
+        } else {
+            pet1.enhancement = 0;
+            showToast('강화 실패... 0강으로 초기화됩니다.', 'error');
+        }
+
+        removePetById(pet2.id);
+        enhanceSelection = [];
+        closeModal();
+        renderAll();
+    }
+
+    function selectForEvolve(petId) {
+        const index = evolveSelection.indexOf(petId);
+        if (index > -1) {
+            evolveSelection.splice(index, 1);
+        } else {
+            if (evolveSelection.length < 3) {
+                const pet = findPetById(petId);
+                if (evolveSelection.length > 0) {
+                    const firstPet = findPetById(evolveSelection[0]);
+                    if (firstPet.type === pet.type && firstPet.enhancement === pet.enhancement && firstPet.evolution === pet.evolution) {
+                        evolveSelection.push(petId);
+                    } else {
+                        showToast('동일한 종류, 강화, 진화 단계의 펫만 선택 가능합니다.', 'error');
+                    }
+                } else {
+                    evolveSelection.push(petId);
+                }
+            }
+        }
+        showModal('evolveModal');
+    }
+
+    function doEvolve() {
+        if (evolveSelection.length !== 3) return;
+        const pet1 = findPetById(evolveSelection[0]);
+        if (!pet1) { evolveSelection = []; showModal('evolveModal'); return; }
+
+        const targetEvolution = pet1.evolution;
+        if (targetEvolution >= EVOLVE_DATA.length) {
+            showToast('최대 진화 단계입니다.', 'error');
+            return;
+        }
+
+        const successRate = EVOLVE_DATA[targetEvolution].success;
+        const rand = Math.random() * 100;
+
+        if (rand < successRate) {
+            pet1.evolution++;
+            showToast(`진화 성공! '${getPetFullName(pet1)}'(으)로 진화했습니다!`, 'success');
+        } else {
+            showToast('진화에 실패했습니다...', 'error');
+        }
+
+        removePetById(evolveSelection[1]);
+        removePetById(evolveSelection[2]);
+        evolveSelection = [];
+        closeModal();
+        renderAll();
+    }
+
+
+    // --- RENDERING ---
+    function renderAll() {
+        renderMoney();
+        renderEquippedPets();
+    }
+    
+    function renderMoney() {
+        moneyDisplay.textContent = formatNumber(gameState.money);
+    }
+    
+    function renderEquippedPets() {
+        gameScreen.innerHTML = '';
+        let equippedPets = gameState.equippedPetIds.map(id => findPetById(id)).filter(p => p);
+        if (equippedPets.length === 0 && gameState.pets.length > 0) {
+            equippedPets = [gameState.pets[0]];
+        }
+        
+        if (equippedPets.length > 0) {
+             equippedPets.forEach(pet => {
+                gameScreen.appendChild(createPetElement(pet, false));
+            });
+            gameScreen.onclick = handlePetClick;
+        } else {
+            gameScreen.innerHTML = `<div class="text-2xl text-center text-gray-600">펫 상점에서 첫 도토리를 입양하세요!</div>`;
+            gameScreen.onclick = null;
+        }
+    }
+    
+    function getPetFullName(pet) {
+       let name = '';
+       if (pet.evolution > 0) {
+           name += EVOLVE_DATA[pet.evolution - 1].name + ' ';
+       }
+       name += PET_DATA[pet.type].name.replace('도토리', PET_DATA[pet.type].typeName);
+       if (pet.enhancement > 0) {
+           name += ` +${pet.enhancement}`;
+       }
+       return name;
+    }
+
+    function createPetElement(pet, isForUI) {
+        const petData = PET_DATA[pet.type];
+        const el = document.createElement('div');
+        el.className = 'text-center';
+        
+        el.innerHTML = `
+            <div class="pet text-6xl" style="transform: rotate(${Math.random()*20-10}deg)">${petData.img}</div>
+            <div class="text-xs font-bold bg-black/40 text-white px-2 py-0.5 rounded-full mt-1">
+                ${getPetFullName(pet)}
+            </div>
+             <div class="text-xs text-yellow-800 font-bold">${petData.rarity}</div>
+        `;
+        if (isForUI) {
+           el.dataset.petId = pet.id;
+           el.classList.add('p-2', 'rounded-lg', 'cursor-pointer', 'hover:bg-yellow-200', 'transition-colors');
+        }
+       return el;
+    }
+    
+    // --- MODAL MANAGEMENT ---
+    
+    function getModalHTML(modalId, data = {}) {
+        switch(modalId) {
+            case 'startModal':
+                return `<div id="startModal" class="modal w-11/12 max-w-md p-6 rounded-2xl text-center">
+                    <h2 class="text-3xl font-bold mb-4">도토리 키우기 2에 오신 것을 환영합니다!</h2>
+                    <p class="text-xl mb-6">첫 번째 도토리를 획득하시겠습니까?</p>
+                    <button onclick="startGame()" class="btn w-full bg-green-500 text-white text-2xl p-4 rounded-lg border-green-700">네, 시작하겠습니다!</button>
+                </div>`;
+            case 'adoptionModal':
+                let petButtons = Object.keys(PET_DATA).map(type => {
+                    const pet = PET_DATA[type];
+                    return `<button onclick="buyPet('${type}')" class="btn w-full bg-yellow-500 text-white p-3 rounded-lg border-yellow-700 flex justify-between items-center"><span>${pet.img} ${pet.name} (${pet.rarity})</span> <span>${formatNumber(pet.cost)}원</span></button>`;
+                }).join('');
+                return `<div class="modal w-11/12 max-w-md p-6 rounded-2xl">
+                    <h2 class="text-3xl font-bold mb-6 text-center">펫 상점</h2>
+                    <div class="space-y-3 max-h-80 overflow-y-auto pr-2">${petButtons}</div>
+                    <button onclick="closeModal()" class="btn mt-6 w-full bg-gray-400 p-2 rounded-lg border-gray-600">닫기</button>
+                </div>`;
+            case 'gachaModal':
+                return `<div class="modal w-11/12 max-w-md p-6 rounded-2xl text-center">
+                    <h2 class="text-3xl font-bold mb-4">펫 뽑기</h2>
+                    <div id="gachaResultContainer" class="h-48 flex items-center justify-center text-8xl mb-4">🎁</div>
+                    <button onclick="doGacha()" class="btn w-full bg-teal-500 text-white p-4 rounded-lg border-teal-700 text-xl">50,000원으로 1회 뽑기</button>
+                    <button onclick="closeModal()" class="btn mt-6 w-full bg-gray-400 p-2 rounded-lg border-gray-600">닫기</button>
+                </div>`;
+            case 'inventoryModal':
+                let petList = gameState.pets.map(pet => {
+                    const isEquipped = gameState.equippedPetIds.includes(pet.id);
+                    return `<div class="p-2 rounded-lg border-2 ${isEquipped ? 'border-green-500 bg-green-100' : 'border-gray-300'}">
+                        ${createPetElement(pet, false).innerHTML}
+                        <button onclick="toggleEquip(${pet.id})" class="btn w-full text-xs mt-2 p-1 rounded ${isEquipped ? 'bg-red-400 border-red-600' : 'bg-green-400 border-green-600'} text-white">${isEquipped ? '장착 해제' : '장착'}</button>
+                    </div>`;
+                }).join('');
+                if (gameState.pets.length === 0) petList = `<p class="col-span-full text-center text-gray-500">아직 펫이 없습니다.</p>`;
+
+                return `<div class="modal w-11/12 max-w-2xl p-6 rounded-2xl">
+                    <h2 class="text-3xl font-bold mb-2 text-center">내 펫 관리</h2>
+                    <p class="text-center mb-4">장착된 펫: ${gameState.equippedPetIds.length} / ${gameState.petLimit}</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-64 overflow-y-auto bg-black/10 p-4 rounded-lg">${petList}</div>
+                    <button onclick="closeModal()" class="btn mt-6 w-full bg-gray-400 p-2 rounded-lg border-gray-600">닫기</button>
+                </div>`;
+            case 'enhanceModal':
+                let enhancePetList = gameState.pets.map(pet => {
+                    const isSelected = enhanceSelection.includes(pet.id);
+                    const el = createPetElement(pet, true);
+                    if (isSelected) el.classList.add('bg-blue-300');
+                    el.setAttribute('onclick', `selectForEnhance(${pet.id})`);
+                    return el.outerHTML;
+                }).join('');
+
+                let enhanceSelectionHTML = '';
+                for (let i = 0; i < 2; i++) {
+                    if (enhanceSelection[i]) {
+                        const pet = findPetById(enhanceSelection[i]);
+                        enhanceSelectionHTML += createPetElement(pet, false).outerHTML;
+                    } else {
+                        enhanceSelectionHTML += '<div class="w-16 h-16 bg-white/50 rounded flex items-center justify-center text-gray-400 text-3xl mx-auto">+</div>';
+                    }
+                }
+
+                return `<div class="modal w-11/12 max-w-2xl p-6 rounded-2xl">
+                    <h2 class="text-3xl font-bold mb-4 text-center">강화</h2>
+                    <p class="text-center text-sm mb-4">동일한 펫 2마리를 선택하여 강화합니다.</p>
+                    <div class="flex items-center justify-center gap-4 h-32 bg-black/10 rounded-lg mb-4 p-2">${enhanceSelectionHTML}</div>
+                    <button onclick="doEnhance()" class="btn w-full bg-red-600 text-white p-3 rounded-lg border-red-800" ${enhanceSelection.length === 2 ? '' : 'disabled'}>강화하기</button>
+                    <div class="grid grid-cols-3 gap-2 mt-4 max-h-48 overflow-y-auto bg-black/5 p-2 rounded-lg">${enhancePetList}</div>
+                    <button onclick="closeModal()" class="btn mt-6 w-full bg-gray-400 p-2 rounded-lg border-gray-600">닫기</button>
+                </div>`;
+            case 'evolveModal':
+                 let evolvePetList = gameState.pets.map(pet => {
+                    const isSelected = evolveSelection.includes(pet.id);
+                    const el = createPetElement(pet, true);
+                    if (isSelected) el.classList.add('bg-blue-300');
+                    el.setAttribute('onclick', `selectForEvolve(${pet.id})`);
+                    return el.outerHTML;
+                }).join('');
+
+                let evolveSelectionHTML = '';
+                for (let i = 0; i < 3; i++) {
+                    if (evolveSelection[i]) {
+                        const pet = findPetById(evolveSelection[i]);
+                        evolveSelectionHTML += createPetElement(pet, false).outerHTML;
+                    } else {
+                        evolveSelectionHTML += '<div class="w-16 h-16 bg-white/50 rounded flex items-center justify-center text-gray-400 text-3xl mx-auto">+</div>';
+                    }
+                }
+                return `<div class="modal w-11/12 max-w-2xl p-6 rounded-2xl">
+                    <h2 class="text-3xl font-bold mb-4 text-center">진화</h2>
+                    <p class="text-center text-sm mb-4">동일한 펫 3마리를 선택하여 진화합니다.</p>
+                    <div class="flex items-center justify-center gap-4 h-32 bg-black/10 rounded-lg mb-4 p-2">${evolveSelectionHTML}</div>
+                    <button onclick="doEvolve()" class="btn w-full bg-indigo-600 text-white p-3 rounded-lg border-indigo-800" ${evolveSelection.length === 3 ? '' : 'disabled'}>진화하기</button>
+                    <div class="grid grid-cols-3 gap-2 mt-4 max-h-48 overflow-y-auto bg-black/5 p-2 rounded-lg">${evolvePetList}</div>
+                    <button onclick="closeModal()" class="btn mt-6 w-full bg-gray-400 p-2 rounded-lg border-gray-600">닫기</button>
+                </div>`;
+            case 'achievementModal':
+                let achievementHTML = Object.keys(ACHIEVEMENTS).map(key => {
+                    const ach = gameState.achievements[key];
+                    const nextTier = ach.claimedTier + 1;
+                    let progressHTML = `<p class="text-sm text-gray-600">달성 완료!</p>`;
+                    let buttonHTML = `<button class="btn w-full p-2 rounded bg-gray-400 text-white opacity-50" disabled>완료</button>`;
+
+                    if (nextTier < ach.tiers.length) {
+                        const progress = Math.min(ach.progress, ach.tiers[nextTier]);
+                        const isComplete = progress >= ach.tiers[nextTier];
+                        progressHTML = `<div class="w-full bg-gray-200 rounded-full h-4"><div class="bg-green-500 h-4 rounded-full" style="width: ${isComplete ? 100 : (progress / ach.tiers[nextTier]) * 100}%"></div></div>
+                                      <p class="text-xs text-center">${formatNumber(progress)} / ${formatNumber(ach.tiers[nextTier])}</p>`;
+                        buttonHTML = `<button onclick="claimAchievement('${key}')" class="btn w-full p-2 rounded ${isComplete ? 'bg-yellow-500 border-yellow-700 text-white' : 'bg-gray-300 border-gray-500'}" ${isComplete ? '' : 'disabled'}>보상 받기 (+${formatNumber(ach.rewards[nextTier])}원)</button>`;
+                    }
+
+                    return `<div class="bg-white p-3 rounded-lg shadow grid grid-cols-3 gap-2 items-center">
+                                <div class="col-span-2">
+                                    <h3 class="font-bold">${ach.title} (단계 ${nextTier + 1})</h3>
+                                    ${progressHTML}
+                                </div>
+                                <div>${buttonHTML}</div>
+                            </div>`;
+                }).join('');
+                 return `<div class="modal w-11/12 max-w-2xl p-6 rounded-2xl">
+                    <h2 class="text-3xl font-bold mb-6 text-center">업적</h2>
+                    <div class="space-y-3 max-h-80 overflow-y-auto pr-2">${achievementHTML}</div>
+                    <button onclick="closeModal()" class="btn mt-6 w-full bg-gray-400 p-2 rounded-lg border-gray-600">닫기</button>
+                </div>`;
+            case 'offlineProgressModal':
+                return `<div class="modal w-11/12 max-w-md p-6 rounded-2xl text-center">
+                    <h2 class="text-3xl font-bold mb-4">오프라인 보상</h2>
+                    <p class="text-xl mb-2">${data.time} 동안 자리를 비우셨네요!</p>
+                    <p class="text-xl mb-6">자동으로 <b class="text-green-600">${data.amount}원</b>을 벌었습니다!</p>
+                    <button onclick="closeModal()" class="btn w-full bg-green-500 text-white p-3 rounded-lg border-green-700">확인</button>
+                </div>`;
+            case 'rebirthModal':
+                 return `<div class="modal w-11/12 max-w-md p-6 rounded-2xl text-center">
+                    <h2 class="text-3xl font-bold mb-4 text-purple-700">환생</h2>
+                    <p class="text-lg mb-4">환생하여 모든 것을 초기화하는 대신, 영구적인 클릭 보너스를 얻으시겠습니까?</p>
+                    <p class="mb-6 font-bold text-red-600">주의: 돈, 펫, 업그레이드가 초기화됩니다!</p>
+                    <div class="text-xl mb-4">현재 보너스: +${formatNumber(gameState.rebirths * 50)}%</div>
+                    <div class="text-xl mb-6">환생 후 보너스: +${formatNumber((gameState.rebirths + 1) * 50)}%</div>
+                    <button onclick="doRebirth()" class="btn w-full bg-purple-600 text-white p-3 rounded-lg border-purple-800">환생하기 (1조 원)</button>
+                    <button onclick="closeModal()" class="btn mt-4 w-full bg-gray-400 p-2 rounded-lg border-gray-600">다음에 할게요</button>
+                </div>`;
+
+            default: return ``;
+        }
+    }
+
+    function showModal(modalId, data = {}) {
+        minigameContainer.classList.add('hidden'); 
+        modalContent.parentElement.classList.remove('hidden');
+        modalContent.innerHTML = getModalHTML(modalId, data);
+        modalContainer.classList.remove('hidden');
+    }
+    
+    function showMinigameSelector() {
+        modalContent.parentElement.classList.add('hidden');
+        minigameContainer.classList.remove('hidden');
+        modalContainer.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        modalContainer.classList.add('hidden');
+        modalContent.innerHTML = '';
+        enhanceSelection = [];
+        evolveSelection = [];
+    }
+    
+    function toggleEquip(petId) {
+        const index = gameState.equippedPetIds.indexOf(petId);
+        if (index > -1) {
+            gameState.equippedPetIds.splice(index, 1);
+        } else {
+            if (gameState.equippedPetIds.length < gameState.petLimit) {
+                gameState.equippedPetIds.push(petId);
+            } else {
+                showToast('펫 장착 슬롯이 가득 찼습니다!', 'error');
+            }
+        }
+        showModal('inventoryModal'); // Refresh the modal
+    }
+
+    // --- MINIGAME LOGIC ---
+    let minigameInstance = null;
+    function startMinigame(type) {
+        document.getElementById('minigameSelector').classList.add('hidden');
+        document.getElementById('minigameView').classList.remove('hidden');
+        
+        const canvas = document.getElementById('minigameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (type === 'rain') {
+            minigameInstance = new AcornRain(canvas, ctx, endMinigame);
+        } else if (type === 'whack') {
+            minigameInstance = new WhackAnAcorn(canvas, ctx, endMinigame);
+        }
+        minigameInstance.start();
+    }
+    
+    function endMinigame(result) {
+        if (!minigameInstance) return;
+        minigameInstance = null;
+        showToast(`미니게임 클리어! +${formatNumber(result.reward)}원`, 'success');
+        changeMoney(result.reward);
+        closeMinigame();
+    }
+    
+    function closeMinigame() {
+        if(minigameInstance) minigameInstance.stop();
+        minigameInstance = null;
+        minigameContainer.classList.add('hidden');
+        document.getElementById('minigameSelector').classList.remove('hidden');
+        document.getElementById('minigameView').classList.add('hidden');
+        closeModal();
+    }
+
+    class AcornRain {
+        constructor(canvas, ctx, onEnd) {
+            this.canvas = canvas; this.ctx = ctx; this.onEnd = onEnd;
+            this.player = { x: canvas.width / 2 - 15, y: canvas.height - 40, width: 30, height: 30, speed: 5 };
+            this.raindrops = [];
+            this.score = 0; this.timeLeft = 30; this.gameOver = false;
+            this.keys = {};
+            this.gameLoop = this.gameLoop.bind(this);
+            this.countdown = null;
+        }
+
+        start() {
+            document.addEventListener('keydown', e => this.keys[e.key] = true);
+            document.addEventListener('keyup', e => this.keys[e.key] = false);
+            this.countdown = setInterval(() => { this.timeLeft--; if (this.timeLeft <= 0) this.end(true); }, 1000);
+            this.animationFrame = requestAnimationFrame(this.gameLoop);
+        }
+
+        stop() {
+            clearInterval(this.countdown);
+            cancelAnimationFrame(this.animationFrame);
+            document.removeEventListener('keydown', e => this.keys[e.key] = true);
+            document.removeEventListener('keyup', e => this.keys[e.key] = false);
+        }
+        
+        end(win) {
+            if (this.gameOver) return;
+            this.gameOver = true;
+            this.stop();
+            this.onEnd({ win, reward: win ? Math.floor(this.score * 1) : 0 });
+        }
+
+        gameLoop() {
+            if (this.gameOver) return;
+            if (this.keys['ArrowLeft'] && this.player.x > 0) this.player.x -= this.player.speed;
+            if (this.keys['ArrowRight'] && this.player.x < this.canvas.width - this.player.width) this.player.x += this.player.speed;
+            if (Math.random() < 0.1) this.raindrops.push({ x: Math.random() * this.canvas.width, y: 0, speed: 2 + Math.random() * 3 });
+            this.raindrops = this.raindrops.filter(r => {
+                r.y += r.speed;
+                if (r.x < this.player.x + this.player.width && r.x + 10 > this.player.x && r.y < this.player.y + this.player.height && r.y + 10 > this.player.y) {
+                    this.end(false); 
+                }
+                return r.y < this.canvas.height;
+            });
+            this.score++;
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.fillStyle = 'blue'; this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+            this.ctx.fillStyle = 'brown';
+            this.raindrops.forEach(r => this.ctx.fillRect(r.x, r.y, 10, 10));
+            document.getElementById('minigameInfo').textContent = `점수: ${this.score} | 남은 시간: ${this.timeLeft}초`;
+            this.animationFrame = requestAnimationFrame(this.gameLoop);
+        }
+    }
+    class WhackAnAcorn {
+        constructor(canvas, ctx, onEnd) {
+            this.canvas = canvas; this.ctx = ctx; this.onEnd = onEnd;
+            this.holes = []; this.score = 0; this.timeLeft = 30; this.gameOver = false;
+            this.gameLoop = this.gameLoop.bind(this);
+            this.clickHandler = this.clickHandler.bind(this);
+        }
+        start() {
+            const cols = 5, rows = 3;
+            for(let i = 0; i < rows; i++) {
+                for(let j = 0; j < cols; j++) {
+                    this.holes.push({ x: j * 120 + 60, y: i * 120 + 60, radius: 40, active: false, timer: 0 });
+                }
+            }
+            this.countdown = setInterval(() => { this.timeLeft--; if (this.timeLeft <= 0) this.end(true); }, 1000);
+            this.spawnInterval = setInterval(() => this.spawn(), 500);
+            this.canvas.addEventListener('click', this.clickHandler);
+            this.animationFrame = requestAnimationFrame(this.gameLoop);
+        }
+        stop() {
+            clearInterval(this.countdown); clearInterval(this.spawnInterval);
+            cancelAnimationFrame(this.animationFrame);
+            this.canvas.removeEventListener('click', this.clickHandler);
+        }
+        end(win) {
+            if (this.gameOver) return; this.gameOver = true;
+            this.stop();
+            this.onEnd({ win, reward: win ? this.score * 5 : 0 });
+        }
+        spawn() {
+            const inactiveHoles = this.holes.filter(h => !h.active);
+            if(inactiveHoles.length > 0) {
+                const hole = inactiveHoles[Math.floor(Math.random() * inactiveHoles.length)];
+                hole.active = true;
+                hole.timer = 1.5;
+            }
+        }
+        clickHandler(e) {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+            this.holes.forEach(hole => {
+                if (hole.active) {
+                    const dist = Math.sqrt((x - hole.x)**2 + (y - hole.y)**2);
+                    if (dist < hole.radius) {
+                        hole.active = false; this.score++;
+                    }
+                }
+            });
+        }
+        gameLoop(timestamp) {
+            if (this.gameOver) return;
+            this.holes.forEach(h => { if(h.active) { h.timer -= 1/60; if(h.timer <= 0) h.active = false; }});
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.font = '48px Jua'; this.ctx.textAlign = 'center';
+            this.holes.forEach(hole => {
+                this.ctx.fillStyle = '#6b4f2c';
+                this.ctx.beginPath(); this.ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2); this.ctx.fill();
+                if (hole.active) this.ctx.fillText('🌰', hole.x, hole.y + 15);
+            });
+            document.getElementById('minigameInfo').textContent = `점수: ${this.score} | 남은 시간: ${this.timeLeft}초`;
+            this.animationFrame = requestAnimationFrame(this.gameLoop);
+        }
+    }
+
+
+    // --- UTILITIES ---
+    function formatNumber(num) {
+        if (!isFinite(num)) return "0";
+        if (num >= 1e12) return (num / 1e12).toFixed(2) + '조';
+        if (num >= 1e8) return (num / 1e8).toFixed(2) + '억';
+        if (num >= 1e4) return (num / 1e4).toFixed(1) + '만';
+        return Math.floor(num).toLocaleString();
+    }
+    function formatTime(ms) {
+        let seconds = Math.floor(ms / 1000);
+        let minutes = Math.floor(seconds / 60);
+        let hours = Math.floor(minutes / 60);
+        seconds %= 60; minutes %= 60;
+        return `${hours}시간 ${minutes}분 ${seconds}초`;
+    }
+    function findPetById(id) { return gameState.pets.find(p => p.id === id); }
+    function showToast(message, type = 'default') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'fixed bottom-10 right-10 px-6 py-3 rounded-lg shadow-xl text-lg opacity-0 transform translate-y-5 transition-all duration-500 z-[100]';
+        switch (type) {
+            case 'success': toast.classList.add('bg-green-600', 'text-white'); break;
+            case 'error': toast.classList.add('bg-red-600', 'text-white'); break;
+            case 'info': toast.classList.add('bg-blue-600', 'text-white'); break;
+            default: toast.classList.add('bg-gray-800', 'text-white'); break;
+        }
+        toast.classList.remove('opacity-0', 'translate-y-5');
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-y-5');
+        }, 3000);
+     }
+    
+    // --- SAVE/LOAD ---
+    function saveGame() {
+        localStorage.setItem('dotoriGameSave_v2', JSON.stringify(gameState));
+    }
+    function loadGame() {
+        const savedGame = localStorage.getItem('dotoriGameSave_v2');
+        if (savedGame) {
+            const loadedState = JSON.parse(savedGame);
+            gameState = Object.assign({}, JSON.parse(JSON.stringify(initialGameState)), loadedState); // Merge with default
+            if (gameState.pets.length > 0) {
+                nextPetId = Math.max(0, ...gameState.pets.map(p => p.id)) + 1;
+            }
+        } else {
+            gameState = JSON.parse(JSON.stringify(initialGameState));
+        }
+    }
+    
+    window.onload = init;
+    </script>
 </body>
 </html>
+
