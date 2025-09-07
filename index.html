@@ -777,6 +777,7 @@
     }
     
     // --- MODAL MANAGEMENT ---
+   // --- MODAL MANAGEMENT ---
     function getModalHTML(modalId, data = {}) {
         switch(modalId) {
             case 'adoptionModal':
@@ -811,27 +812,16 @@
                 </div>`;
             case 'shopModal':
                 const autoClickItem = gameState.upgrades.autoClick > 0 ? `<div class="bg-white p-3 rounded-lg shadow opacity-50"><h3 class="font-bold">자동클릭기</h3><p class="text-sm mt-2">활성화 완료</p></div>` : `<div class="bg-white p-3 rounded-lg shadow"><h3 class="font-bold">${SHOP_ITEMS.autoClick.name}</h3><p class="text-sm text-gray-600 h-10">${SHOP_ITEMS.autoClick.description}</p><button onclick="buyUpgrade('autoClick')" class="btn w-full mt-2 p-2 rounded text-white ${gameState.money >= SHOP_ITEMS.autoClick.getCost() ? 'bg-blue-500 border-blue-700' : 'bg-gray-400 border-gray-600'}" ${gameState.money >= SHOP_ITEMS.autoClick.getCost() ? '' : 'disabled'}>${formatNumber(SHOP_ITEMS.autoClick.getCost())}원</button></div>`;
-                
                 const clickPowerLevel = gameState.upgrades.clickPower;
                 const clickPowerItem = clickPowerLevel >= 10 ? `<div class="bg-white p-3 rounded-lg shadow opacity-50"><h3 class="font-bold">클릭 파워 강화</h3><p class="text-sm mt-2">최대 레벨</p></div>` : `<div class="bg-white p-3 rounded-lg shadow"><h3 class="font-bold">${SHOP_ITEMS.clickPower.name} (Lv. ${clickPowerLevel})</h3><p class="text-sm text-gray-600 h-10">${SHOP_ITEMS.clickPower.description}</p><button onclick="buyUpgrade('clickPower')" class="btn w-full mt-2 p-2 rounded text-white ${gameState.money >= SHOP_ITEMS.clickPower.getCost(clickPowerLevel) ? 'bg-blue-500 border-blue-700' : 'bg-gray-400 border-gray-600'}" ${gameState.money >= SHOP_ITEMS.clickPower.getCost(clickPowerLevel) ? '' : 'disabled'}>${formatNumber(SHOP_ITEMS.clickPower.getCost(clickPowerLevel))}원</button></div>`;
-
                 const petSlotLevel = gameState.petLimit - 3;
                 const petSlotItem = petSlotLevel >= SHOP_ITEMS.petSlot.costs.length ? `<div class="bg-white p-3 rounded-lg shadow opacity-50"><h3 class="font-bold">펫 장착 슬롯 확장</h3><p class="text-sm mt-2">최대 레벨</p></div>` : `<div class="bg-white p-3 rounded-lg shadow"><h3 class="font-bold">${SHOP_ITEMS.petSlot.name} (${gameState.petLimit}칸 -> ${gameState.petLimit + 1}칸)</h3><p class="text-sm text-gray-600 h-10">${SHOP_ITEMS.petSlot.description}</p><button onclick="buyUpgrade('petSlot')" class="btn w-full mt-2 p-2 rounded text-white ${gameState.money >= SHOP_ITEMS.petSlot.costs[petSlotLevel] ? 'bg-blue-500 border-blue-700' : 'bg-gray-400 border-gray-600'}" ${gameState.money >= SHOP_ITEMS.petSlot.costs[petSlotLevel] ? '' : 'disabled'}>${formatNumber(SHOP_ITEMS.petSlot.costs[petSlotLevel])}원</button></div>`;
-
                 return `<div class="modal w-11/12 max-w-2xl p-6 rounded-2xl">
                     <h2 class="text-3xl font-bold mb-6 text-center">상점</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2">${autoClickItem}${clickPowerItem}${petSlotItem}</div>
                     <button onclick="closeModal()" class="btn mt-6 w-full bg-gray-400 p-2 rounded-lg border-gray-600">닫기</button>
                 </div>`;
-            // ... Other modals would go here ...
-            // Simplified for brevity, full implementation is complex
-            default: return getModalHTMLContinued(modalId, data); // Split for readability
-        }
-    }
-
-    function getModalHTMLContinued(modalId, data = {}){
-        switch(modalId){
-             case 'gachaModal':
+            case 'gachaModal':
                 return `<div class="modal w-11/12 max-w-md p-6 rounded-2xl text-center">
                     <h2 class="text-3xl font-bold mb-4">펫 뽑기</h2>
                     <div id="gachaResultContainer" class="h-48 flex items-center justify-center text-8xl mb-4">🎁</div>
@@ -846,7 +836,6 @@
                     const pet = managementSelection[i] ? findPetById(managementSelection[i]) : null;
                     selectionHTML += pet ? createPetElement(pet, false).outerHTML : `<div class="w-20 h-24 bg-white/50 rounded flex items-center justify-center text-gray-400 text-4xl mx-auto">+</div>`;
                 }
-
                 let petGrid = gameState.pets.filter(p => p.expeditionId === null).map(pet => {
                     const isSelected = managementSelection.includes(pet.id);
                     const el = createPetElement(pet, true);
@@ -854,7 +843,6 @@
                     el.setAttribute('onclick', `selectForManagement(${pet.id}, '${currentTab}')`);
                     return el.outerHTML;
                 }).join('');
-
                 return `<div class="modal w-11/12 max-w-3xl p-6 rounded-2xl">
                     <div class="flex border-b-4 border-amber-800 mb-4">
                         <button onclick="managementSelection=[]; showModal('managementModal', {currentTab: 'enhance'})" class="tab-button flex-1 p-3 text-2xl font-bold ${currentTab === 'enhance' ? 'active' : ''}">강화</button>
@@ -899,7 +887,7 @@
                     }).join('')}</div>
                     <button onclick="closeModal()" class="btn mt-6 w-full bg-gray-400 p-2 rounded-lg border-gray-600">닫기</button>
                 </div>`;
-            case 'expeditionModal': /* Similar to previous version, but updated for BigInt and UI */
+            case 'expeditionModal':
                  return `<div class="modal p-6 rounded-2xl">
                     <h2 class="text-3xl font-bold mb-6 text-center">펫 탐험</h2>
                     <div class="grid grid-cols-1 gap-4 max-h-80 overflow-y-auto pr-2">${EXPEDITIONS.map(exp => {
