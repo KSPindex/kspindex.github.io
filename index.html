@@ -89,6 +89,8 @@
 </head>
 <body class="flex items-center justify-center min-h-screen p-2 md:p-4">
 
+    <audio id="bgm" loop src="https://www.chosic.com/wp-content/uploads/2021/04/And-So-It-Begins-Inspired-By-Crush-Sometimes.mp3"></audio>
+
     <!-- Game Container -->
     <div id="gameContainer" class="game-container w-full max-w-5xl h-[95vh] max-h-[900px] rounded-3xl p-4 flex flex-col relative overflow-hidden">
         
@@ -96,11 +98,8 @@
         <div class="flex justify-between items-center bg-yellow-100/80 p-3 rounded-xl border-4 border-yellow-700 shadow-lg mb-4">
             <h1 class="text-2xl md:text-4xl font-bold text-orange-800">🐿️ 도토리 키우기 2 🐿️</h1>
             <div class="flex items-center gap-4">
-                <!-- 음악 재생/정지 버튼 추가 -->
-                <button id="musicToggle" class="text-3xl hover:text-yellow-600 transition-colors">
-                    <i class="fas fa-play"></i>
-                </button>
                  <button id="autoClickToggle" onclick="toggleAutoClick()" class="text-3xl text-gray-400 transition-colors hidden"><i class="fas fa-robot"></i></button>
+                <button id="musicToggleBtn" onclick="toggleMusic()" class="text-3xl text-gray-400 hover:text-yellow-600 transition-colors"><i class="fas fa-music"></i></button>
                 <button onclick="showModal('settingsModal')" class="text-3xl hover:text-yellow-600 transition-colors"><i class="fas fa-cog"></i></button>
                  <div class="text-xl md:text-3xl font-bold bg-stone-800 text-white px-4 py-2 rounded-full shadow-inner shadow-black/50">
                     💰 <span id="moneyDisplay">0</span> 원
@@ -198,6 +197,7 @@
         usedCoupons: [],
         expeditions: [],
         expeditionAlert: false,
+        isMusicPlaying: false,
     };
     let nextPetId = 0;
     let nextExpeditionId = 0;
@@ -207,6 +207,7 @@
     const gameScreen = document.getElementById('gameScreen');
     const modalContainer = document.getElementById('modalContainer');
     const modalContent = document.getElementById('modalContent');
+    const bgm = document.getElementById('bgm');
     
     // --- GAME INITIALIZATION ---
     function init() {
@@ -224,6 +225,7 @@
     function initSystems() {
         initAchievements();
         updateAutoClickToggleUI();
+        updateMusicUI();
     }
     
     // --- MAIN GAME LOOP ---
@@ -547,7 +549,12 @@
             if (!gameState.achievements[key]) {
                 gameState.achievements[key] = { ...baseAchievements[key], progress: 0n, claimedTier: -1 };
             } else {
-                gameState.achievements[key] = { ...baseAchievements[key], ...gameState.achievements[key], progress: BigInt(gameState.achievements[key].progress) };
+                const savedAch = gameState.achievements[key];
+                gameState.achievements[key] = {
+                    ...baseAchievements[key],
+                    progress: BigInt(savedAch.progress || '0'),
+                    claimedTier: savedAch.claimedTier
+                };
             }
         }
     }
@@ -704,6 +711,27 @@
         renderAll();
     }
 
+    // --- MUSIC CONTROL ---
+    function toggleMusic() {
+        gameState.isMusicPlaying = !gameState.isMusicPlaying;
+        if (gameState.isMusicPlaying) {
+            bgm.volume = 0.3;
+            bgm.play().catch(e => {
+                console.error("Audio playback failed:", e);
+                showToast("브라우저 설정으로 음악 재생이 차단되었습니다.", "error");
+                gameState.isMusicPlaying = false; 
+            });
+        } else {
+            bgm.pause();
+        }
+        updateMusicUI();
+    }
+
+    function updateMusicUI() {
+        const musicToggleBtn = document.getElementById('musicToggleBtn');
+        musicToggleBtn.classList.toggle('text-gray-400', !gameState.isMusicPlaying);
+        musicToggleBtn.classList.toggle('text-orange-800', gameState.isMusicPlaying);
+    }
 
     // --- RENDERING ---
     function renderAll() {
@@ -767,7 +795,7 @@
                 ${pet.expeditionId !== null ? `<div class="absolute -top-2 -right-2 text-2xl">🧭</div>` : ''}
             </div>
             <div class="text-xs font-bold bg-black/40 text-white px-2 py-0.5 rounded-full mt-1 whitespace-nowrap cursor-pointer" onclick="if(event.target.parentElement.parentElement.dataset.petId) { changePetName(parseInt(event.target.parentElement.parentElement.dataset.petId)) }">${petName}</div>
-            <div class="text-xs font-bold" style="color: ${getRarityColor(pet.rarity, true)}">${petData.rarity}</div>
+            <div class="text-xs font-bold" style="color: ${getRarityColor(petData.rarity, true)}">${petData.rarity}</div>
         `;
         if (isForUI) {
            el.dataset.petId = pet.id;
@@ -777,7 +805,6 @@
     }
     
     // --- MODAL MANAGEMENT ---
-   // --- MODAL MANAGEMENT ---
     function getModalHTML(modalId, data = {}) {
         switch(modalId) {
             case 'adoptionModal':
@@ -812,16 +839,25 @@
                 </div>`;
             case 'shopModal':
                 const autoClickItem = gameState.upgrades.autoClick > 0 ? `<div class="bg-white p-3 rounded-lg shadow opacity-50"><h3 class="font-bold">자동클릭기</h3><p class="text-sm mt-2">활성화 완료</p></div>` : `<div class="bg-white p-3 rounded-lg shadow"><h3 class="font-bold">${SHOP_ITEMS.autoClick.name}</h3><p class="text-sm text-gray-600 h-10">${SHOP_ITEMS.autoClick.description}</p><button onclick="buyUpgrade('autoClick')" class="btn w-full mt-2 p-2 rounded text-white ${gameState.money >= SHOP_ITEMS.autoClick.getCost() ? 'bg-blue-500 border-blue-700' : 'bg-gray-400 border-gray-600'}" ${gameState.money >= SHOP_ITEMS.autoClick.getCost() ? '' : 'disabled'}>${formatNumber(SHOP_ITEMS.autoClick.getCost())}원</button></div>`;
+                
                 const clickPowerLevel = gameState.upgrades.clickPower;
                 const clickPowerItem = clickPowerLevel >= 10 ? `<div class="bg-white p-3 rounded-lg shadow opacity-50"><h3 class="font-bold">클릭 파워 강화</h3><p class="text-sm mt-2">최대 레벨</p></div>` : `<div class="bg-white p-3 rounded-lg shadow"><h3 class="font-bold">${SHOP_ITEMS.clickPower.name} (Lv. ${clickPowerLevel})</h3><p class="text-sm text-gray-600 h-10">${SHOP_ITEMS.clickPower.description}</p><button onclick="buyUpgrade('clickPower')" class="btn w-full mt-2 p-2 rounded text-white ${gameState.money >= SHOP_ITEMS.clickPower.getCost(clickPowerLevel) ? 'bg-blue-500 border-blue-700' : 'bg-gray-400 border-gray-600'}" ${gameState.money >= SHOP_ITEMS.clickPower.getCost(clickPowerLevel) ? '' : 'disabled'}>${formatNumber(SHOP_ITEMS.clickPower.getCost(clickPowerLevel))}원</button></div>`;
+
                 const petSlotLevel = gameState.petLimit - 3;
                 const petSlotItem = petSlotLevel >= SHOP_ITEMS.petSlot.costs.length ? `<div class="bg-white p-3 rounded-lg shadow opacity-50"><h3 class="font-bold">펫 장착 슬롯 확장</h3><p class="text-sm mt-2">최대 레벨</p></div>` : `<div class="bg-white p-3 rounded-lg shadow"><h3 class="font-bold">${SHOP_ITEMS.petSlot.name} (${gameState.petLimit}칸 -> ${gameState.petLimit + 1}칸)</h3><p class="text-sm text-gray-600 h-10">${SHOP_ITEMS.petSlot.description}</p><button onclick="buyUpgrade('petSlot')" class="btn w-full mt-2 p-2 rounded text-white ${gameState.money >= SHOP_ITEMS.petSlot.costs[petSlotLevel] ? 'bg-blue-500 border-blue-700' : 'bg-gray-400 border-gray-600'}" ${gameState.money >= SHOP_ITEMS.petSlot.costs[petSlotLevel] ? '' : 'disabled'}>${formatNumber(SHOP_ITEMS.petSlot.costs[petSlotLevel])}원</button></div>`;
+
                 return `<div class="modal w-11/12 max-w-2xl p-6 rounded-2xl">
                     <h2 class="text-3xl font-bold mb-6 text-center">상점</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2">${autoClickItem}${clickPowerItem}${petSlotItem}</div>
                     <button onclick="closeModal()" class="btn mt-6 w-full bg-gray-400 p-2 rounded-lg border-gray-600">닫기</button>
                 </div>`;
-            case 'gachaModal':
+            default: return getModalHTMLContinued(modalId, data);
+        }
+    }
+
+    function getModalHTMLContinued(modalId, data = {}){
+        switch(modalId){
+             case 'gachaModal':
                 return `<div class="modal w-11/12 max-w-md p-6 rounded-2xl text-center">
                     <h2 class="text-3xl font-bold mb-4">펫 뽑기</h2>
                     <div id="gachaResultContainer" class="h-48 flex items-center justify-center text-8xl mb-4">🎁</div>
@@ -836,6 +872,7 @@
                     const pet = managementSelection[i] ? findPetById(managementSelection[i]) : null;
                     selectionHTML += pet ? createPetElement(pet, false).outerHTML : `<div class="w-20 h-24 bg-white/50 rounded flex items-center justify-center text-gray-400 text-4xl mx-auto">+</div>`;
                 }
+
                 let petGrid = gameState.pets.filter(p => p.expeditionId === null).map(pet => {
                     const isSelected = managementSelection.includes(pet.id);
                     const el = createPetElement(pet, true);
@@ -843,6 +880,7 @@
                     el.setAttribute('onclick', `selectForManagement(${pet.id}, '${currentTab}')`);
                     return el.outerHTML;
                 }).join('');
+
                 return `<div class="modal w-11/12 max-w-3xl p-6 rounded-2xl">
                     <div class="flex border-b-4 border-amber-800 mb-4">
                         <button onclick="managementSelection=[]; showModal('managementModal', {currentTab: 'enhance'})" class="tab-button flex-1 p-3 text-2xl font-bold ${currentTab === 'enhance' ? 'active' : ''}">강화</button>
@@ -930,9 +968,7 @@
     }
     
     function showExpeditionPetSelector(expeditionId) {
-        // This function would open another modal to select pets for the expedition
         const exp = EXPEDITIONS.find(e => e.id === expeditionId);
-        let selectedPetIds = [];
         
         const petSelectorHTML = `
             <div class="modal w-11/12 max-w-2xl p-6 rounded-2xl">
@@ -1039,7 +1075,6 @@
     // --- SAVE/LOAD ---
     function saveGame() {
         try {
-            // BigInt 값을 문자열로 변환하여 저장합니다.
             const replacer = (key, value) => typeof value === 'bigint' ? value.toString() : value;
             localStorage.setItem('dotoriGameSave_vRevamped', JSON.stringify(gameState, replacer));
         } catch (e) { console.error("저장에 실패했습니다.", e); }
@@ -1049,23 +1084,17 @@
         if (savedGame) {
             const loadedState = JSON.parse(savedGame);
             
-            // BigInt를 처리할 수 있도록 기본 상태를 안전하게 복사합니다.
             const defaultState = JSON.parse(JSON.stringify(initialGameState, (k, v) => typeof v === 'bigint' ? v.toString() : v));
             gameState = { ...defaultState, ...loadedState };
             
-            // 저장된 문자열 값을 다시 BigInt로 변환합니다.
             gameState.money = BigInt(gameState.money || '0');
-             for(const key in gameState.achievements){
-                if(gameState.achievements[key]) {
-                    gameState.achievements[key].progress = BigInt(gameState.achievements[key].progress || '0');
-                }
-            }
+            gameState.expeditions.forEach(exp => exp.reward = BigInt(exp.reward || '0'));
+            
             nextPetId = gameState.pets.length > 0 ? Math.max(-1, ...gameState.pets.map(p => p.id)) + 1 : 0;
             nextExpeditionId = gameState.expeditions.length > 0 ? Math.max(-1, ...gameState.expeditions.map(e => e.id)) + 1 : 0;
         } else {
-            // 새 게임을 위해 기본 상태를 안전하게 복사합니다.
             gameState = JSON.parse(JSON.stringify(initialGameState, (k, v) => typeof v === 'bigint' ? v.toString() : v));
-            gameState.money = 0n; // money를 BigInt로 설정합니다.
+            gameState.money = 0n;
         }
     }
     function resetGame() {
@@ -1074,54 +1103,7 @@
     }
     
     window.onload = init;
-
-    // --- 음악 재생 코드 ---
-    const musicList = [
-        'ad1.mp3',
-        'ad2.mp3',
-        'ad3.mp3'
-    ];
-    
-    let currentMusicIndex = 0;
-    const audioPlayer = new Audio();
-    const musicToggleButton = document.getElementById('musicToggle');
-    
-    function toggleMusic() {
-        if (audioPlayer.paused) {
-            // 음악이 멈춰있으면 재생 시작
-            playNextMusic();
-        } else {
-            // 음악이 재생 중이면 멈춤
-            audioPlayer.pause();
-            musicToggleButton.innerHTML = '<i class="fas fa-play"></i>';
-        }
-    }
-    
-    function playNextMusic() {
-        // 현재 인덱스가 음악 목록의 마지막에 도달하면 처음으로 돌아갑니다.
-        if (currentMusicIndex >= musicList.length) {
-            currentMusicIndex = 0;
-        }
-    
-        audioPlayer.src = musicList[currentMusicIndex];
-        audioPlayer.play().catch(error => {
-            console.error('음악 재생 실패:', error);
-            // 재생에 실패하면 버튼을 재생 아이콘으로 되돌립니다.
-            musicToggleButton.innerHTML = '<i class="fas fa-play"></i>';
-        });
-        
-        musicToggleButton.innerHTML = '<i class="fas fa-pause"></i>';
-        currentMusicIndex++;
-    }
-    
-    // 오디오가 끝날 때마다 다음 음악을 재생하도록 이벤트 리스너를 추가합니다.
-    audioPlayer.addEventListener('ended', () => {
-        playNextMusic();
-    });
-    
-    // 버튼 클릭 시 음악 재생/정지
-    musicToggleButton.addEventListener('click', toggleMusic);
-
     </script>
 </body>
 </html>
+
