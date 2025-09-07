@@ -96,6 +96,10 @@
         <div class="flex justify-between items-center bg-yellow-100/80 p-3 rounded-xl border-4 border-yellow-700 shadow-lg mb-4">
             <h1 class="text-2xl md:text-4xl font-bold text-orange-800">🐿️ 도토리 키우기 2 🐿️</h1>
             <div class="flex items-center gap-4">
+                <!-- 음악 재생/정지 버튼 추가 -->
+                <button id="musicToggle" class="text-3xl hover:text-yellow-600 transition-colors">
+                    <i class="fas fa-play"></i>
+                </button>
                  <button id="autoClickToggle" onclick="toggleAutoClick()" class="text-3xl text-gray-400 transition-colors hidden"><i class="fas fa-robot"></i></button>
                 <button onclick="showModal('settingsModal')" class="text-3xl hover:text-yellow-600 transition-colors"><i class="fas fa-cog"></i></button>
                  <div class="text-xl md:text-3xl font-bold bg-stone-800 text-white px-4 py-2 rounded-full shadow-inner shadow-black/50">
@@ -1092,27 +1096,44 @@
     
     let currentMusicIndex = 0;
     const audioPlayer = new Audio();
+    const musicToggleButton = document.getElementById('musicToggle');
+    
+    function toggleMusic() {
+        if (audioPlayer.paused) {
+            // 음악이 멈춰있으면 재생 시작
+            playNextMusic();
+        } else {
+            // 음악이 재생 중이면 멈춤
+            audioPlayer.pause();
+            musicToggleButton.innerHTML = '<i class="fas fa-play"></i>';
+        }
+    }
     
     function playNextMusic() {
+        // 현재 인덱스가 음악 목록의 마지막에 도달하면 처음으로 돌아갑니다.
         if (currentMusicIndex >= musicList.length) {
             currentMusicIndex = 0;
         }
     
         audioPlayer.src = musicList[currentMusicIndex];
         audioPlayer.play().catch(error => {
-            console.error('자동 재생 실패. 사용자의 상호 작용이 필요할 수 있습니다:', error);
+            console.error('음악 재생 실패:', error);
+            // 재생에 실패하면 버튼을 재생 아이콘으로 되돌립니다.
+            musicToggleButton.innerHTML = '<i class="fas fa-play"></i>';
         });
-    
+        
+        musicToggleButton.innerHTML = '<i class="fas fa-pause"></i>';
         currentMusicIndex++;
     }
     
+    // 오디오가 끝날 때마다 다음 음악을 재생하도록 이벤트 리스너를 추가합니다.
     audioPlayer.addEventListener('ended', () => {
         playNextMusic();
     });
     
-    window.addEventListener('load', () => {
-        playNextMusic();
-    });
+    // 버튼 클릭 시 음악 재생/정지
+    musicToggleButton.addEventListener('click', toggleMusic);
+
     </script>
 </body>
 </html>
