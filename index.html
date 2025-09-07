@@ -89,8 +89,6 @@
 </head>
 <body class="flex items-center justify-center min-h-screen p-2 md:p-4">
 
-    <audio id="bgm" loop src="https://www.chosic.com/wp-content/uploads/2021/04/And-So-It-Begins-Inspired-By-Crush-Sometimes.mp3"></audio>
-
     <!-- Game Container -->
     <div id="gameContainer" class="game-container w-full max-w-5xl h-[95vh] max-h-[900px] rounded-3xl p-4 flex flex-col relative overflow-hidden">
         
@@ -98,8 +96,11 @@
         <div class="flex justify-between items-center bg-yellow-100/80 p-3 rounded-xl border-4 border-yellow-700 shadow-lg mb-4">
             <h1 class="text-2xl md:text-4xl font-bold text-orange-800">🐿️ 도토리 키우기 2 🐿️</h1>
             <div class="flex items-center gap-4">
+                 <!-- 음악 재생/정지 버튼 추가 -->
+                 <button id="musicToggle" class="text-3xl hover:text-yellow-600 transition-colors">
+                    <i class="fas fa-play"></i>
+                </button>
                  <button id="autoClickToggle" onclick="toggleAutoClick()" class="text-3xl text-gray-400 transition-colors hidden"><i class="fas fa-robot"></i></button>
-                <button id="musicToggleBtn" onclick="toggleMusic()" class="text-3xl text-gray-400 hover:text-yellow-600 transition-colors"><i class="fas fa-music"></i></button>
                 <button onclick="showModal('settingsModal')" class="text-3xl hover:text-yellow-600 transition-colors"><i class="fas fa-cog"></i></button>
                  <div class="text-xl md:text-3xl font-bold bg-stone-800 text-white px-4 py-2 rounded-full shadow-inner shadow-black/50">
                     💰 <span id="moneyDisplay">0</span> 원
@@ -197,7 +198,6 @@
         usedCoupons: [],
         expeditions: [],
         expeditionAlert: false,
-        isMusicPlaying: false,
     };
     let nextPetId = 0;
     let nextExpeditionId = 0;
@@ -207,7 +207,6 @@
     const gameScreen = document.getElementById('gameScreen');
     const modalContainer = document.getElementById('modalContainer');
     const modalContent = document.getElementById('modalContent');
-    const bgm = document.getElementById('bgm');
     
     // --- GAME INITIALIZATION ---
     function init() {
@@ -225,7 +224,6 @@
     function initSystems() {
         initAchievements();
         updateAutoClickToggleUI();
-        updateMusicUI();
     }
     
     // --- MAIN GAME LOOP ---
@@ -539,6 +537,7 @@
         }
     }
 
+    // [BUG FIX] initAchievements 함수 수정
     function initAchievements() {
         const baseAchievements = {
             clicks: { title: "성실한 클릭커", tiers: [100n, 1000n, 10000n, 100000n, 1000000n], rewards: [1000n, 10000n, 50000n, 250000n, 1000000n] },
@@ -547,8 +546,12 @@
         };
         for (const key in baseAchievements) {
             if (!gameState.achievements[key]) {
+                // 새 게임일 경우, 기본 데이터를 복사합니다.
                 gameState.achievements[key] = { ...baseAchievements[key], progress: 0n, claimedTier: -1 };
             } else {
+                // 저장된 게임을 불러올 경우, 기본 데이터 구조(tiers, rewards 등)는 유지하고
+                // progress와 claimedTier 값만 덮어씌웁니다.
+                // 이렇게 해야 BigInt 배열이 문자열 배열로 바뀌는 문제를 막을 수 있습니다.
                 const savedAch = gameState.achievements[key];
                 gameState.achievements[key] = {
                     ...baseAchievements[key],
@@ -641,7 +644,6 @@
     
     let managementSelection = [];
     function selectForManagement(petId, mode) {
-        // ... (Logic is mostly the same, no BigInt changes needed here)
         const pet = findPetById(petId);
         if (pet.expeditionId !== null) {
             showToast('탐험 중인 펫은 선택할 수 없습니다.', 'error'); return;
@@ -667,7 +669,6 @@
     }
     
     function doManagement(mode) {
-        // ... (Logic is mostly the same, no BigInt changes needed here)
         const limit = mode === 'enhance' ? 2 : 3;
         if (managementSelection.length !== limit) return;
         
@@ -711,27 +712,6 @@
         renderAll();
     }
 
-    // --- MUSIC CONTROL ---
-    function toggleMusic() {
-        gameState.isMusicPlaying = !gameState.isMusicPlaying;
-        if (gameState.isMusicPlaying) {
-            bgm.volume = 0.3;
-            bgm.play().catch(e => {
-                console.error("Audio playback failed:", e);
-                showToast("브라우저 설정으로 음악 재생이 차단되었습니다.", "error");
-                gameState.isMusicPlaying = false; 
-            });
-        } else {
-            bgm.pause();
-        }
-        updateMusicUI();
-    }
-
-    function updateMusicUI() {
-        const musicToggleBtn = document.getElementById('musicToggleBtn');
-        musicToggleBtn.classList.toggle('text-gray-400', !gameState.isMusicPlaying);
-        musicToggleBtn.classList.toggle('text-orange-800', gameState.isMusicPlaying);
-    }
 
     // --- RENDERING ---
     function renderAll() {
@@ -1088,7 +1068,6 @@
             gameState = { ...defaultState, ...loadedState };
             
             gameState.money = BigInt(gameState.money || '0');
-            gameState.expeditions.forEach(exp => exp.reward = BigInt(exp.reward || '0'));
             
             nextPetId = gameState.pets.length > 0 ? Math.max(-1, ...gameState.pets.map(p => p.id)) + 1 : 0;
             nextExpeditionId = gameState.expeditions.length > 0 ? Math.max(-1, ...gameState.expeditions.map(e => e.id)) + 1 : 0;
@@ -1103,6 +1082,48 @@
     }
     
     window.onload = init;
+
+    // --- 음악 재생 코드 ---
+    const musicList = [
+        'https://www.chosic.com/wp-content/uploads/2022/01/Forest-Walk.mp3',
+        'https://www.chosic.com/wp-content/uploads/2021/04/And-So-It-Begins-Inspired-By-Crush-Sometimes.mp3',
+        'https://www.chosic.com/wp-content/uploads/2022/05/The-Tower-of-Delight.mp3'
+    ];
+    
+    let currentMusicIndex = 0;
+    const audioPlayer = new Audio();
+    const musicToggleButton = document.getElementById('musicToggle');
+    
+    function toggleMusic() {
+        if (audioPlayer.paused) {
+            playNextMusic();
+        } else {
+            audioPlayer.pause();
+            musicToggleButton.innerHTML = '<i class="fas fa-play"></i>';
+        }
+    }
+    
+    function playNextMusic() {
+        if (currentMusicIndex >= musicList.length) {
+            currentMusicIndex = 0;
+        }
+    
+        audioPlayer.src = musicList[currentMusicIndex];
+        audioPlayer.play().catch(error => {
+            console.error('음악 재생 실패:', error);
+            musicToggleButton.innerHTML = '<i class="fas fa-play"></i>';
+        });
+        
+        musicToggleButton.innerHTML = '<i class="fas fa-pause"></i>';
+        currentMusicIndex++;
+    }
+    
+    audioPlayer.addEventListener('ended', () => {
+        playNextMusic();
+    });
+    
+    musicToggleButton.addEventListener('click', toggleMusic);
+
     </script>
 </body>
 </html>
