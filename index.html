@@ -1,77 +1,123 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>도토리 키우기 3: 파이널 챕터</title>
+    <title>도토리 키우기 Z: 파이널 챕터</title>
+    
+    <!-- Core Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- 3D Background Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
         :root {
             --primary-glow: #00ffff;
             --secondary-glow: #ff00ff;
+            --tertiary-glow: #ffff00;
+            --danger-glow: #ff4d4d;
             --text-color: #e0e0e0;
             --bg-dark: #0c0a1a;
             --bg-modal: rgba(15, 12, 40, 0.95);
+            --font-main: 'Jua', sans-serif;
         }
+
+        /* Base Setup */
         body {
-            font-family: 'Jua', sans-serif;
+            font-family: var(--font-main);
             background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
-                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
-                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
-                radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
-            background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px; 
-            background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
-            animation: move-stars 120s linear infinite;
             color: var(--text-color);
             user-select: none;
             overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
-        @keyframes move-stars {
-            from {background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;}
-            to {background-position: -550px -550px, -390px -410px, -380px -520px, -220px -250px;}
+        
+        #background-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            width: 100vw;
+            height: 100vh;
         }
+
+        /* Game Container & Theming */
         .game-container {
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px);
             border: 2px solid var(--primary-glow);
             box-shadow: 0 0 25px var(--primary-glow), inset 0 0 15px rgba(0, 255, 255, 0.3);
         }
+
         .modal {
             background-color: var(--bg-modal);
             border: 2px solid var(--secondary-glow);
             box-shadow: 0 0 20px var(--secondary-glow);
-            animation: fadeIn 0.3s ease-out;
+            transform: scale(0.9);
+            opacity: 0;
         }
+        
+        /* Buttons & Interactive Elements */
         .btn {
             position: relative;
             transition: all 0.2s ease;
             text-shadow: 0 0 5px currentColor;
             box-shadow: inset 0 0 8px rgba(255,255,255,0.3), 0 0 8px rgba(0,0,0,0.5);
             border-width: 2px;
+            will-change: transform, box-shadow;
         }
         .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: inset 0 0 10px rgba(255,255,255,0.5), 0 0 15px currentColor;
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: inset 0 0 10px rgba(255,255,255,0.5), 0 0 20px currentColor;
         }
-        .btn:active:not(:disabled) { transform: translateY(1px); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn:active:not(:disabled) { transform: translateY(1px) scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(80%); }
+
+        /* Pet Styles */
         .pet {
             cursor: pointer;
             transition: transform 0.2s ease, filter 0.2s ease;
             filter: drop-shadow(0 0 10px var(--primary-glow));
+            will-change: transform;
+        }
+        .pet-container {
             animation: float 4s ease-in-out infinite;
         }
-        .pet:hover { transform: scale(1.1); filter: drop-shadow(0 0 20px var(--primary-glow)); }
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-15px); }
         }
-        .floating-text {
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pulse-glow { 
+            0%, 100% { box-shadow: 0 0 20px var(--danger-glow); transform: scale(1.05); }
+            50% { box-shadow: 0 0 35px var(--danger-glow); transform: scale(1.1); }
+        }
+        @keyframes screen-shake {
+            0%, 100% { transform: translate(0, 0) rotate(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-2px, 2px) rotate(-1deg); }
+            20%, 40%, 60%, 80% { transform: translate(2px, -2px) rotate(1deg); }
+        }
+        .screen-shake { animation: screen-shake 0.3s ease-in-out; }
+        
+        .is-targeted {
+            animation: pulse-glow 1.5s infinite;
+            border-radius: 1rem;
+            border: 2px solid var(--danger-glow);
+        }
+
+        /* Floating text & particles */
+         .floating-text {
             position: absolute;
             font-size: 2.5rem;
             font-weight: bold;
@@ -79,788 +125,1508 @@
             text-shadow: 0 0 5px #fff, 0 0 10px var(--primary-glow);
             pointer-events: none;
             animation: floatUp 1.2s ease-out forwards;
+            z-index: 10;
         }
         @keyframes floatUp {
             from { transform: translateY(0) scale(1); opacity: 1; }
             to { transform: translateY(-150px) scale(1.8); opacity: 0; }
         }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        .tab-button.active { background-color: var(--secondary-glow); color: white; border-color: var(--secondary-glow); }
+        
+        .particle {
+            position: absolute;
+            background: var(--primary-glow);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* UI Components */
         .progress-bar { background-color: rgba(255,255,255,0.2); border-radius: 9999px; overflow: hidden; }
-        .progress-bar-inner { height: 100%; background: linear-gradient(90deg, var(--primary-glow), var(--secondary-glow)); border-radius: 9999px; transition: width 0.3s ease; }
+        .progress-bar-inner { height: 100%; transition: width 0.3s ease; }
+        .hp-bar { background: linear-gradient(90deg, #d32f2f, #f44336); }
+        .exp-bar { background: linear-gradient(90deg, var(--primary-glow), var(--secondary-glow)); }
+        .tab-button.active { background-color: var(--secondary-glow); color: white; border-color: var(--secondary-glow); }
+        .pet-card { transition: all 0.2s ease; border: 2px solid transparent; }
+        .pet-card.selected { border-color: var(--tertiary-glow); transform: scale(1.05); box-shadow: 0 0 15px var(--tertiary-glow); }
+        .pet-card.equipped-glow { box-shadow: 0 0 15px var(--primary-glow); }
+        .grayscale { filter: grayscale(100%) brightness(0.5); }
+        
+        .skill-cooldown {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            pointer-events: none;
+        }
+
+        /* Custom scrollbar for modals */
+        .modal-scroll::-webkit-scrollbar { width: 8px; }
+        .modal-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 4px; }
+        .modal-scroll::-webkit-scrollbar-thumb { background: var(--secondary-glow); border-radius: 4px; }
+        .modal-scroll::-webkit-scrollbar-thumb:hover { background: #ff4dff; }
+        
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            background-color: var(--bg-dark);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: var(--primary-glow);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+        #loadingIcon { font-size: 5rem; animation: spin 2s linear infinite; }
+        #loadingText { font-size: 2rem; margin-top: 1.5rem; letter-spacing: 0.1em; }
+        @keyframes spin { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
+        
+        /* Toast Notification */
+        #toast {
+            position: fixed;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            opacity: 0;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            border-width: 2px;
+            min-width: 300px;
+        }
+        #toast-progress {
+            position: absolute;
+            bottom: 0; left: 0; height: 4px;
+            background: var(--primary-glow);
+        }
+        select.weapon-select {
+            background-color: #1a1a2e;
+            color: white;
+            border: 1px solid var(--primary-glow);
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-2 md:p-4">
+    
+    <canvas id="background-canvas"></canvas>
 
-    <div id="gameContainer" class="game-container w-full max-w-5xl h-[95vh] max-h-[900px] rounded-3xl p-4 flex flex-col relative overflow-hidden">
+    <div id="loadingOverlay">
+        <div id="loadingIcon">🌰</div>
+        <div id="loadingText" class="font-bold">도토리 유니버스 접속 중...</div>
+    </div>
+
+    <div id="gameContainer" class="game-container w-full max-w-6xl h-[95vh] max-h-[1000px] rounded-3xl p-4 flex flex-col relative overflow-hidden">
         
+        <!-- Top Stats Bar -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2 text-center text-sm md:text-base">
+            <div class="bg-black/50 p-2 rounded-xl border border-purple-400">
+                👑 LV: <span id="playerLevelDisplay">1</span>
+                <div class="progress-bar mt-1 h-2"><div id="playerExpBar" class="progress-bar-inner exp-bar" style="width: 0%"></div></div>
+            </div>
+             <div class="bg-black/50 p-2 rounded-xl border border-purple-400 flex items-center justify-center gap-2 cursor-pointer" onclick="window.gameAPI.toggleNumberFormat()">
+                <i class="fa-solid fa-database text-cyan-300"></i> <span id="moneyDisplay">0</span>
+            </div>
+            <div class="bg-black/50 p-2 rounded-xl border border-purple-400 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-cookie-bite text-yellow-400"></i> <span id="goldenAcornAmount">0</span>
+            </div>
+            <div class="bg-black/50 p-2 rounded-xl border border-purple-400 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-star text-yellow-300"></i> <span id="stardustAmount">0</span>
+            </div>
+        </div>
+        
+        <!-- Header -->
         <div class="flex justify-between items-center bg-black/50 p-3 rounded-xl border-2 border-purple-400 shadow-lg mb-2">
-            <h1 class="text-xl md:text-3xl font-bold text-cyan-300">🪐 도토리 키우기 3: 파이널 챕터 🪐</h1>
-            <div class="flex items-center gap-4">
-                <div class="text-xl md:text-2xl font-bold bg-yellow-500 text-black px-4 py-2 rounded-full shadow-md flex items-center gap-2">
-                    <i class="fa-solid fa-cookie-bite"></i> <span id="goldenAcornAmount">0</span>
-                </div>
-                <div class="text-xl md:text-2xl font-bold bg-gray-800 text-white px-4 py-2 rounded-full shadow-inner cursor-pointer flex items-center gap-2" onclick="toggleNumberFormat()">
-                    <i class="fa-solid fa-database"></i> <span id="moneyDisplay">0</span>
-                </div>
-                <button onclick="showModal('settingsModal')" class="text-2xl text-white hover:text-cyan-300 transition-colors">
+            <h1 id="gameTitle" class="text-xl md:text-3xl font-bold text-cyan-300">🪐 도토리 키우기 Z: 파이널 챕터 🪐</h1>
+            <div>
+                <button onclick="window.gameAPI.showModal('settingsModal')" class="text-2xl text-white hover:text-cyan-300 transition-colors">
                     <i class="fa-solid fa-gear"></i>
                 </button>
             </div>
         </div>
         
-        <div id="gameScreen" class="flex-grow bg-black/30 rounded-2xl border-2 border-cyan-400 relative flex items-center justify-center flex-wrap gap-8 p-4 overflow-hidden"></div>
+        <!-- Game Screen -->
+        <div id="gameScreen" class="flex-grow bg-black/30 rounded-2xl border-2 border-cyan-400 relative flex items-center justify-center flex-col gap-8 p-4 overflow-hidden"></div>
         
-        <div class="grid grid-cols-5 gap-2 mt-4 text-xs md:text-base">
-            <button onclick="showModal('shopModal')" class="btn bg-cyan-600 text-white p-2 rounded-lg border-cyan-400">상점</button>
-            <button onclick="showModal('petModal')" class="btn bg-purple-600 text-white p-2 rounded-lg border-purple-400">펫</button>
-            <button onclick="showModal('enhanceModal')" class="btn bg-red-600 text-white p-2 rounded-lg border-red-400">강화</button>
-            <button onclick="showModal('evolveModal')" class="btn bg-indigo-500 text-white p-2 rounded-lg border-indigo-400">진화</button>
-            <button onclick="showModal('missionModal')" class="btn bg-green-600 text-white p-2 rounded-lg border-green-400">미션</button>
-            <button onclick="showModal('collectionModal')" class="btn bg-yellow-600 text-white p-2 rounded-lg border-yellow-400">도감</button>
-            <button onclick="showModal('rebirthModal')" class="btn bg-gray-700 text-yellow-300 p-2 rounded-lg border-yellow-500">환생</button>
-            <button onclick="showModal('storyBookModal')" class="btn bg-blue-600 text-white p-2 rounded-lg border-blue-400">스토리</button>
-            <button onclick="showModal('titleModal')" class="btn bg-orange-600 text-white p-2 rounded-lg border-orange-400">칭호</button>
-            <button onclick="showModal('disassemblyModal')" class="btn bg-stone-600 text-white p-2 rounded-lg border-stone-400">분해</button>
-            <button onclick="showModal('statsModal')" class="btn bg-indigo-600 text-white p-2 rounded-lg border-indigo-400">상세 스탯</button>
+        <!-- Active Potions & Skills Bar -->
+        <div class="flex justify-between items-center">
+            <div id="activePotionsBar" class="flex gap-2 mt-4"></div>
+            <div id="skillBar" class="flex justify-center gap-2 mt-4"></div>
+        </div>
+
+        <!-- Main Menu Buttons -->
+        <div class="grid grid-cols-4 md:grid-cols-8 gap-2 mt-4 text-xs md:text-base">
+            <button onclick="window.gameAPI.showModal('shopModal')" class="btn bg-cyan-600 text-white p-2 rounded-lg border-cyan-400">상점</button>
+            <button onclick="window.gameAPI.showModal('petModal')" class="btn bg-purple-600 text-white p-2 rounded-lg border-purple-400">펫</button>
+            <button onclick="window.gameAPI.showModal('enhanceModal')" class="btn bg-red-600 text-white p-2 rounded-lg border-red-400">강화</button>
+            <button onclick="window.gameAPI.showModal('evolveModal')" class="btn bg-indigo-500 text-white p-2 rounded-lg border-indigo-400">진화</button>
+            <button onclick="window.gameAPI.showModal('missionModal')" class="btn bg-green-600 text-white p-2 rounded-lg border-green-400">미션</button>
+            <button onclick="window.gameAPI.showModal('collectionModal')" class="btn bg-yellow-600 text-white p-2 rounded-lg border-yellow-400">도감</button>
+            <button onclick="window.gameAPI.showModal('rebirthModal')" class="btn bg-gray-700 text-yellow-300 p-2 rounded-lg border-yellow-500">환생</button>
+            <button onclick="window.gameAPI.showModal('explorationModal')" class="btn bg-teal-600 text-white p-2 rounded-lg border-teal-400">탐험</button>
+            <button onclick="window.gameAPI.showModal('craftingModal')" class="btn bg-amber-700 text-white p-2 rounded-lg border-amber-500">제작</button>
+            <button onclick="window.gameAPI.showModal('skillModal')" class="btn bg-rose-600 text-white p-2 rounded-lg border-rose-400">스킬</button>
+            <button onclick="window.gameAPI.showModal('bossModal')" class="btn bg-red-800 text-white p-2 rounded-lg border-red-600">보스</button>
+            <button onclick="window.gameAPI.showModal('dungeonModal')" class="btn bg-lime-600 text-white p-2 rounded-lg border-lime-400">던전</button>
+            <button onclick="window.gameAPI.showModal('storyBookModal')" class="btn bg-blue-600 text-white p-2 rounded-lg border-blue-400">스토리</button>
+            <button onclick="window.gameAPI.showModal('titleModal')" class="btn bg-orange-600 text-white p-2 rounded-lg border-orange-400">칭호</button>
+            <button onclick="window.gameAPI.showModal('statsModal')" class="btn bg-indigo-600 text-white p-2 rounded-lg border-indigo-400">상세 스탯</button>
+            <button onclick="window.gameAPI.showModal('worldBossModal')" class="btn bg-black text-red-400 p-2 rounded-lg border-red-600">월드보스</button>
         </div>
     </div>
     
-    <div id="modalContainer" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden p-4">
-        <div id="modalContent" class="modal w-full max-w-3xl p-6 rounded-2xl flex flex-col max-h-[90vh]"></div>
+    <!-- Modal Container -->
+    <div id="modalContainer" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" style="visibility: hidden;">
+        <div id="modalContent" class="modal w-full max-w-4xl p-6 rounded-2xl flex flex-col max-h-[90vh]"></div>
     </div>
     
-    <div id="toast" class="fixed bottom-10 right-10 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-xl text-lg opacity-0 transform translate-y-5 transition-all duration-500 z-[100]"></div>
+    <!-- Toast Notification -->
+    <div id="toast" class="bg-gray-800/80 text-white px-6 py-3 rounded-lg shadow-xl text-lg border-gray-500">
+        <p id="toast-text"></p>
+        <div id="toast-progress"></div>
+    </div>
 
     <script>
-    // --- DATA CONSTANTS ---
-    const PET_DATA={acorn:{name:"도토리",baseClick:1,cost:100,img:"🌰",rarity:"일반"},jitori:{name:"지토리",baseClick:3,cost:1e3,img:"🥜",rarity:"일반"},rocktori:{name:"돌토리",baseClick:10,cost:1e4,img:"🗿",rarity:"일반"},goldtori:{name:"황금도토리",baseClick:70,cost:1e5,img:"✨",rarity:"희귀"},diamondtori:{name:"다이아몬드도토리",baseClick:150,cost:3e5,img:"💎",rarity:"희귀"},beggartori:{name:"거지토리",baseClick:300,cost:5e5,img:"🗑️",rarity:"희귀"},santatori:{name:"산타토리",baseClick:500,cost:7e5,img:"🎅",rarity:"영웅"},dotoltem:{name:"도톨템",baseClick:1e3,cost:1e6,img:"🛡️",rarity:"영웅"},moontori:{name:"달토리",baseClick:1e4,cost:1e7,img:"🌕",rarity:"전설"},earthtori:{name:"지구토리",baseClick:1e5,cost:1e8,img:"🌍",rarity:"전설"},darktori:{name:"다크토리",baseClick:1e6,cost:1e9,img:"😈",rarity:"신화"},whitetori:{name:"화이트토리",baseClick:2e6,cost:3e9,img:"😇",rarity:"신화"},lighttori:{name:"라이트토리",baseClick:3e6,cost:5e9,img:"💡",rarity:"신화"},gravitytori:{name:"중력토리",baseClick:5e6,cost:1e10,img:"⚫",rarity:"태초"},spacetori:{name:"우주토리",baseClick:1e8,cost:1e11,img:"🌌",rarity:"태초"},multiversetori:{name:"다중우주토리",baseClick:1e9,cost:1e12,img:"🪐",rarity:"우주"},firsttori:{name:"최초의도토리",baseClick:5e9,cost:3e12,img:"💫",rarity:"우주"},infinitytori:{name:"무한의도토리",baseClick:2e10,cost:1e13,img:"♾️",rarity:"궁극"},absolutetori:{name:"앱솔루트토리",baseClick:1e11,cost:1e14,img:"👑",rarity:"궁극"},godtori:{name:"도토리의신",baseClick:1e12,cost:1e15,img:"🙏",rarity:"???"},secret_wawa:{name:"[시크릿]도토리니 지토리니 와와와",baseClick:1e13,cost:0,img:"🤯",rarity:"시크릿"}};
-    const GACHA_RATES={normal:[{type:"acorn",weight:3e3},{type:"jitori",weight:2500},{type:"rocktori",weight:1500},{type:"goldtori",weight:1e3},{type:"diamondtori",weight:800},{type:"beggartori",weight:500},{type:"santatori",weight:250},{type:"dotoltem",weight:150},{type:"moontori",weight:100},{type:"earthtori",weight:70},{type:"darktori",weight:50},{type:"whitetori",weight:20},{type:"lighttori",weight:9},{type:"secret_wawa",weight:1}],premium:[{type:"santatori",weight:2e3},{type:"dotoltem",weight:1500},{type:"moontori",weight:1200},{type:"earthtori",weight:1e3},{type:"darktori",weight:800},{type:"whitetori",weight:700},{type:"lighttori",weight:600},{type:"gravitytori",weight:500},{type:"spacetori",weight:400},{type:"multiversetori",weight:300},{type:"firsttori",weight:200},{type:"infinitytori",weight:150},{type:"absolutetori",weight:100},{type:"godtori",weight:40},{type:"secret_wawa",weight:10}]};
-    const STORY_BOOK_DATA={hope:{name:"도토리의 희망",cost:1e6,content:"어두운 숲, 이름 없는 도토리 하나가 하늘을 올려다봤다. 그는 다른 도토리들처럼 그저 땅에 떨어져 썩어갈 운명이 아니라고 믿었다. '저 밤하늘의 별처럼, 나도 빛날 수 있지 않을까?' 그의 작은 가슴에 거대한 우주를 향한 희망이 싹텄다."},tenacity:{name:"도토리의 투지",cost:1e8,content:"희망만으로는 부족했다. 그는 단단해져야 했다. 바위에 몸을 부딪쳐 껍질을 단련하고, 빗물을 맞으며 정신을 가다듬었다. 수많은 도토리들이 비웃었지만, 그는 멈추지 않았다. 그의 투지는 곧 그의 힘이 되었다."},unity:{name:"도토리의 단결",cost:1e10,content:"혼자서는 우주에 닿을 수 없었다. 그는 자신과 같은 꿈을 꾸는 동료들을 모으기 시작했다. 돌멩이처럼 단단한 자, 황금처럼 빛나는 자, 심지어 어둠의 힘을 품은 자까지. 마침내 그들은 거대한 위협에 맞서기 위한 하나의 군단이 되었다."},war:{name:"도토리의 전쟁",cost:1e12,content:"그들의 성장을 시기한 '썩어가는 자들'이 나타났다. 세상의 모든 것을 부패시키려는 그들과의 전쟁은 피할 수 없었다. 도토리 군단은 은하계를 무대로 장대한 전쟁을 시작했다. 수많은 동료를 잃었지만, 그들의 의지는 꺾이지 않았다."},final:{name:"최후의 도토리",cost:1e13,content:"전쟁의 끝, 그는 '썩어가는 자들'의 심장부에서 그들의 왕과 마주했다. 왕은 다름 아닌, 모든 희망을 포기하고 절망에 빠진 최초의 도토리였다. \"결국 모든 것은 사라진다.\" 왕의 공허한 외침에 그는 답했다. \"하지만 우리의 의지는 별이 되어 영원히 빛날 것이다!\""},ending:{name:"엔딩",cost:1e16,content:"왕을 쓰러뜨린 그는 우주의 중심에 섰다. 그는 별을 창조하고, 은하를 빚어냈다. 더 이상 작고 나약한 도토리가 아니었다. 그는 곧 우주였고, 우주는 곧 그였다. 모든 존재는 그의 의지 아래 새로운 시작을 맞이했다. 영겁의 시간 속, 그의 이야기는 전설이 되어 우주를 떠돌았다. 아주 작은 희망 하나가 얼마나 거대한 현실을 만들어낼 수 있는지 증명하며."}};
-    const RARITY_COLORS = { '일반': 'text-gray-300', '희귀': 'text-blue-400', '영웅': 'text-purple-400', '전설': 'text-yellow-400', '신화': 'text-red-400', '태초': 'text-cyan-300', '우주': 'text-fuchsia-400', '궁극': 'text-orange-300', '???': 'text-white', '시크릿': 'text-green-400' };
-    const ARTIFACT_DATA = {ancientAcorn: { name: '고대의 도토리', maxLevel: 50, cost: (lv) => 1 + lv, effect: (lv) => lv * 0.05, desc: "모든 재화 획득량 +{EFFECT}%" },starFragment: { name: '별의 파편', maxLevel: 20, cost: (lv) => 5 + lv * 2, effect: (lv) => lv * 0.02, desc: "클릭당 재화 획득량 +{EFFECT}%" },timeCrystal: { name: '시간의 결정', maxLevel: 30, cost: (lv) => 2 + lv, effect: (lv) => lv * 0.03, desc: "오프라인 보상량 +{EFFECT}%" },goldenCompass: { name: '황금 나침반', maxLevel: 10, cost: (lv) => 10 + lv * 5, effect: (lv) => lv * 0.01, desc: "황금 도토리 획득 확률 +{EFFECT}%" },};
-    const TITLE_DATA = {'초보자':{desc:"게임을 시작한 자",bonus:{type:"none"}},'클릭의 달인':{desc:"총 10만번 클릭 달성",unlock:gs=>gs.stats.totalClicks>=1e5,bonus:{type:"click_power",value:.1}},'수집가':{desc:"펫 10종류 수집",unlock:gs=>Object.keys(gs.collection).length>=10,bonus:{type:"all_power",value:.05}},'백만장자':{desc:"최대 보유 재화 100만 달성",unlock:gs=>gs.stats.maxMoney>=1e6,bonus:{type:"money_gain",value:.1}},'환생자':{desc:"첫 환생 달성",unlock:gs=>gs.stats.rebirths>=1,bonus:{type:"all_power",value:.1}}};
-    
-    let gameState = {};
-    const initialGameState = {money: 0, goldenAcorns: 0,pets: [], equippedPetIds: [], petLimit: 3,upgrades: { autoClickLevel: 0, clickPowerLevel: 0, goldenAcornChanceLevel: 0 },missions: { daily: [], weekly: [] }, lastMissionReset: { daily: 0, weekly: 0 },collection: {}, artifacts: {},titles: { unlocked: ['초보자'], equipped: '초보자' },couponsUsed: [],stats: { totalClicks: 0, totalMoney: 0, maxMoney: 0, rebirths: 0, playTime: 0 },settings: { numberFormat: 'full', animations: true },storyBooks: {},lastSaveTime: Date.now()};
-    let nextPetId = 0;
-    let enhanceSelection = []; let evolveSelection = [];
+    // --- IIFE to encapsulate game logic ---
+    (function() {
+        'use strict';
 
-    const moneyDisplay = document.getElementById('moneyDisplay');
-    const goldenAcornAmount = document.getElementById('goldenAcornAmount');
-    const gameScreen = document.getElementById('gameScreen');
-    const modalContainer = document.getElementById('modalContainer');
-    const modalContent = document.getElementById('modalContent');
-    const toast = document.getElementById('toast');
-
-    function init() {
-        loadGame();
-        if (gameState.pets.length === 0) addPet('acorn');
-        handleOfflineProgress();
-        checkMissionReset();
-        checkTitleUnlocks();
-        setInterval(gameLoop, 1000);
-        renderAll();
-    }
-
-    function gameLoop() {
-        let cps = calculateCPS();
-        changeMoney(cps.auto);
-        gameState.stats.playTime++;
-        gameState.lastSaveTime = Date.now();
-        saveGame();
-    }
-    
-    function calculateCPS() {
-        let clickMultiplier = 1;
-        let autoMultiplier = 1;
-        let baseClick = 0;
-        gameState.equippedPetIds.map(id => findPetById(id)).filter(p => p).forEach(pet => {
-            const petData = PET_DATA[pet.type];
-            if(!petData) return;
-            let petPower = petData.baseClick;
-            petPower *= (1 + (pet.enhancement * .2));
-            petPower *= (1 + (pet.evolution * 2));
-            petPower *= (1 + (pet.potential * .5));
-            baseClick += petPower;
-        });
-        
-        clickMultiplier *= (1 + gameState.upgrades.clickPowerLevel * 0.1);
-        autoMultiplier *= (1 + (gameState.upgrades.autoClickLevel * 0.1));
-        
-        let globalMultiplier = 1 + gameState.stats.rebirths * 0.5;
-        if(gameState.artifacts.ancientAcorn) globalMultiplier *= (1 + ARTIFACT_DATA.ancientAcorn.effect(gameState.artifacts.ancientAcorn));
-        globalMultiplier *= (1 + Object.keys(gameState.collection).length * 0.002);
-
-        const equippedTitle = TITLE_DATA[gameState.titles.equipped];
-        if (equippedTitle && equippedTitle.bonus.type !== 'none') {
-            const b = equippedTitle.bonus;
-            if (b.type === 'click_power' || b.type === 'all_power' || b.type === 'money_gain') clickMultiplier *= (1 + b.value);
-            if (b.type === 'all_power' || b.type === 'money_gain') autoMultiplier *= (1 + b.value);
-        }
-
-        let totalClickValue = baseClick * clickMultiplier * globalMultiplier;
-        if(gameState.artifacts.starFragment) totalClickValue *= (1 + ARTIFACT_DATA.starFragment.effect(gameState.artifacts.starFragment));
-        const autoClickPerSecond = totalClickValue * autoMultiplier;
-        
-        return { click: totalClickValue, auto: autoClickPerSecond };
-    }
-
-    function handlePetClick(event) {
-        const clickValue = calculateCPS().click;
-        changeMoney(clickValue);
-        gameState.stats.totalClicks++;
-        updateMissionProgress('click', 1);
-        
-        const dropChance = 0.001 + (gameState.upgrades.goldenAcornChanceLevel * 0.0005) + (gameState.artifacts.goldenCompass ? ARTIFACT_DATA.goldenCompass.effect(gameState.artifacts.goldenCompass) : 0);
-        if (Math.random() < dropChance) {
-            changeGoldenAcorns(1);
-            showToast('황금 도토리를 획득했습니다!', 'info');
-        }
-
-        if (gameState.settings.animations) {
-            const floatingText = document.createElement('div');
-            floatingText.className = 'floating-text';
-            floatingText.textContent = `+${formatNumber(clickValue)}`;
-            const rect = gameScreen.getBoundingClientRect();
-            floatingText.style.left = `${event.clientX - rect.left - rect.width/4}px`;
-            floatingText.style.top = `${event.clientY - rect.top}px`;
-            gameScreen.appendChild(floatingText);
-            setTimeout(() => floatingText.remove(), 1200);
-        }
-    }
-
-    function changeMoney(amount) {
-        if(isNaN(amount) || amount === 0) return;
-        gameState.money += amount;
-        if (amount > 0) {
-            gameState.stats.totalMoney += amount;
-            updateMissionProgress('earn', amount);
-        }
-        if (gameState.money > gameState.stats.maxMoney) {
-            gameState.stats.maxMoney = gameState.money;
-            checkTitleUnlocks();
-        }
-        renderMoney();
-    }
-    
-    function changeGoldenAcorns(amount) {
-        gameState.goldenAcorns += amount;
-        renderGoldenAcorns();
-    }
-    
-    function addPet(type, from = 'buy') {
-        const newPet = { id: nextPetId++, type, enhancement: 0, evolution: 0, potential: Math.random() };
-        gameState.pets.push(newPet);
-        if (gameState.equippedPetIds.length < gameState.petLimit) gameState.equippedPetIds.push(newPet.id);
-        if(!gameState.collection[type]) {
-             gameState.collection[type] = 0;
-             updateMissionProgress('collect', 1);
-        }
-        gameState.collection[type]++;
-        checkTitleUnlocks();
-    }
-    
-    function applyCoupon(code) {
-        if(gameState.couponsUsed.includes(code)){
-            showToast("이미 사용된 쿠폰입니다.", "error");
-            return;
-        }
-        let isValid = false;
-        if(code === '도토리'){
-            changeMoney(100);
-            addPet('acorn');
-            isValid = true;
-        } else if(code === '지토리'){
-            changeMoney(100);
-            for(let i=0; i<11; i++) addPet('acorn');
-            isValid = true;
-        } else if(code === 'DOLTO') {
-            addPet('rocktori');
-            isValid = true;
-        } else if(code === 'THEBEST#1_25') {
-            changeGoldenAcorns(1);
-            isValid = true;
-        }
-        
-        if(isValid){
-            gameState.couponsUsed.push(code);
-            showToast("쿠폰 보상이 지급되었습니다!", "success");
-        } else {
-            showToast("유효하지 않은 쿠폰입니다.", "error");
-        }
-    }
-    
-    const MISSION_POOL={daily:[{key:"click",text:n=>`펫 ${n}번 클릭하기`,targets:[500, 1000, 2000],reward:n=>2+n},{key:"earn",text:n=>`재화 ${formatNumber(n)} 획득하기`,targets:[10000, 50000, 100000],reward:n=>2+n},{key:"enhance",text:()=>"펫 강화 1회 시도하기",targets:[1],reward:()=>5}],weekly:[{key:"collect",text:n=>`새로운 펫 ${n}종 수집하기`,targets:[1,2,3],reward:n=>10*n},{key:"rebirth",text:()=>"환생 1회 진행하기",targets:[1],reward:()=>50}]};
-
-    function generateMissions(type) {
-        let missions = [];
-        let pool = MISSION_POOL[type];
-
-        for (const missionTemplate of pool) {
-            let targetIndex = Math.floor(Math.random() * missionTemplate.targets.length);
-            let target = missionTemplate.targets[targetIndex];
-            missions.push({
-                id: missionTemplate.key,
-                text: missionTemplate.text(target),
-                target: target,
-                progress: 0,
-                reward: missionTemplate.reward(targetIndex + 1),
-                claimed: false
-            });
-        }
-        return missions;
-    }
-
-    function checkMissionReset(){const now=new Date;const today=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();if(today>gameState.lastMissionReset.daily){gameState.missions.daily=generateMissions("daily");gameState.lastMissionReset.daily=today}const weekStart=today-now.getDay()*864e5;if(weekStart>gameState.lastMissionReset.weekly){gameState.missions.weekly=generateMissions("weekly");gameState.lastMissionReset.weekly=weekStart}}
-    function updateMissionProgress(key,value){if(typeof value!=="number"||value<=0)return;gameState.missions.daily.forEach(m=>{if(m.id===key&&!m.claimed)m.progress+=value});gameState.missions.weekly.forEach(m=>{if(m.id===key&&!m.claimed)m.progress+=value})}
-    function claimMissionReward(type,index){const mission=gameState.missions[type][index];if(mission.progress>=mission.target&&!mission.claimed){mission.claimed=true;changeGoldenAcorns(mission.reward);showToast(`미션 보상! 황금 도토리 ${mission.reward}개 획득!`,"success");showModal("missionModal")}}
-    
-    function checkTitleUnlocks(){let updated=false;for(const title in TITLE_DATA){if(!gameState.titles.unlocked.includes(title)&&TITLE_DATA[title].unlock(gameState)){gameState.titles.unlocked.push(title);showToast(`새로운 칭호 획득: [${title}]`,"info");updated=true}}return updated}
-    function equipTitle(title){if(gameState.titles.unlocked.includes(title)){gameState.titles.equipped=title;showToast(`[${title}] 칭호를 장착했습니다.`,"success");showModal("titleModal")}}
-
-    function doRebirth() {
-        const cost = 1e9;
-        if(gameState.money < cost) { showToast(`환생 비용(${formatNumber(cost)})이 부족합니다.`, 'error'); return; }
-        const points = Math.floor(Math.log10(gameState.money / cost) * 2) + 1;
-        
-        const preservedState = {
-            goldenAcorns: gameState.goldenAcorns + points,
-            collection: gameState.collection,
-            artifacts: gameState.artifacts,
-            titles: gameState.titles,
-            couponsUsed: gameState.couponsUsed,
-            stats: { ...gameState.stats, rebirths: gameState.stats.rebirths + 1 },
-            settings: gameState.settings,
-            storyBooks: gameState.storyBooks,
+        // --- DOM Elements ---
+        const DOMElements = {
+            loadingOverlay: document.getElementById("loadingOverlay"),
+            gameContainer: document.getElementById("gameContainer"),
+            moneyDisplay: document.getElementById("moneyDisplay"),
+            goldenAcornAmount: document.getElementById("goldenAcornAmount"),
+            stardustAmount: document.getElementById("stardustAmount"),
+            playerLevelDisplay: document.getElementById("playerLevelDisplay"),
+            playerExpBar: document.getElementById("playerExpBar"),
+            gameScreen: document.getElementById("gameScreen"),
+            skillBar: document.getElementById("skillBar"),
+            activePotionsBar: document.getElementById('activePotionsBar'),
+            modalContainer: document.getElementById("modalContainer"),
+            modalContent: document.getElementById("modalContent"),
+            toast: document.getElementById("toast"),
+            toastText: document.getElementById("toast-text"),
+            toastProgress: document.getElementById("toast-progress"),
+            backgroundCanvas: document.getElementById('background-canvas')
         };
         
-        const freshState = JSON.parse(JSON.stringify(initialGameState));
+        // --- Game Data Constants ---
+        const PET_DATA={acorn:{name:"도토리",baseClick:1,cost:100,img:"🌰",rarity:"일반"},jitori:{name:"지토리",baseClick:3,cost:1e3,img:"🥜",rarity:"일반"},rocktori:{name:"돌토리",baseClick:10,cost:1e4,img:"🗿",rarity:"일반"},goldtori:{name:"황금도토리",baseClick:70,cost:1e5,img:"✨",rarity:"희귀"},diamondtori:{name:"다이아몬드도토리",baseClick:150,cost:3e5,img:"💎",rarity:"희귀"},beggartori:{name:"거지토리",baseClick:300,cost:5e5,img:"🗑️",rarity:"희귀"},santatori:{name:"산타토리",baseClick:500,cost:7e5,img:"🎅",rarity:"영웅"},dotoltem:{name:"도톨템",baseClick:1e3,cost:1e6,img:"🛡️",rarity:"영웅"},moontori:{name:"달토리",baseClick:1e4,cost:1e7,img:"🌕",rarity:"전설"},earthtori:{name:"지구토리",baseClick:1e5,cost:1e8,img:"🌍",rarity:"전설"},darktori:{name:"다크토리",baseClick:1e6,cost:1e9,img:"😈",rarity:"신화"},whitetori:{name:"화이트토리",baseClick:2e6,cost:3e9,img:"😇",rarity:"신화"},lighttori:{name:"라이트토리",baseClick:3e6,cost:5e9,img:"💡",rarity:"신화"},gravitytori:{name:"중력토리",baseClick:5e6,cost:1e10,img:"⚫",rarity:"태초"},spacetori:{name:"우주토리",baseClick:1e8,cost:1e11,img:"🌌",rarity:"태초"},multiversetori:{name:"다중우주토리",baseClick:1e9,cost:1e12,img:"🪐",rarity:"우주"},firsttori:{name:"최초의도토리",baseClick:5e9,cost:3e12,img:"💫",rarity:"우주"},infinitytori:{name:"무한의도토리",baseClick:2e10,cost:1e13,img:"♾️",rarity:"궁극"},absolutetori:{name:"앱솔루트토리",baseClick:1e11,cost:1e14,img:"👑",rarity:"궁극"},godtori:{name:"도토리의신",baseClick:1e12,cost:1e15,img:"🙏",rarity:"???"},chronotori:{name:"크로노토리",baseClick:5e12,cost:1e16,img:"⏳",rarity:"코즈믹"},novatori:{name:"노바토리",baseClick:2e13,cost:1e17,img:"🌟",rarity:"코즈믹"},glitchtori:{name:"글리치토리",baseClick:1e14,cost:1e18,img:"🤖",rarity:"디바인"},zetatori:{name:"제타토리",baseClick:1e15,cost:1e20,img:"💤",rarity:"디바인"},abysstori:{name:"심연토리",baseClick:1e16,cost:1e22,img:"⚫",rarity:"어비셜"},secret_wawa:{name:"[시크릿]도토리니 지토리니 와와와",baseClick:1e13,cost:0,img:"🤯",rarity:"시크릿"}};
+        const GACHA_RATES={normal:[{type:"acorn",weight:3e3},{type:"jitori",weight:2500},{type:"rocktori",weight:1500},{type:"goldtori",weight:1e3},{type:"diamondtori",weight:800},{type:"beggartori",weight:500},{type:"santatori",weight:250},{type:"dotoltem",weight:150},{type:"moontori",weight:100},{type:"earthtori",weight:70},{type:"darktori",weight:50},{type:"whitetori",weight:20},{type:"lighttori",weight:9},{type:"secret_wawa",weight:1}],premium:[{type:"santatori",weight:2e3},{type:"dotoltem",weight:1500},{type:"moontori",weight:1200},{type:"earthtori",weight:1e3},{type:"darktori",weight:800},{type:"whitetori",weight:700},{type:"lighttori",weight:600},{type:"gravitytori",weight:500},{type:"spacetori",weight:400},{type:"multiversetori",weight:300},{type:"firsttori",weight:200},{type:"infinitytori",weight:150},{type:"absolutetori",weight:100},{type:"godtori",weight:40},{type:"secret_wawa",weight:10}],stardust:[{type:"godtori",weight:1e3},{type:"chronotori",weight:500},{type:"novatori",weight:250},{type:"glitchtori",weight:100},{type:"zetatori",weight:50},{type:"abysstori",weight:10},{type:"secret_wawa",weight:5}]};
+        const STORY_BOOK_DATA={hope:{name:"도토리의 희망",cost:1e6,content:"작은 도토리 하나가 우주를 꿈꿨다. 모두가 비웃었지만, 그의 안에는 무한한 가능성이 잠재되어 있었다."},tenacity:{name:"도토리의 투지",cost:1e8,content:"수많은 시련이 닥쳤다. 거친 비바람과 포식자들의 위협 속에서도 도토리는 싹을 틔우기 위해 버다."},unity:{name:"도토리의 단결",cost:1e10,content:"혼자는 약했지만, 함께는 강했다. 숲의 모든 도토리들이 모여 거대한 의지를 만들어냈다."},war:{name:"도토리의 전쟁",cost:1e12,content:"우주적 존재 '공허'가 모든 것을 집어삼키려 할 때, 도토리 연합은 스스로의 존재를 걸고 맞서 싸웠다."},final:{name:"최후의 도토리",cost:1e13,content:"모든 희생 끝에, 단 하나의 도토리가 남아 공허의 심장부로 향했다. 그의 손에 모든 것의 운명이 달려있었다."},ending:{name:"엔딩",cost:1e16,content:"공허를 물리친 도토리는 우주의 새로운 신이 되었다. 그의 의지는 별이 되고, 그의 숨결은 은하수가 되었다."},zeta:{name:"제타 유니버스",cost:1e20,content:"왕을 쓰러뜨린 그는 우주 그 자체가 되었다. 하지만 끝이 아니었다. 그의 의식이 닿지 않는 더 높은 차원, '제타 유니버스'의 존재를 깨달았다. 그곳은 모든 가능성이 현실이 되는 곳, 상상조차 할 수 없는 존재들이 살아가는 곳이었다."},abyss:{name:"심연의 부름",cost:1e24,content:"제타 유니버스의 고요를 깨뜨린 것은 심연의 부름이었다. 모든 것을 무로 되돌리려는 엔트로피의 의지, 어비셜(Abyssal) 존재들이 깨어난 것이다. 도토리의 신은 다시 한번, 이번엔 자신의 창조물 전부를 걸고 싸워야 했다."}};
+        const RARITY_COLORS = { '일반': 'text-gray-300', '희귀': 'text-blue-400', '영웅': 'text-purple-400', '전설': 'text-yellow-400', '신화': 'text-red-400', '태초': 'text-cyan-300', '우주': 'text-fuchsia-400', '궁극': 'text-orange-300', '???': 'text-white', '시크릿': 'text-green-400', '코즈믹': 'text-indigo-300', '디바인': 'text-yellow-200', '어비셜': 'text-gray-400' };
+        const ARTIFACT_DATA = {ancientAcorn:{name:"고대의 도토리",maxLevel:50,cost:lv=>1+lv,effect:lv=>lv*0.05,desc:"모든 재화 획득량 +{EFFECT}%"},starFragment:{name:"별의 파편",maxLevel:20,cost:lv=>5+lv*2,effect:lv=>lv*0.02,desc:"클릭당 재화 획득량 +{EFFECT}%"},timeCrystal:{name:"시간의 결정",maxLevel:30,cost:lv=>2+lv,effect:lv=>lv*0.03,desc:"오프라인 보상량 +{EFFECT}%"},goldenCompass:{name:"황금 나침반",maxLevel:10,cost:lv=>10+lv*5,effect:lv=>lv*0.01,desc:"황금 도토리 획득 확률 +{EFFECT}%"},enhancersCharm:{name:"강화술사의 부적",maxLevel:10,cost:lv=>20+lv*10,effect:lv=>lv*0.01,desc:"강화 성공 확률 +{EFFECT}%"}};
+        const TITLE_DATA = {'초보자':{desc:"게임을 시작한 자",bonus:{type:"none"}},'클릭의 달인':{desc:"총 10만번 클릭 달성",unlock:gs=>gs.stats.totalClicks>=1e5,bonus:{type:"click_power",value:.1}},'수집가':{desc:"펫 10종류 수집",unlock:gs=>Object.keys(gs.collection).length>=10,bonus:{type:"all_power",value:.05}},'백만장자':{desc:"최대 보유 재화 100만 달성",unlock:gs=>gs.stats.maxMoney>=1e6,bonus:{type:"money_gain",value:.1}},'환생자':{desc:"첫 환생 달성",unlock:gs=>gs.stats.rebirths>=1,bonus:{type:"all_power",value:.1}},'탐험가':{desc:"탐험 10회 완료",unlock:gs=>gs.stats.explorations>=10,bonus:{type:"all_power",value:.15}},'보스 슬레이어':{desc:"보스 '지토리의 악몽' 처치",unlock:gs=>gs.boss.cleared.includes('nightmare'),bonus:{type:"click_power",value:.2}}};
+        const EXPLORATION_DATA = {forest: {name: "초심자의 숲", duration: 60 * 5, minRarity: 0, teamSize: 1, rewards: () => ({ money: 5e3, exp: 10, materials: { wood: Math.floor(Math.random() * 3) + 1 } })},cave: {name: "신비한 동굴", duration: 60 * 30, minRarity: 1, teamSize: 2, rewards: () => ({ money: 5e5, exp: 50, materials: { stone: Math.floor(Math.random() * 3) + 1 } })},abyss: {name: "심연의 균열", duration: 60 * 60 * 4, minRarity: 4, teamSize: 3, rewards: () => ({ stardust: Math.floor(Math.random() * 5) + 1, exp: 200, materials: { dark_matter: 1 } })}};
+        const CRAFTING_DATA = {clickPotion: {name: "클릭 포션 (5분)", materials: {wood: 5}, result: {type: 'potion', id: 'clickBoost', duration: 300, effect: {type: 'click_power_mult', value: 2}, img: '🧪'}},moneyPotion: {name: "재화 포션 (10분)", materials: {wood: 3, stone: 3}, result: {type: 'potion', id: 'moneyBoost', duration: 600, effect: {type: 'money_gain_mult', value: 1.5}, img: '💰'}}};
+        const SKILL_DATA = {s001: { name: "클릭 폭주", type: 'active', maxLevel: 10, sp: 1, cooldown: 180, desc: lv => `10초간 클릭당 재화 ${5 + lv * 0.5}배 증가`},s002: { name: "재화 즉발", type: 'active', maxLevel: 10, sp: 2, cooldown: 3600, desc: lv => `${10 + lv}분치 자동 재화 즉시 획득`},s003: { name: "황금 도토리", type: 'active', maxLevel: 5, sp: 3, cooldown: 7200, desc: lv => `즉시 ${lv}개의 황금 도토리 획득`},p001: { name: "견고한 껍질", type: 'passive', maxLevel: 20, sp: 1, desc: lv => `클릭당 재화 획득량 ${lv * 5}% 증가`, effect: lv => lv * 0.05 },p002: { name: "황금 터치", type: 'passive', maxLevel: 10, sp: 2, desc: lv => `황금 도토리 획득 확률 ${lv * 10}% 증가`, effect: lv => lv * 0.1 },a001: { name: "자동 회전", type: 'passive', maxLevel: 20, sp: 1, desc: lv => `초당 자동 재화 획득량 ${lv * 5}% 증가`, effect: lv => lv * 0.05 },a002: { name: "별의 축복", type: 'passive', maxLevel: 10, sp: 2, desc: lv => `오프라인 보상량 ${lv * 10}% 증가`, effect: lv => lv * 0.1 }};
+        const BOSS_DATA = {nightmare: { name: "지토리의 악몽", hp: 1e5, reward: { money: 5e5 }, attack: 500, attackSpeed: 4, img: '👻', animation: 'shake' },devil: { name: "지토리의 악마", hp: 1e8, reward: { money: 5e8 }, attack: 50000, attackSpeed: 4, img: '👿', animation: 'pulse' },reaper: { name: "지토리의 사신", hp: 1e12, reward: { money: 1e13, stardust: 100 }, attack: 1e9, attackSpeed: 3.5, img: '💀', animation: 'lunge' },glitch: { name: "?#@*ㅇ!ㅓㅁ뵓", hp: 1e14, reward: { money: 1e15, stardust: 1000 }, attack: 1e11, attackSpeed: 3, img: '👾', animation: 'shake' },discovery: {name: "발견", hp: 1e16, reward: { money: 1e17, stardust: 10000 }, attack: 1e13, attackSpeed: 5, img: '👁️', animation: 'pulse', story: "우주의 끝, 모든 것이 시작된 곳에서 '그것'을 발견했다. '그것'은 형태가 없었다. 모든 가능성이자 끝없는 무(無)였다. '그것'은 우리를 바라보며 물었다. '너희의 존재 이유는 무엇인가?' ...답해야 한다. 우리의 모든 것을 걸고."}};
+        const WEAPON_DATA = {w001:{name:"낡은 나뭇가지",bonus:1,cost:1e8},w002:{name:"단단한 조약돌",bonus:2,cost:1e10},w003:{name:"강철 도토리 깍지",bonus:3,cost:1e12},w004:{name:"별빛이 깃든 검",bonus:10,cost:1e14},w005:{name:"은하수 대포",bonus:100,cost:1e15},w006:{name:"차원의 파편",bonus:999,cost:5e16},w007:{name:"우주 그 자체",bonus:1e9,cost:1e19}};
+        const DUNGEON_DATA = {d01: { name: "잊혀진 숲", stages: [{ bossId: 'nightmare', hpMultiplier: 0.5 }, { bossId: 'nightmare', hpMultiplier: 1 }], reward: { money: 1e6, materials: { wood: 5 } } }};
+        const WORLD_BOSS_DATA = { omegaAcorn: { name: "오메가 도토리", totalHp: 1e30, endDate: new Date('2025-12-31T23:59:59'), img: '💥' } };
+        const COUPONS = { 
+            "WELCOME2025": { reward: { goldenAcorns: 50, stardust: 10 }, message: "환영합니다! 황금도토리 50개, 스타더스트 10개 획득!" },
+            "ACORN": { reward: { money: 1e27 }, message: "비밀 쿠폰을 발견했습니다! 1000해 재화 지급!" }
+        };
         
-        gameState = { ...freshState, ...preservedState };
+        // --- Game State & Variables ---
+        let gameState = {};
+        const initialGameState = {money:0,goldenAcorns:0,stardust:0,playerLevel:1,playerExp:0,pets:[],equippedPetIds:[],petLimit:3,upgrades:{autoClickLevel:0,clickPowerLevel:0,goldenAcornChanceLevel:0},missions:[],collection:{},artifacts:{},titles:{unlocked:["초보자"],equipped:"초보자"},couponsUsed:[],stats:{totalClicks:0,totalMoney:0,maxMoney:0,rebirths:0,playTime:0,explorations:0, gachaCount:0, statsHistory:[], worldBossDamage:0},settings:{numberFormat:"korean",animations:true, sound: 0.5, music: 0.3},storyBooks:{},lastSaveTime:Date.now(),explorationSlots:[{team:[],returnTime:0,area:null}],inventory:{materials:{wood:0,stone:0,dark_matter:0}},activePotions:[],skills:{points:0,levels:{}, unlocked: [], cooldowns: {}, active: {}},boss:{team:[],activeBoss:null,bossHp:0,petHps:{},cleared:[],isAttacking:false,attackTargetId:null,nextAttackTime:0},worldBoss:{damageDealt:0},dungeon:{active:null,stage:0},weapons:{owned:[],equipped:{}}};
         
-        addPet('acorn');
-        updateMissionProgress('rebirth', 1);
-        showToast(`환생 완료! 황금 도토리 ${points}개를 획득했습니다!`, 'success');
-        closeModal();
-        renderAll();
-    }
-
-    function buyArtifact(id) {
-        const artifact = ARTIFACT_DATA[id];
-        const level = gameState.artifacts[id] || 0;
-        if(level >= artifact.maxLevel) { showToast('최대 레벨입니다.', 'error'); return; }
-        const cost = artifact.cost(level);
-        if(gameState.goldenAcorns < cost) { showToast('황금 도토리가 부족합니다.', 'error'); return; }
-        changeGoldenAcorns(-cost);
-        gameState.artifacts[id] = level + 1;
-        showModal('rebirthModal');
-    }
-
-    function selectForEnhance(id){if(enhanceSelection.includes(id))enhanceSelection=enhanceSelection.filter(petId=>petId!==id);else enhanceSelection.push(id);showModal("enhanceModal")}
-    
-    // FC온라인 강화 확률을 참고하여 변경
-    function doEnhance() {
-        if(enhanceSelection.length !== 2) {
-            showToast("강화할 펫 1마리와 재료 펫 1마리, 총 2마리를 선택해야 합니다.", "error");
-            return;
-        }
-        const basePet = findPetById(enhanceSelection[0]);
-        const materialPet = findPetById(enhanceSelection[1]);
-        if(!basePet || !materialPet) {
-            enhanceSelection = [];
-            showModal("enhanceModal");
-            return;
-        }
-        if(basePet.id === materialPet.id) {
-            showToast("자기 자신을 재료로 사용할 수 없습니다.", "error");
-            return;
-        }
-        if(basePet.type !== materialPet.type || basePet.enhancement !== materialPet.enhancement || basePet.evolution !== materialPet.evolution) {
-            showToast("동일한 종류, 강화, 진화 단계의 펫만 재료로 사용할 수 있습니다.", "error");
-            return;
-        }
-        const level = basePet.enhancement;
-        if(level >= 15) {
-            showToast("최대 강화 레벨입니다.", "error");
-            return;
-        }
+        let nextPetId = 0;
+        let selectionState = { enhance: [], evolve: [] };
+        let currentModal = null;
+        let gameLoopInterval = null;
+        let statChart = null;
         
-        let successRate;
-        if (level === 0) successRate = 95;
-        else if (level === 1) successRate = 85;
-        else if (level === 2) successRate = 70;
-        else if (level === 3) successRate = 60;
-        else if (level === 4) successRate = 50;
-        else if (level === 5) successRate = 45;
-        else if (level === 6) successRate = 40;
-        else if (level === 7) successRate = 30;
-        else if (level === 8) successRate = 25;
-        else if (level === 9) successRate = 20;
-        else if (level === 10) successRate = 15;
-        else if (level === 11) successRate = 10;
-        else if (level === 12) successRate = 7;
-        else if (level === 13) successRate = 5;
-        else if (level === 14) successRate = 3;
-        else successRate = 1;
+        // --- Sound Manager ---
+        const SoundManager = {
+            sounds: {},
+            music: null,
+            init() {
+                this.sounds.click = new Howl({ src: ['https://actions.google.com/sounds/v1/ui/page_turn.ogg'], volume: 0.3 });
+                this.sounds.buy = new Howl({ src: ['https://actions.google.com/sounds/v1/eartraining/coin_drop_positive.ogg'] });
+                this.sounds.success = new Howl({ src: ['https://actions.google.com/sounds/v1/achievements/achievement_unlocked.ogg'] });
+                this.sounds.error = new Howl({ src: ['https://actions.google.com/sounds/v1/emergency/beeper_emergency_call.ogg'], volume: 0.4 });
+                this.sounds.levelUp = new Howl({ src: ['https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg'] });
+                this.sounds.gacha = new Howl({ src: ['https://actions.google.com/sounds/v1/mystery/magic_portal_opening_1.ogg'] });
+                this.sounds.bossHit = new Howl({ src: ['https://actions.google.com/sounds/v1/weapons/punch_heavy_hard.ogg'], volume: 0.5 });
+                this.music = new Howl({ src: ['https://actions.google.com/sounds/v1/ambiences/ambient_soundscape.ogg'], loop: true, html5: true });
+                this.updateVolumes();
+            },
+            play(soundId) {
+                if (this.sounds[soundId] && gameState.settings.sound > 0) {
+                    this.sounds[soundId].play();
+                }
+            },
+            toggleMusic(forcePlay = false) {
+                if (this.music.playing()) {
+                    if (!forcePlay) this.music.fade(gameState.settings.music, 0, 1000);
+                } else if (gameState.settings.music > 0) {
+                    this.music.play();
+                    this.music.fade(0, gameState.settings.music, 1000);
+                }
+            },
+            updateVolumes() {
+                Object.values(this.sounds).forEach(s => s.volume(gameState.settings.sound));
+                if(this.music) this.music.volume(gameState.settings.music);
+            }
+        };
 
-        const rand = Math.random() * 100;
-        if(rand < successRate) {
-            basePet.enhancement++;
-            showToast(`강화 성공! +${basePet.enhancement} ${PET_DATA[basePet.type].name}(이)가 되었습니다!`, "success");
-        } else {
-            showToast("강화 실패...", "error");
-        }
-        
-        removePetById(materialPet.id);
-        enhanceSelection = [];
-        updateMissionProgress("enhance", 1);
-        showModal("enhanceModal");
-    }
-    
-    function selectForEvolve(id){if(evolveSelection.includes(id))evolveSelection=evolveSelection.filter(petId=>petId!==id);else evolveSelection.push(id);showModal("evolveModal")}
-    
-    // FC온라인 강화 확률을 참고하여 변경
-    function doEvolve() {
-        if(evolveSelection.length !== 3) {
-            showToast("진화할 펫 1마리와 동일 종류 재료 펫 2마리를 선택하세요.", "error");
-            return;
-        }
-        const basePet = findPetById(evolveSelection[0]);
-        const material1 = findPetById(evolveSelection[1]);
-        const material2 = findPetById(evolveSelection[2]);
-        if(!basePet || !material1 || !material2) {
-            evolveSelection = [];
-            showModal("evolveModal");
-            return;
-        }
-        if(basePet.id === material1.id || basePet.id === material2.id || material1.id === material2.id) {
-            showToast("서로 다른 펫을 재료로 사용해야 합니다.", "error");
-            return;
-        }
-        if(basePet.type !== material1.type || basePet.type !== material2.type) {
-            showToast("모두 동일한 종류의 펫이어야 합니다.", "error");
-            return;
-        }
-        const level = basePet.evolution;
-        if(level >= 5) {
-            showToast("최대 진화 단계입니다.", "error");
-            return;
-        }
+        // --- Three.js Background ---
+        let scene, camera, renderer, stars;
+        function init3DBackground() {
+            try {
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+                camera.position.z = 1;
+                renderer = new THREE.WebGLRenderer({ canvas: DOMElements.backgroundCanvas, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
 
-        let successRate;
-        if (level === 0) successRate = 70;
-        else if (level === 1) successRate = 50;
-        else if (level === 2) successRate = 35;
-        else if (level === 3) successRate = 20;
-        else if (level === 4) successRate = 10;
-        else successRate = 5;
+                const starGeo = new THREE.BufferGeometry();
+                const starVertices = [];
+                for (let i = 0; i < 6000; i++) {
+                    const x = (Math.random() - 0.5) * 2000;
+                    const y = (Math.random() - 0.5) * 2000;
+                    const z = (Math.random() - 0.5) * 2000;
+                    starVertices.push(x, y, z);
+                }
+                starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+                
+                const sprite = new THREE.TextureLoader().load( 'https://threejs.org/examples/textures/sprites/disc.png' );
+                const starMaterial = new THREE.PointsMaterial({
+                    color: 0xaaaaaa,
+                    size: 0.7,
+                    map: sprite,
+                    transparent: true
+                });
 
-        const rand = Math.random() * 100;
-        if(rand < successRate) {
-            basePet.evolution++;
-            showToast("진화 성공!", "success");
-        } else {
-            showToast("진화 실패...", "error");
+                stars = new THREE.Points(starGeo, starMaterial);
+                scene.add(stars);
+
+                window.addEventListener('resize', onWindowResize, false);
+                document.body.addEventListener('mousemove', onMouseMove, false);
+                animate3D();
+            } catch(e) {
+                console.error("3D Background initialization failed:", e);
+                DOMElements.backgroundCanvas.style.display = 'none'; // Hide canvas if it fails
+            }
         }
-
-        removePetById(material1.id);
-        removePetById(material2.id);
-        evolveSelection = [];
-        showModal("evolveModal");
-    }
-    
-    function removePetById(id){gameState.pets=gameState.pets.filter(p=>p.id!==id);gameState.equippedPetIds=gameState.equippedPetIds.filter(eqId=>eqId!==id)}
-    
-    function doDisassembly(petId) {
-        const pet = findPetById(petId);
-        if(!pet) return;
-
-        if (gameState.equippedPetIds.includes(petId)) {
-            showToast("장착 중인 펫은 분해할 수 없습니다.", "error");
-            return;
+        function animate3D() {
+            if(!renderer) return;
+            requestAnimationFrame(animate3D);
+            stars.rotation.y += 0.0001;
+            renderer.render(scene, camera);
+        }
+        function onWindowResize() {
+            if(!renderer) return;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        function onMouseMove(event) {
+            if(!camera) return;
+            const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            gsap.to(camera.position, {
+                x: mouseX * 0.5,
+                y: mouseY * 0.5,
+                duration: 1,
+                ease: 'power2.out'
+            });
         }
         
-        const petData = PET_DATA[pet.type];
-        const refundAmount = Math.floor(petData.cost * 0.25);
+        // --- Game Initialization ---
+        function init() {
+            loadGame();
+            
+            if (gameState.pets.length === 0) addPet('acorn', 'init');
+            
+            SoundManager.init();
+            init3DBackground();
+            handleOfflineProgress();
+            generateMissions();
+            checkTitleUnlocks();
+            
+            // Hide loading overlay and start game
+            DOMElements.loadingOverlay.style.display = 'none';
+            
+            gameLoopInterval = setInterval(gameLoop, 1000);
+            SoundManager.toggleMusic(true);
+            
+            renderAll();
+        }
         
-        changeMoney(refundAmount);
-        removePetById(petId);
-        
-        showToast(`${petData.name}을(를) 분해하고 ${formatNumber(refundAmount)}을(를) 얻었습니다.`, "success");
-        showModal('disassemblyModal');
-    }
+        // --- Core Game Loop ---
+        function gameLoop() {
+            let cps = calculateCPS();
+            changeMoney(cps.auto, 'auto');
+            gameState.stats.playTime++;
 
-    function showModal(modalId, data = {}) {
-        let contentHTML = '';
-        let modalTitle = '';
-        switch(modalId) {
-            case 'shopModal':
-                modalTitle = "상점 & 펫 뽑기";
-                contentHTML = `
+            Object.keys(gameState.skills.cooldowns || {}).forEach(id => { if (gameState.skills.cooldowns[id] > 0) gameState.skills.cooldowns[id]--; });
+            if (gameState.stats.playTime % 2 == 0) renderSkillBar(); // Update skill bar cooldowns visually
+            updatePotions();
+            
+            if (gameState.boss.activeBoss) updateBossFight();
+            
+            if (gameState.stats.playTime % 30 === 0) saveGame();
+            if (gameState.stats.playTime % 60 === 0) {
+                gameState.stats.statsHistory.push({ time: Date.now(), money: gameState.money });
+                if (gameState.stats.statsHistory.length > 60) gameState.stats.statsHistory.shift();
+            }
+        }
+        
+        // --- Calculation Logic ---
+        function calculateCPS() {
+            let baseClick = 0;
+            let clickMultiplier = 1;
+            let autoMultiplier = 1;
+            let globalMultiplier = 1;
+
+            gameState.equippedPetIds.map(id => findPetById(id)).filter(p => p).forEach(pet => {
+                const petData = PET_DATA[pet.type];
+                if (!petData) return;
+                let petPower = petData.baseClick;
+                petPower *= (1 + (pet.enhancement * .2));
+                petPower *= (1 + (pet.evolution * 2));
+                petPower *= (1 + (pet.potential * .5));
+                baseClick += petPower;
+            });
+            baseClick = Math.max(1, baseClick);
+            
+            globalMultiplier *= (1 + gameState.stats.rebirths * 0.5);
+            if(gameState.artifacts.ancientAcorn) globalMultiplier *= (1 + ARTIFACT_DATA.ancientAcorn.effect(gameState.artifacts.ancientAcorn.level));
+            globalMultiplier *= (1 + Object.keys(gameState.collection).length * 0.005);
+            
+            clickMultiplier *= (1 + (gameState.skills.levels['p001'] ? SKILL_DATA['p001'].effect(gameState.skills.levels['p001']) : 0));
+            autoMultiplier *= (1 + (gameState.skills.levels['a001'] ? SKILL_DATA['a001'].effect(gameState.skills.levels['a001']) : 0));
+
+            const equippedTitle = TITLE_DATA[gameState.titles.equipped];
+            if (equippedTitle && equippedTitle.bonus.type !== 'none') {
+                const b = equippedTitle.bonus;
+                if (b.type === 'click_power' || b.type === 'all_power') clickMultiplier *= (1 + b.value);
+                if (b.type === 'money_gain' || b.type === 'all_power') autoMultiplier *= (1 + b.value);
+            }
+            
+            gameState.activePotions.forEach(p => {
+                if(p.effect.type === 'click_power_mult') clickMultiplier *= p.effect.value;
+                if(p.effect.type === 'money_gain_mult') autoMultiplier *= p.effect.value;
+            });
+
+            let totalClickValue = baseClick * clickMultiplier * globalMultiplier;
+            if(gameState.artifacts.starFragment) totalClickValue *= (1 + ARTIFACT_DATA.starFragment.effect(gameState.artifacts.starFragment.level));
+            const autoClickPerSecond = totalClickValue * autoMultiplier * 0.1;
+
+            return { click: totalClickValue, auto: autoClickPerSecond };
+        }
+        
+        // --- Event Handlers & Core Actions ---
+        function handlePetClick(event) {
+            if (gameState.boss.activeBoss) return; // Boss clicks are handled differently
+
+            let { click: clickValue } = calculateCPS();
+            SoundManager.play('click');
+
+            if (gameState.skills.active && gameState.skills.active['s001'] && gameState.skills.active['s001'] > Date.now()) {
+                const skillLevel = gameState.skills.levels['s001'] || 1;
+                clickValue *= (5 + skillLevel * 0.5);
+            }
+
+            changeMoney(clickValue, 'click');
+            gameState.stats.totalClicks++;
+            updateMissionProgress('click', 1);
+            gainExp(1);
+
+            let dropChance = 0.001 + (gameState.artifacts.goldenCompass ? ARTIFACT_DATA.goldenCompass.effect(gameState.artifacts.goldenCompass.level) : 0);
+            dropChance *= (1 + (gameState.skills.levels['p002'] ? SKILL_DATA['p002'].effect(gameState.skills.levels['p002']) : 0));
+            if (Math.random() < dropChance) {
+                changeGoldenAcorns(1);
+                showToast('황금 도토리를 획득했습니다!', 'info');
+                updateMissionProgress('getGoldenAcorn', 1);
+            }
+
+            if (gameState.settings.animations) {
+                 const floatingText = document.createElement('div');
+                floatingText.className = 'floating-text';
+                floatingText.textContent = `+${formatNumber(clickValue)}`;
+                const rect = DOMElements.gameScreen.getBoundingClientRect();
+                floatingText.style.left = `${event.clientX - rect.left - 50}px`;
+                floatingText.style.top = `${event.clientY - rect.top}px`;
+                DOMElements.gameScreen.appendChild(floatingText);
+                setTimeout(() => floatingText.remove(), 1200);
+            }
+        }
+        
+        // --- State Changes ---
+        function changeMoney(amount, source) {
+            if (isNaN(amount) || amount === 0) return;
+            const startMoney = gameState.money;
+            gameState.money += amount;
+            
+            if (amount > 0) {
+                gameState.stats.totalMoney += amount;
+                if (source !== 'auto') updateMissionProgress('earnMoney', amount);
+            }
+            if (gameState.money > gameState.stats.maxMoney) {
+                gameState.stats.maxMoney = gameState.money;
+                checkTitleUnlocks();
+            }
+            renderMoney(startMoney);
+        }
+
+        function changeGoldenAcorns(amount) {
+            const startAmount = gameState.goldenAcorns;
+            gameState.goldenAcorns += amount;
+            renderGoldenAcorns(startAmount);
+        }
+
+        function changeStardust(amount) {
+            const startAmount = gameState.stardust;
+            gameState.stardust += amount;
+            renderStardust(startAmount);
+        }
+        
+        function getRequiredExp(level) { return Math.floor(100 * Math.pow(1.15, level - 1)); }
+
+        function gainExp(amount) {
+            gameState.playerExp += amount;
+            let requiredExp = getRequiredExp(gameState.playerLevel);
+            let leveledUp = false;
+            while (gameState.playerExp >= requiredExp) {
+                gameState.playerLevel++;
+                gameState.playerExp -= requiredExp;
+                gameState.skills.points = (gameState.skills.points || 0) + 1;
+                leveledUp = true;
+                requiredExp = getRequiredExp(gameState.playerLevel);
+            }
+            if(leveledUp) {
+                showToast(`레벨 업! LV.${gameState.playerLevel} 달성! (스킬포인트 +1)`, 'success');
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                SoundManager.play('levelUp');
+            }
+            renderPlayerLevel();
+        }
+
+        function addPet(type, from = 'buy') {
+            const newPet = { id: nextPetId++, type, enhancement: 0, evolution: 0, potential: Math.random(), locked: false };
+            gameState.pets.push(newPet);
+            if (gameState.equippedPetIds.length < gameState.petLimit) gameState.equippedPetIds.push(newPet.id);
+            if(!gameState.collection[type]) {
+                updateMissionProgress('collectPet', 1);
+            }
+            gameState.collection[type] = true;
+            checkTitleUnlocks();
+            if(from !== 'load') renderEquippedPets();
+        }
+        
+        function removePetById(id) {
+            gameState.pets = gameState.pets.filter(p => p.id !== id);
+            gameState.equippedPetIds = gameState.equippedPetIds.filter(petId => petId !== id);
+            gameState.boss.team = gameState.boss.team.filter(petId => petId !== id);
+            renderEquippedPets();
+        }
+
+        // --- Systems (Exploration, Crafting, etc) ---
+        function updatePotions() {
+            const now = Date.now();
+            let potionsChanged = false;
+            gameState.activePotions = gameState.activePotions.filter(p => {
+                const stillActive = p.expires > now;
+                if(!stillActive) potionsChanged = true;
+                return stillActive;
+            });
+            if(potionsChanged) renderActivePotions();
+        }
+
+        function doCraft(id) {
+            const craft = CRAFTING_DATA[id];
+            if (!craft) return;
+            if (Object.keys(craft.materials).some(mat => (gameState.inventory.materials[mat] || 0) < craft.materials[mat])) {
+                showToast("재료가 부족합니다.", "error");
+                return;
+            }
+            Object.keys(craft.materials).forEach(mat => gameState.inventory.materials[mat] -= craft.materials[mat]);
+            const newPotion = { id: craft.result.id, craftId: id, expires: Date.now() + craft.result.duration * 1000, effect: craft.result.effect };
+            const existingPotion = gameState.activePotions.find(p => p.id === newPotion.id);
+            if (existingPotion) {
+                existingPotion.expires += craft.result.duration * 1000;
+            } else {
+                gameState.activePotions.push(newPotion);
+            }
+            showToast(`${craft.name} 제작 완료!`, "success");
+            SoundManager.play('success');
+            renderActivePotions();
+            if (currentModal === 'craftingModal') showModal('craftingModal');
+        }
+
+        function unlockStory(id) {
+            const story = STORY_BOOK_DATA[id];
+            if (gameState.money >= story.cost) {
+                changeMoney(-story.cost);
+                gameState.storyBooks[id] = true;
+                showToast(`[${story.name}] 스토리를 잠금 해제했습니다!`, 'success');
+                if (currentModal === 'storyBookModal') showModal('storyBookModal');
+            }
+        }
+
+        function startExploration(slotIndex, areaId, team) {
+            const area = EXPLORATION_DATA[areaId];
+            let slot = gameState.explorationSlots[slotIndex];
+            if (slot.returnTime > 0 || team.length === 0) return;
+            const durationInSeconds = area.duration;
+            slot.area = areaId;
+            slot.team = team;
+            slot.returnTime = Date.now() + durationInSeconds * 1000;
+            showToast(`${area.name} 탐험 시작!`, "success");
+            closeModal();
+        }
+
+        function claimExploration(slotIndex) {
+            let slot = gameState.explorationSlots[slotIndex];
+            if (!slot.area || slot.returnTime > Date.now()) return;
+            const area = EXPLORATION_DATA[slot.area];
+            const rewards = area.rewards();
+            let teamPower = slot.team.reduce((sum, petId) => {
+                const pet = findPetById(petId);
+                return sum + (pet ? PET_DATA[pet.type].baseClick : 0);
+            }, 1);
+            rewards.money *= Math.log10(teamPower + 1);
+            let rewardText = `${area.name} 탐험 완료! `;
+            if (rewards.money) { changeMoney(rewards.money); rewardText += `재화 ${formatNumber(rewards.money)}, `; }
+            if (rewards.exp) { gainExp(rewards.exp); rewardText += `경험치 ${rewards.exp}, `; }
+            if (rewards.stardust) { changeStardust(rewards.stardust); rewardText += `스타더스트 ${rewards.stardust}, `; }
+            if (rewards.materials) {
+                for (const mat in rewards.materials) {
+                    gameState.inventory.materials[mat] = (gameState.inventory.materials[mat] || 0) + rewards.materials[mat];
+                    rewardText += `${mat} ${rewards.materials[mat]}개, `;
+                }
+            }
+            slot.area = null;
+            slot.returnTime = 0;
+            slot.team = [];
+            gameState.stats.explorations++;
+            updateMissionProgress('exploration', 1);
+            showToast(rewardText.slice(0, -2), "success");
+            showModal('explorationModal');
+        }
+        
+        // --- Rendering ---
+        function renderAll() {
+            renderMoney(gameState.money, true);
+            renderGoldenAcorns(gameState.goldenAcorns, true);
+            renderStardust(gameState.stardust, true);
+            renderPlayerLevel();
+            renderEquippedPets();
+            renderSkillBar();
+            renderActivePotions();
+        }
+
+        function renderWithAnimation(element, startValue, endValue, formatter, isInstant = false) {
+            if (isInstant || !gameState.settings.animations) {
+                element.textContent = formatter(endValue);
+                return;
+            }
+            const obj = { value: startValue };
+            gsap.to(obj, {
+                value: endValue,
+                duration: 0.5,
+                ease: 'power2.out',
+                onUpdate: () => {
+                    element.textContent = formatter(obj.value);
+                }
+            });
+        }
+        
+        function renderMoney(start = 0, instant = false) { renderWithAnimation(DOMElements.moneyDisplay, start, gameState.money, (v) => formatNumber(v), instant); }
+        function renderGoldenAcorns(start = 0, instant = false) { renderWithAnimation(DOMElements.goldenAcornAmount, start, gameState.goldenAcorns, (v) => Math.floor(v).toLocaleString(), instant); }
+        function renderStardust(start = 0, instant = false) { renderWithAnimation(DOMElements.stardustAmount, start, gameState.stardust, (v) => Math.floor(v).toLocaleString(), instant); }
+        
+        function renderPlayerLevel() {
+            DOMElements.playerLevelDisplay.textContent = gameState.playerLevel;
+            const requiredExp = getRequiredExp(gameState.playerLevel);
+            gsap.to(DOMElements.playerExpBar, { width: `${Math.min(100, (gameState.playerExp / requiredExp) * 100)}%`, duration: 0.3 });
+        }
+        
+        function renderEquippedPets() {
+            if(gameState.boss.activeBoss){
+                renderBossFightScreen();
+                return;
+            }
+
+            const { gameScreen } = DOMElements;
+            gameScreen.innerHTML = '';
+            
+            let equippedPets = gameState.equippedPetIds.map(id => findPetById(id)).filter(p => p);
+            if (equippedPets.length === 0 && gameState.pets.length > 0) {
+                equippedPets = [gameState.pets.find(p => p)];
+            }
+
+            if (equippedPets.length > 0) {
+                 gameScreen.classList.remove('flex-col');
+                gameScreen.classList.add('flex-row', 'flex-wrap');
+                equippedPets.forEach(pet => {
+                    const petData = PET_DATA[pet.type];
+                    if (!petData) return;
+                    const el = document.createElement('div');
+                    el.className = 'text-center pet-container';
+                    el.innerHTML = `<div class="text-7xl pet">${petData.img}</div><div class="text-sm font-bold">${petData.name}</div>`;
+                    gameScreen.appendChild(el);
+                    gsap.from(el, { scale: 0, opacity: 0, duration: 0.5, ease: 'back.out(1.7)' });
+                });
+                gameScreen.onclick = handlePetClick;
+            } else {
+                gameScreen.classList.add('flex-col');
+                gameScreen.classList.remove('flex-row', 'flex-wrap');
+                gameScreen.innerHTML = `<div class="text-2xl text-center text-gray-400">상점에서 첫 펫을 구매하세요!</div>`;
+                gameScreen.onclick = null;
+            }
+        }
+
+        function renderBossFightScreen() {
+            const { gameScreen } = DOMElements;
+            gameScreen.classList.add('flex-col');
+            gameScreen.classList.remove('flex-row', 'flex-wrap');
+
+            const bossData = BOSS_DATA[gameState.boss.activeBoss];
+            const bossHpPercent = (gameState.boss.bossHp / bossData.hp) * 100;
+
+            const teamPetsHtml = gameState.boss.team.map(petId => {
+                const pet = findPetById(petId);
+                if (!pet) return '';
+                const petData = PET_DATA[pet.type];
+                const maxHp = (petData.cost / 10) * (1 + pet.evolution * 0.5);
+                const currentHp = gameState.boss.petHps[petId];
+                const hpPercent = (currentHp / maxHp) * 100;
+                const isTargeted = gameState.boss.attackTargetId === petId;
+                const isDead = currentHp <= 0;
+
+                return `
+                    <div
+                        class="pet-raid-unit flex flex-col items-center p-2 rounded-lg transition-all duration-200 ${isTargeted ? 'is-targeted' : ''} ${isDead ? 'grayscale opacity-50' : 'cursor-pointer hover:scale-110'}"
+                        onclick="${isDead ? '' : `window.gameAPI.handlePetAttackOnBoss(${pet.id})`}"
+                    >
+                        <div class="text-6xl">${petData.img}</div>
+                        <div class="w-20 bg-gray-700 rounded-full h-3 mt-2 border border-gray-500">
+                            <div class="progress-bar-inner hp-bar h-full rounded-full" style="width: ${hpPercent}%"></div>
+                        </div>
+                <div class="text-xs mt-1">${formatNumber(currentHp)} / ${formatNumber(maxHp)}</div>
+                    </div>
+                `;
+            }).join('');
+
+            gameScreen.innerHTML = `
+                <div id="boss-area" class="w-full h-1/2 flex flex-col items-center justify-center relative">
+                    <div class="absolute top-2 left-1/2 -translate-x-1/2 text-center w-full px-4">
+                        <h2 class="text-3xl text-red-400 font-bold">${bossData.name}</h2>
+                        <div class="w-full max-w-lg mx-auto bg-gray-700 rounded-full h-6 mt-2 border-2 border-red-500">
+                            <div class="progress-bar-inner hp-bar h-full rounded-full" style="width: ${bossHpPercent}%"></div>
+                        </div>
+                        <p class="text-white text-lg mt-1">${formatNumber(gameState.boss.bossHp)} / ${formatNumber(bossData.hp)}</p>
+                    </div>
+                    <div id="boss-sprite" class="text-9xl">${bossData.img}</div>
+                </div>
+                <div id="pet-team-area" class="w-full h-1/2 flex items-end justify-center gap-4 p-4 bg-black/30 rounded-t-xl absolute bottom-0 left-0 right-0">
+                    ${teamPetsHtml}
+                </div>
+            `;
+            gameScreen.onclick = null; // Disable the generic screen click
+        }
+        
+        function renderSkillBar() {
+            DOMElements.skillBar.innerHTML = '';
+            (gameState.skills.unlocked || []).forEach(skillId => {
+                const skill = SKILL_DATA[skillId];
+                if(skill.type !== 'active') return;
+                const cooldown = gameState.skills.cooldowns[skillId] || 0;
+                const el = document.createElement('button');
+                el.className = 'btn bg-rose-800 border-rose-500 text-white p-2 rounded-lg relative w-24 h-24 flex flex-col items-center justify-center';
+                el.disabled = cooldown > 0;
+                el.onclick = () => window.gameAPI.activateSkill(skillId);
+                el.innerHTML = `<span>${skill.name}</span> ${cooldown > 0 ? `<div class="skill-cooldown">${Math.ceil(cooldown)}s</div>` : ''}`;
+                DOMElements.skillBar.appendChild(el);
+            });
+        }
+        
+        function renderActivePotions() {
+            DOMElements.activePotionsBar.innerHTML = gameState.activePotions.map(p => {
+                const timeLeft = Math.ceil((p.expires - Date.now()) / 1000);
+                const craftData = CRAFTING_DATA[p.craftId];
+                return `<div class="bg-black/50 p-2 rounded-full border border-purple-400 text-2xl" title="${craftData ? craftData.name : '포션'} (${timeLeft}s)">
+                    ${craftData ? craftData.result.img : '❓'}
+                </div>`
+            }).join('');
+        }
+        
+        function renderStatsChart() {
+            const canvas = document.getElementById('statsChartCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const data = gameState.stats.statsHistory;
+            if (statChart) statChart.destroy();
+            statChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map((_, i) => `${60 - i}s ago`),
+                    datasets: [{
+                        label: '재화',
+                        data: data.map(d => d.money),
+                        borderColor: 'rgba(0, 255, 255, 1)',
+                        backgroundColor: 'rgba(0, 255, 255, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: false, ticks: { color: '#e0e0e0', callback: value => formatNumber(value) }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        x: { ticks: { color: '#e0e0e0' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // --- Modals ---
+        function showModal(modalId, data = {}) {
+            currentModal = modalId;
+            DOMElements.modalContent.innerHTML = ''; 
+            
+            const modalGenerator = MODAL_GENERATORS[modalId];
+            if (!modalGenerator) return;
+
+            const { title, content } = modalGenerator(data);
+            DOMElements.modalContent.innerHTML = `
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold text-center text-secondary-glow flex-grow">${title}</h2>
+                    <button onclick="window.gameAPI.closeModal()" class="text-3xl hover:text-red-500 transition-colors">&times;</button>
+                </div>
+                <div class="flex-grow overflow-y-auto pr-2 modal-scroll">${content}</div>
+            `;
+            
+            DOMElements.modalContainer.style.visibility = 'visible';
+            gsap.to(DOMElements.modalContainer, { opacity: 1, duration: 0.3 });
+            gsap.fromTo(DOMElements.modalContent, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' });
+            
+            if (modalId === 'statsModal') {
+                setTimeout(renderStatsChart, 50);
+            }
+        }
+        
+        function closeModal() {
+            gsap.to(DOMElements.modalContent, { opacity: 0, scale: 0.9, duration: 0.2, ease: 'power2.in' });
+            gsap.to(DOMElements.modalContainer, { opacity: 0, duration: 0.2, delay: 0.1, onComplete: () => {
+                DOMElements.modalContainer.style.visibility = 'hidden';
+                currentModal = null;
+                selectionState = { enhance: [], evolve: [] };
+                if (statChart) {
+                    statChart.destroy();
+                    statChart = null;
+                }
+            }});
+        }
+
+        // --- All Modal Generators ---
+        const MODAL_GENERATORS = {
+             shopModal: () => ({
+                title: "상점 & 펫 뽑기",
+                content: `
                 <div class="flex border-b-2 border-purple-500 mb-4">
-                    <button class="tab-button flex-1 p-3 text-lg" data-tab="shop" onclick="switchTab(event, 'shopGacha')">펫 구매</button>
-                    <button class="tab-button flex-1 p-3 text-lg" data-tab="gacha" onclick="switchTab(event, 'shopGacha')">펫 뽑기</button>
+                    <button class="tab-button active flex-1 p-3 text-lg" onclick="window.gameAPI.switchTab(event, 'shopTab')">펫 구매</button>
+                    <button class="tab-button flex-1 p-3 text-lg" onclick="window.gameAPI.switchTab(event, 'gachaTab')">펫 뽑기</button>
                 </div>
                 <div id="shopTab" class="tab-content space-y-2 max-h-[60vh] overflow-y-auto pr-2">
-                    ${Object.keys(PET_DATA).filter(k=>PET_DATA[k].cost>0).map(type=>{const pet=PET_DATA[type];return`<button onclick="buyPet('${type}')" class="btn w-full bg-cyan-800 border-cyan-500 text-white p-3 rounded-lg flex justify-between items-center" ${gameState.money<pet.cost?"disabled":""}><span>${pet.img} ${pet.name} <span class="${RARITY_COLORS[pet.rarity]||"text-white"}">[${pet.rarity}]</span></span> <span>${formatNumber(pet.cost)}</span></button>`}).join("")}
+                    ${Object.keys(PET_DATA).filter(k=>PET_DATA[k].cost>0).map(type=>{const pet=PET_DATA[type];return`<button onclick="window.gameAPI.buyPet('${type}')" class="btn w-full bg-cyan-800 border-cyan-500 text-white p-3 rounded-lg flex justify-between items-center" ${gameState.money<pet.cost?"disabled":""}><span>${pet.img} ${pet.name} <span class="${RARITY_COLORS[pet.rarity]||"text-white"}">[${pet.rarity}]</span></span> <span>${formatNumber(pet.cost)}</span></button>`}).join("")}
                 </div>
                 <div id="gachaTab" class="tab-content hidden text-center">
                     <p class="mb-4">운명의 뽑기로 희귀한 펫을 만나보세요!</p>
                     <div id="gachaResultContainer" class="h-48 flex items-center justify-center text-8xl mb-4">❓</div>
-                    <button onclick="doGacha('normal')" class="btn w-full bg-teal-500 border-teal-300 text-white p-4 rounded-lg text-xl mb-2" ${gameState.money<50000?"disabled":""}>일반 뽑기 (5만)</button>
-                    <button onclick="doGacha('premium')" class="btn w-full bg-yellow-500 border-yellow-300 text-black p-4 rounded-lg text-xl" ${gameState.goldenAcorns<10?"disabled":""}>프리미엄 뽑기 (황금도토리 10개)</button>
-                </div>`;
-                break;
-            case 'petModal': 
-                modalTitle = "펫 관리";
-                const petList = gameState.pets.length > 0 ? gameState.pets.map(pet => {
+                    <button onclick="window.gameAPI.doGacha('normal')" class="btn w-full bg-teal-500 border-teal-300 text-white p-4 rounded-lg text-xl mb-2" ${gameState.money<50000?"disabled":""}>일반 뽑기 (5만)</button>
+                    <button onclick="window.gameAPI.doGacha('premium')" class="btn w-full bg-yellow-500 border-yellow-300 text-black p-4 rounded-lg text-xl mb-2" ${gameState.goldenAcorns<10?"disabled":""}>프리미엄 뽑기 (황금도토리 10개)</button>
+                    <button onclick="window.gameAPI.doGacha('stardust')" class="btn w-full bg-indigo-500 border-indigo-300 text-white p-4 rounded-lg text-xl" ${gameState.stardust<100?"disabled":""}>스타더스트 뽑기 (스타더스트 100개)</button>
+                </div>`
+            }),
+            petModal: () => {
+                const petHtml = gameState.pets.map(pet => {
                     const petData = PET_DATA[pet.type];
-                    if(!petData) return '';
                     const isEquipped = gameState.equippedPetIds.includes(pet.id);
-                    return `<div class="p-2 rounded-lg border-2 ${isEquipped ? 'border-green-500 bg-green-900/50' : 'border-gray-600'} text-center flex flex-col justify-between">
-                        <div>
-                            <div class="text-4xl">${petData.img}</div>
-                            <div class="text-xs">${petData.name}</div>
-                            <div class="text-xs text-yellow-300">+${pet.enhancement} / Lv.${pet.evolution}</div>
+                    return `
+                    <div class="pet-card bg-black/40 p-3 rounded-lg text-center ${isEquipped ? 'equipped-glow' : ''}">
+                        <div class="text-5xl">${petData.img}</div>
+                        <div class="font-bold">${petData.name} <span class="text-yellow-300">+${pet.enhancement}</span> Lv.${pet.evolution}</div>
+                        <div class="text-sm ${RARITY_COLORS[petData.rarity]}">[${petData.rarity}]</div>
+                        <div class="text-xs">잠재력: ${(pet.potential * 100).toFixed(1)}%</div>
+                        <div class="mt-2 flex justify-center gap-2">
+                            <button onclick="window.gameAPI.toggleEquip(${pet.id})" class="btn text-xs px-2 py-1 rounded ${isEquipped ? 'bg-yellow-600 border-yellow-400' : 'bg-gray-600 border-gray-400'}">${isEquipped ? '해제' : '장착'}</button>
+                            <button onclick="window.gameAPI.toggleLock(${pet.id})" class="btn text-xs px-2 py-1 rounded ${pet.locked ? 'bg-red-600 border-red-400' : 'bg-gray-600 border-gray-400'}"><i class="fa-solid ${pet.locked ? 'fa-lock' : 'fa-lock-open'}"></i></button>
                         </div>
-                        <button onclick="toggleEquip(${pet.id})" class="btn w-full text-xs mt-2 p-1 rounded ${isEquipped ? 'bg-red-600 border-red-400' : 'bg-green-600 border-green-400'} text-white">${isEquipped ? '해제' : '장착'}</button>
                     </div>`;
-                }).join('') : '<p class="col-span-full text-center text-gray-400">펫이 없습니다.</p>';
-                contentHTML = `
-                    <p class="text-center mb-4">장착 슬롯: ${gameState.equippedPetIds.length} / ${gameState.petLimit}</p>
-                    <div class="grid grid-cols-3 md:grid-cols-5 gap-4 max-h-[60vh] overflow-y-auto bg-black/30 p-4 rounded-lg">${petList}</div>`;
-                break;
-            case 'enhanceModal':
-                modalTitle = "강화";
-                const renderEnhanceGrid = () => {
-                    return gameState.pets.length > 0 ? gameState.pets.map(pet => {
-                        const petData = PET_DATA[pet.type];
-                        if(!petData) return '';
-                        const isSelected = enhanceSelection.includes(pet.id);
-                        return `<div class="p-2 rounded-lg border-2 ${isSelected ? 'border-cyan-400 bg-cyan-900/50' : 'border-gray-600'} text-center cursor-pointer" onclick="selectForEnhance(${pet.id})">
-                            <div class="text-4xl">${petData.img}</div>
-                            <div class="text-xs">${petData.name}</div>
-                            <div class="text-xs text-yellow-300">+${pet.enhancement} / Lv.${pet.evolution}</div>
-                        </div>`;
-                    }).join('') : '<p class="col-span-full text-center text-gray-400">펫이 없습니다.</p>';
+                }).join('');
+                return {
+                    title: `내 펫 관리 (${gameState.equippedPetIds.length}/${gameState.petLimit})`,
+                    content: `<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-[70vh] overflow-y-auto">${petHtml || '<p>보유한 펫이 없습니다.</p>'}</div>`
                 };
-                contentHTML = `
+            },
+            enhanceModal: () => {
+                const petListHtml = gameState.pets.map(p => {
+                    const pData = PET_DATA[p.type];
+                    const isSelected = selectionState.enhance.includes(p.id);
+                    return `<div onclick="window.gameAPI.selectForEnhance(${p.id})" class="pet-card bg-black/40 p-2 rounded-lg text-center cursor-pointer ${isSelected ? 'selected' : ''} ${p.locked ? 'grayscale':''}">
+                        <div class="text-3xl">${pData.img}</div>
+                        <div class="text-xs font-bold">${pData.name}+${p.enhancement} Lv.${p.evolution}</div>
+                    </div>`;
+                }).join('');
+
+                return {
+                    title: "펫 강화",
+                    content: `
                     <p class="text-center mb-2">강화할 펫 1마리와 재료 펫 1마리, 총 2마리를 선택하세요.</p>
-                    <p class="text-center mb-4 text-sm text-gray-400">동일한 종류, 강화, 진화 단계의 펫만 재료로 사용 가능합니다.</p>
-                    <button onclick="doEnhance()" class="btn w-full bg-red-600 border-red-400 p-3 mb-4 rounded-lg">강화 실행</button>
-                    <div class="grid grid-cols-3 md:grid-cols-5 gap-2 max-h-[50vh] overflow-y-auto bg-black/30 p-2 rounded-lg">${renderEnhanceGrid()}</div>`;
-                break;
-             case 'evolveModal':
-                modalTitle = "진화";
-                const renderEvolveGrid = () => {
-                    return gameState.pets.length > 0 ? gameState.pets.map(pet => {
-                        const petData = PET_DATA[pet.type];
-                        if(!petData) return '';
-                        const isSelected = evolveSelection.includes(pet.id);
-                        return `<div class="p-2 rounded-lg border-2 ${isSelected ? 'border-cyan-400 bg-cyan-900/50' : 'border-gray-600'} text-center cursor-pointer" onclick="selectForEvolve(${pet.id})">
-                            <div class="text-4xl">${petData.img}</div>
-                            <div class="text-xs">${petData.name}</div>
-                            <div class="text-xs text-yellow-300">+${pet.enhancement} / Lv.${pet.evolution}</div>
-                        </div>`;
-                    }).join('') : '<p class="col-span-full text-center text-gray-400">펫이 없습니다.</p>';
-                };
-                contentHTML = `
-                    <p class="text-center mb-2">진화할 펫 1마리와 동일 종류 재료 펫 2마리를 선택하세요.</p>
-                    <p class="text-center mb-4 text-sm text-gray-400">비용 없이 재료 펫만 소모됩니다.</p>
-                    <button onclick="doEvolve()" class="btn w-full bg-indigo-600 border-indigo-400 p-3 mb-4 rounded-lg">진화 실행</button>
-                    <div class="grid grid-cols-3 md:grid-cols-5 gap-2 max-h-[50vh] overflow-y-auto bg-black/30 p-2 rounded-lg">${renderEvolveGrid()}</div>`;
-                break;
-            case 'missionModal':
-                 modalTitle = "미션";
-                 const renderMissionList = (type) => gameState.missions[type].map((mission, index) => {
-                     const progress = Math.min(mission.progress, mission.target);
-                     const isComplete = progress >= mission.target;
-                     return `<div class="bg-black/40 p-3 rounded-lg flex items-center justify-between gap-4">
-                         <div class="flex-grow">
-                             <p>${mission.text}</p>
-                             <div class="progress-bar mt-1 h-4"><div class="progress-bar-inner" style="width: ${isComplete ? 100 : (progress/mission.target*100)}%"></div></div>
-                             <p class="text-xs text-right">${formatNumber(progress)} / ${formatNumber(mission.target)}</p>
-                         </div>
-                         <button onclick="claimMissionReward('${type}', ${index})" class="btn bg-yellow-600 border-yellow-400 text-black px-4 py-2 rounded-lg" ${!isComplete || mission.claimed ? 'disabled' : ''}>
-                             ${mission.claimed ? '완료' : `+${mission.reward} <i class="fa-solid fa-cookie-bite"></i>`}
-                         </button>
-                     </div>`;
-                 }).join('');
-                 contentHTML = `
-                 <div class="flex border-b-2 border-purple-500 mb-4">
-                     <button class="tab-button flex-1 p-3 text-lg active" data-tab="daily" onclick="switchTab(event, 'missions')">일일 미션</button>
-                     <button class="tab-button flex-1 p-3 text-lg" data-tab="weekly" onclick="switchTab(event, 'missions')">주간 미션</button>
-                 </div>
-                 <div id="dailyTab" class="tab-content space-y-2 max-h-[60vh] overflow-y-auto pr-2">${renderMissionList('daily')}</div>
-                 <div id="weeklyTab" class="tab-content hidden space-y-2 max-h-[60vh] overflow-y-auto pr-2">${renderMissionList('weekly')}</div>`;
-                 break;
-            case 'collectionModal':
-                 modalTitle = "도감";
-                 const collectedCount = Object.keys(gameState.collection).length;
-                 const totalCount = Object.keys(PET_DATA).length;
-                 const bonus = (collectedCount * 0.2).toFixed(1); // 0.2% per unique pet
-                 contentHTML = `
-                    <p class="text-center mb-4">수집률: ${collectedCount} / ${totalCount} (${(collectedCount/totalCount*100).toFixed(1)}%)</p>
-                    <p class="text-center mb-4 text-cyan-300">현재 도감 효과: 모든 재화 획득량 +${bonus}%</p>
-                    <div class="grid grid-cols-4 md:grid-cols-6 gap-4 max-h-[60vh] overflow-y-auto bg-black/30 p-4 rounded-lg">
-                        ${Object.keys(PET_DATA).map(type => {
-                            const pet = PET_DATA[type];
-                            const isCollected = gameState.collection[type];
-                            return `<div class="p-2 rounded-lg text-center ${isCollected ? 'bg-green-900/50' : 'bg-black/50 opacity-50'}">
-                                <div class="text-4xl" style="filter: ${isCollected ? '' : 'grayscale(100%)'}">${pet.img}</div>
-                                <div class="text-xs mt-1">${isCollected ? pet.name : '???'}</div>
-                                <div class="text-xs font-bold ${RARITY_COLORS[pet.rarity] || 'text-white'}">${pet.rarity}</div>
-                                ${isCollected ? `<div class="text-xs text-yellow-300">x${gameState.collection[type]}</div>` : ''}
-                            </div>`;
-                        }).join('')}
+                    <p class="text-center mb-4 text-sm text-gray-400">동일한 종류, 강화, 진화 단계의 펫만 재료로 사용 가능합니다. (최대 +15)</p>
+                    <button onclick="window.gameAPI.doEnhance()" class="btn bg-red-600 border-red-400 w-full mt-4 p-3" ${selectionState.enhance.length !== 2 ? 'disabled' : ''}>강화하기</button>
+                    <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-[60vh] overflow-y-auto p-1 mt-4">${petListHtml}</div>`
+                }
+            },
+            evolveModal: () => {
+                const petListHtml = gameState.pets.map(p => {
+                    const pData = PET_DATA[p.type];
+                    const isSelected = selectionState.evolve.includes(p.id);
+                    return `<div onclick="window.gameAPI.selectForEvolve(${p.id})" class="pet-card bg-black/40 p-2 rounded-lg text-center cursor-pointer ${isSelected ? 'selected' : ''} ${p.locked ? 'grayscale':''}">
+                        <div class="text-3xl">${pData.img}</div>
+                        <div class="text-xs font-bold">${pData.name}+${p.enhancement} Lv.${p.evolution}</div>
                     </div>`;
-                 break;
-            case 'disassemblyModal':
-                modalTitle = "펫 분해";
-                const disassemblyList = gameState.pets.length > 0 ? gameState.pets.map(pet => {
-                    const petData = PET_DATA[pet.type];
-                    if (!petData || petData.cost === 0) return '';
-                    const isEquipped = gameState.equippedPetIds.includes(pet.id);
-                    const refundAmount = Math.floor(petData.cost * 0.25);
-                    return `<div class="p-2 rounded-lg border-2 ${isEquipped ? 'border-red-500 bg-red-900/50' : 'border-gray-600'} text-center flex flex-col justify-between">
+                }).join('');
+
+                return {
+                    title: "펫 진화",
+                    content: `
+                    <p class="text-center text-gray-400 mb-4">진화할 펫 1마리와 동일 종류 재료 펫 2마리를 선택하세요. (최대 5진화)</p>
+                    <button onclick="window.gameAPI.doEvolve()" class="btn bg-indigo-600 border-indigo-400 w-full mt-4 block p-3" ${selectionState.evolve.length !== 3 ? 'disabled' : ''}>진화하기</button>
+                    <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-[60vh] overflow-y-auto p-1 mt-4">${petListHtml}</div>`
+                }
+            },
+            missionModal: () => ({
+                title: "미션",
+                content: `<div class="space-y-3 max-h-[70vh] overflow-y-auto pr-2">${gameState.missions.map((m, i) => renderMission(m, i)).join('') || '<p>모든 미션을 완료했습니다!</p>'}</div>`
+            }),
+            collectionModal: () => {
+                 const collectionHtml = Object.keys(PET_DATA).map(type => {
+                    const petData = PET_DATA[type];
+                    const isCollected = !!gameState.collection[type];
+                    return `<div class="bg-black/40 p-3 rounded-lg text-center ${!isCollected ? 'grayscale' : ''}">
+                        <div class="text-6xl">${petData.img}</div>
+                        <div class="font-bold">${isCollected ? petData.name : '???'}</div>
+                        <div class="text-sm ${RARITY_COLORS[petData.rarity]}">[${petData.rarity}]</div>
+                    </div>`;
+                 }).join('');
+                 return {
+                     title: `펫 도감 (${Object.keys(gameState.collection).length}/${Object.keys(PET_DATA).length})`,
+                     content: `<p class="text-center text-gray-300 mb-4">도감 완성 보너스: 모든 재화 획득량 +${(Object.keys(gameState.collection).length * 0.5).toFixed(1)}%</p>
+                     <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 max-h-[70vh] overflow-y-auto">${collectionHtml}</div>`
+                 }
+            },
+            rebirthModal: () => {
+                const rebirthReq = 1e9;
+                const canRebirth = gameState.money >= rebirthReq;
+                const stardustGain = canRebirth ? Math.floor(Math.log10(gameState.money) - 7) : 0;
+                const artifactHtml = Object.keys(ARTIFACT_DATA).map(id => {
+                    const artifact = ARTIFACT_DATA[id];
+                    const currentLevel = gameState.artifacts[id] ? gameState.artifacts[id].level : 0;
+                    const cost = artifact.cost(currentLevel);
+                    const canBuy = gameState.stardust >= cost;
+                    return `<div class="bg-black/40 p-3 rounded-lg flex items-center justify-between">
                         <div>
-                            <div class="text-4xl">${petData.img}</div>
-                            <div class="text-xs">${petData.name}</div>
-                            <div class="text-xs text-yellow-300">+${pet.enhancement} / Lv.${pet.evolution}</div>
+                            <h4 class="font-bold">${artifact.name} (Lv.${currentLevel})</h4>
+                            <p class="text-sm text-gray-300">${artifact.desc.replace('{EFFECT}', (artifact.effect(currentLevel)*100).toFixed(2))}</p>
                         </div>
-                        <button onclick="doDisassembly(${pet.id})" class="btn w-full text-xs mt-2 p-1 rounded bg-stone-600 border-stone-400 text-white" ${isEquipped ? 'disabled' : ''}>
-                            분해 (${formatNumber(refundAmount)})
+                        <button onclick="window.gameAPI.buyArtifact('${id}')" class="btn bg-yellow-600 border-yellow-400 text-sm p-2" ${!canBuy || currentLevel >= artifact.maxLevel ? 'disabled' : ''}>
+                            ${currentLevel >= artifact.maxLevel ? 'MAX' : `업그레이드<br/>(${cost} <i class="fa-solid fa-star text-yellow-300"></i>)`}
                         </button>
                     </div>`;
-                }).join('') : '<p class="col-span-full text-center text-gray-400">분해할 펫이 없습니다.</p>';
-                contentHTML = `
-                    <p class="text-center mb-4 text-sm text-gray-400">장착 중인 펫은 분해할 수 없습니다.</p>
-                    <div class="grid grid-cols-3 md:grid-cols-5 gap-4 max-h-[60vh] overflow-y-auto bg-black/30 p-4 rounded-lg">${disassemblyList}</div>`;
-                break;
-            case 'rebirthModal':
-                modalTitle = "환생";
-                const rebirthCost = 1e9;
-                const pointsToGain = gameState.money >= rebirthCost ? Math.floor(Math.log10(gameState.money / rebirthCost) * 2) + 1 : 0;
-                contentHTML = `
-                <div class="text-center">
-                    <p class="text-lg">현재 재화를 소모하여 영구적인 힘을 얻습니다.</p>
-                    <p class="text-yellow-300 my-4 text-2xl">획득 예상 황금 도토리: ${pointsToGain}개</p>
-                    <button onclick="doRebirth()" class="btn w-full bg-purple-600 border-purple-400 text-white p-4 rounded-lg text-xl" ${gameState.money < rebirthCost ? 'disabled' : ''}>환생하기 (${formatNumber(rebirthCost)})</button>
-                </div>
-                <h3 class="text-2xl font-bold mt-8 mb-4 text-center border-t-2 border-purple-500 pt-4">유물 상점</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[40vh] overflow-y-auto pr-2">
-                    ${Object.keys(ARTIFACT_DATA).map(id => {
-                        const artifact = ARTIFACT_DATA[id];
-                        const level = gameState.artifacts[id] || 0;
-                        const cost = artifact.cost(level);
-                        const effect = (artifact.effect(level) * 100).toFixed(2);
-                        const nextEffect = (artifact.effect(level + 1) * 100).toFixed(2);
-                        return `<div class="bg-black/40 p-3 rounded-lg flex flex-col">
-                            <h4 class="font-bold text-lg">${artifact.name} [Lv.${level}]</h4>
-                            <p class="text-sm text-gray-400 flex-grow">${artifact.desc.replace('{EFFECT}', effect)}</p>
-                            ${level < artifact.maxLevel ? `
-                                <p class="text-xs text-cyan-300">다음 레벨: +${nextEffect}%</p>
-                                <button onclick="buyArtifact('${id}')" class="btn mt-2 w-full bg-yellow-600 border-yellow-400 text-black p-2 rounded-lg" ${gameState.goldenAcorns < cost ? 'disabled' : ''}>
-                                    <i class="fa-solid fa-cookie-bite"></i> ${cost}
-                                </button>
-                            ` : '<p class="text-center text-yellow-400 mt-2">최대 레벨</p>'}
-                        </div>`;
-                    }).join('')}
-                </div>`;
-                break;
-            case 'storyBookModal':
-                modalTitle = "우주의 서사시";
-                contentHTML = `<div class="space-y-2 max-h-[70vh] overflow-y-auto pr-2">
-                    ${Object.keys(STORY_BOOK_DATA).map(key => {
-                        const book = STORY_BOOK_DATA[key];
-                        const isUnlocked = gameState.storyBooks[key];
-                        if (isUnlocked) {
-                             return `<div class="bg-black/40 p-4 rounded-lg">
-                                <h3 class="text-xl font-bold text-cyan-300">${book.name}</h3>
-                                <p class="mt-2 text-gray-300 whitespace-pre-wrap">${book.content}</p>
-                             </div>`;
-                        } else {
-                            return `<button onclick="buyBook('${key}')" class="btn w-full bg-blue-800 border-blue-500 text-white p-3 rounded-lg flex justify-between items-center" ${gameState.money < book.cost ? 'disabled' : ''}><span>${book.name} 구매</span> <span>${formatNumber(book.cost)}</span></button>`;
-                        }
-                    }).join('')}
+                }).join('');
+                return {
+                    title: "환생",
+                    content: `
+                    <div class="text-center bg-black/30 p-4 rounded-lg">
+                        <h3 class="text-xl font-bold">환생을 통해 더 강해지세요!</h3>
+                        <p class="text-gray-300 mt-2">현재 진행 상황(재화, 펫, 강화 등)이 초기화되지만, <span class="text-yellow-300">스타더스트</span>와 강력한 <span class="text-cyan-300">영구 보너스</span>를 얻습니다.</p>
+                        <p class="mt-1">현재 환생 횟수: ${gameState.stats.rebirths}회 (모든 재화 +${gameState.stats.rebirths * 50}%)</p>
+                        <p class="mt-4 text-lg">환생 조건: 재화 ${formatNumber(rebirthReq)} 보유</p>
+                        <p class="text-lg">획득 예상 스타더스트: <span class="text-yellow-300">${stardustGain > 0 ? stardustGain : 0}</span></p>
+                        <button onclick="window.gameAPI.doRebirth()" class="btn bg-gray-700 border-yellow-500 text-yellow-300 w-full mt-4 p-3 text-xl" ${!canRebirth ? 'disabled' : ''}>환생하기</button>
+                    </div>
+                    <div class="mt-6">
+                        <h3 class="text-2xl text-center mb-3">유물</h3>
+                        <div class="space-y-2 max-h-[40vh] overflow-y-auto pr-2">${artifactHtml}</div>
+                    </div>`
+                }
+            },
+            explorationModal: () => {
+                if (!window.explorationTeam) window.explorationTeam = [];
+                const petSelectionHtml = gameState.pets.map(pet => {
+                    const petData = PET_DATA[pet.type];
+                    const isSelected = window.explorationTeam.includes(pet.id);
+                    const isExploring = gameState.explorationSlots.some(slot => slot.team.includes(pet.id));
+                    return `<div onclick="window.gameAPI.toggleExplorationTeam(${pet.id})" class="pet-card bg-black/40 p-2 rounded-lg text-center cursor-pointer ${isSelected ? 'selected' : ''} ${isExploring ? 'grayscale' : ''}">
+                        <div class="text-3xl">${petData.img}</div>
+                        <div class="text-xs font-bold">${petData.name}</div>
                     </div>`;
-                break;
-            case 'titleModal':
-                modalTitle = "칭호 관리";
-                contentHTML = `
-                <p class="text-center mb-4">현재 칭호: <span class="text-cyan-300">[${gameState.titles.equipped}]</span></p>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto bg-black/30 p-4 rounded-lg">
-                ${Object.keys(TITLE_DATA).map(title => {
+                }).join('');
+                return {
+                    title: "탐험",
+                    content: `<div class="space-y-4 max-h-[70vh] overflow-y-auto">
+                        ${gameState.explorationSlots.map((slot, index) => {
+                            if (slot.returnTime > 0) {
+                                const remaining = Math.max(0, Math.ceil((slot.returnTime - Date.now())/1000));
+                                return `<div class="bg-black/40 p-4 rounded-lg">
+                                    <h3 class="font-bold text-lg">${EXPLORATION_DATA[slot.area].name} 탐험 중...</h3>
+                                    <p>남은 시간: ${new Date(remaining * 1000).toISOString().substr(11, 8)}</p>
+                                    <button onclick="window.gameAPI.claimExploration(${index})" class="btn w-full mt-2 bg-green-600 border-green-400" ${remaining > 0 ? 'disabled' : ''}>보상 받기</button>
+                                </div>`;
+                            } else {
+                                return `<div class="bg-black/40 p-4 rounded-lg">
+                                    <h3 class="font-bold text-lg">탐험 슬롯 ${index+1} (비어있음)</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+                                        ${Object.keys(EXPLORATION_DATA).map(areaId => `<button onclick="window.gameAPI.startExplorationWrapper(${index}, '${areaId}')" class="btn bg-teal-700 border-teal-500 p-2 rounded">${EXPLORATION_DATA[areaId].name}</button>`).join('')}
+                                    </div>
+                                </div>`;
+                            }
+                        }).join('')}
+                        <div class="border-t-2 border-purple-400 pt-4">
+                            <h3 class="text-xl text-center mb-2">탐험대 선택 (선택된 펫: ${window.explorationTeam.length}마리)</h3>
+                            <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 max-h-[25vh] overflow-y-auto p-1">${petSelectionHtml}</div>
+                        </div>
+                    </div>`
+                }
+            },
+            skillModal: () => {
+                const skillHtml = Object.keys(SKILL_DATA).map(id => {
+                    const skill = SKILL_DATA[id];
+                    const level = gameState.skills.levels[id] || 0;
+                    const canBuy = gameState.skills.points >= skill.sp && level < skill.maxLevel;
+                    return `
+                    <div class="bg-black/40 p-3 rounded-lg">
+                        <h4 class="font-bold">${skill.name} ${level > 0 ? `(Lv.${level})` : ''}</h4>
+                        <p class="text-sm text-gray-300 my-1">${skill.desc(level)}</p>
+                        <button onclick="window.gameAPI.buySkill('${id}')" class="btn w-full mt-2 bg-rose-600 border-rose-400 text-sm p-2" ${!canBuy ? 'disabled':''}>
+                            ${level >= skill.maxLevel ? 'MAX' : `배우기 (SP: ${skill.sp})`}
+                        </button>
+                    </div>`;
+                }).join('');
+                return {
+                    title: "스킬트리",
+                    content: `<p class="text-center mb-4">보유 스킬 포인트: ${gameState.skills.points}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">${skillHtml}</div>`
+                }
+            },
+            bossModal: () => {
+                const bossListHtml = Object.keys(BOSS_DATA).map(id => {
+                    const boss = BOSS_DATA[id];
+                    const isCleared = gameState.boss.cleared.includes(id);
+                    return `<button onclick="window.gameAPI.startBossFight('${id}')" class="btn bg-red-900 border-red-700 p-4 rounded-lg text-left ${isCleared ? 'grayscale' : ''}">
+                        <h4 class="text-xl font-bold">${boss.name} ${isCleared ? '(완료)' : ''}</h4>
+                        <p>HP: ${formatNumber(boss.hp)}</p>
+                        <p>보상: ${formatNumber(boss.reward.money)}</p>
+                    </button>`
+                }).join('');
+                const petSelectionHtml = gameState.pets.map(pet => {
+                    const petData = PET_DATA[pet.type];
+                    const isSelected = gameState.boss.team.includes(pet.id);
+                    return `<div onclick="window.gameAPI.toggleBossTeam(${pet.id})" class="pet-card bg-black/40 p-2 rounded-lg text-center cursor-pointer ${isSelected ? 'selected' : ''}">
+                        <div class="text-3xl">${petData.img}</div>
+                        <div class="text-xs font-bold">${petData.name}</div>
+                    </div>`;
+                }).join('');
+
+                const weaponShopHtml = Object.keys(WEAPON_DATA).map(id => {
+                    const weapon = WEAPON_DATA[id];
+                    const isOwned = gameState.weapons.owned.includes(id);
+                    return `<button onclick="window.gameAPI.buyWeapon('${id}')" class="btn w-full bg-gray-800 border-gray-600 p-3 rounded-lg flex justify-between items-center" ${isOwned || gameState.money < weapon.cost ? 'disabled' : ''}>
+                                <span>${weapon.name} <span class="text-cyan-300">(+${(weapon.bonus * 100).toLocaleString()}%)</span></span>
+                                <span>${isOwned ? '보유중' : formatNumber(weapon.cost)}</span>
+                            </button>`;
+                }).join("");
+
+                const weaponEquipHtml = gameState.pets.map(pet => {
+                    const petData = PET_DATA[pet.type];
+                    const equippedWeaponId = gameState.weapons.equipped[pet.id];
+                    const unequippedWeapons = gameState.weapons.owned.filter(wId => !Object.values(gameState.weapons.equipped).includes(wId));
+                    if (equippedWeaponId) {
+                        unequippedWeapons.push(equippedWeaponId);
+                    }
+
+                    const options = unequippedWeapons.map(wId => {
+                        const weaponData = WEAPON_DATA[wId];
+                        return `<option value="${wId}" ${wId === equippedWeaponId ? 'selected' : ''}>${weaponData.name}</option>`;
+                    }).join('');
+
+                    return `<div class="bg-black/40 p-3 rounded-lg flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-3xl">${petData.img}</span>
+                                    <span>${petData.name}</span>
+                                </div>
+                                <select onchange="window.gameAPI.equipWeapon(${pet.id}, this.value)" class="weapon-select p-2 rounded-md">
+                                    <option value="none">해제</option>
+                                    ${options}
+                                </select>
+                            </div>`;
+                }).join('');
+
+                return {
+                    title: "보스 레이드",
+                    content: `
+                    <div class="flex border-b-2 border-red-500 mb-4">
+                        <button class="tab-button active flex-1 p-3 text-lg" onclick="window.gameAPI.switchTab(event, 'bossSelectTab')">보스 선택</button>
+                        <button class="tab-button flex-1 p-3 text-lg" onclick="window.gameAPI.switchTab(event, 'weaponShopTab')">무기 상점</button>
+                        <button class="tab-button flex-1 p-3 text-lg" onclick="window.gameAPI.switchTab(event, 'weaponEquipTab')">무기 장착</button>
+                    </div>
+                    <div id="bossSelectTab" class="tab-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${bossListHtml}</div>
+                        <div class="border-t-2 border-purple-400 pt-4 mt-4">
+                            <h3 class="text-xl text-center mb-2">보스전 팀 선택 (${gameState.boss.team.length}/5)</h3>
+                            <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 max-h-[25vh] overflow-y-auto p-1">${petSelectionHtml}</div>
+                        </div>
+                    </div>
+                    <div id="weaponShopTab" class="tab-content hidden space-y-2">
+                        ${weaponShopHtml || '<p>무기가 없습니다.</p>'}
+                    </div>
+                    <div id="weaponEquipTab" class="tab-content hidden space-y-2">
+                        ${weaponEquipHtml || '<p>펫이 없습니다.</p>'}
+                    </div>`
+                }
+            },
+            titleModal: () => ({
+                title: "칭호",
+                content: `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${Object.keys(TITLE_DATA).map(title => {
+                    const data = TITLE_DATA[title];
                     const isUnlocked = gameState.titles.unlocked.includes(title);
                     const isEquipped = gameState.titles.equipped === title;
-                    return `<div class="p-3 rounded-lg ${isUnlocked ? 'bg-purple-900/50' : 'bg-black/50 opacity-60'}">
+                    return `<div class="bg-black/40 p-3 rounded-lg ${!isUnlocked ? 'grayscale' : ''}">
                         <h4 class="font-bold text-lg">${title}</h4>
-                        <p class="text-sm text-gray-400">${TITLE_DATA[title].desc}</p>
-                        ${isUnlocked ? `<button onclick="equipTitle('${title}')" class="btn w-full mt-2 p-1 text-sm rounded ${isEquipped ? 'bg-gray-500' : 'bg-cyan-600 border-cyan-400'}" ${isEquipped ? 'disabled' : ''}>${isEquipped ? '장착중' : '장착'}</button>` : ''}
+                        <p class="text-sm text-gray-400">${data.desc}</p>
+                        <p class="text-sm text-cyan-300">효과: ${data.bonus.type !== 'none' ? `${(data.bonus.value * 100).toFixed(0)}%` : '없음'}</p>
+                        ${isUnlocked ? `<button onclick="window.gameAPI.equipTitle('${title}')" class="btn w-full mt-2 p-2 ${isEquipped ? 'bg-orange-500 border-orange-300' : 'bg-gray-600 border-gray-400'}" ${isEquipped ? 'disabled' : ''}>${isEquipped ? '장착 중' : '장착'}</button>` : '<p class="text-center mt-2 text-red-500">잠김</p>'}
                     </div>`
-                }).join('')}
-                </div>`;
-                break;
-            case 'statsModal':
-                modalTitle = "상세 스탯";
-                const cps = calculateCPS();
-                contentHTML = `<div class="text-lg space-y-2 max-h-[70vh] overflow-y-auto">
-                    <p>총 플레이 시간: <span class="text-cyan-300">${new Date(gameState.stats.playTime * 1000).toISOString().substr(11, 8)}</span></p>
-                    <p>총 클릭 횟수: <span class="text-cyan-300">${gameState.stats.totalClicks.toLocaleString()}</span></p>
-                    <p>총 획득 재화: <span class="text-cyan-300">${formatNumber(gameState.stats.totalMoney)}</span></p>
-                    <p>최대 보유 재화: <span class="text-cyan-300">${formatNumber(gameState.stats.maxMoney)}</span></p>
-                    <p>환생 횟수: <span class="text-cyan-300">${gameState.stats.rebirths}회</span></p>
-                    <p>클릭당 재화: <span class="text-cyan-300">${formatNumber(cps.click)}</span></p>
-                    <p>초당 자동 획득 재화: <span class="text-cyan-300">${formatNumber(cps.auto)}</span></p>
-                </div>`;
-                break;
-            case 'settingsModal':
-                 modalTitle = "설정";
-                 contentHTML = `<div class="space-y-4">
-                        <div class="flex items-center gap-4">
-                           <input type="text" id="couponInput" class="bg-gray-900 text-white p-3 rounded-lg w-full" placeholder="쿠폰 코드 입력">
-                           <button onclick="applyCoupon(document.getElementById('couponInput').value.trim())" class="btn bg-green-600 border-green-400 text-white px-6 py-3 rounded-lg">입력</button>
+                }).join('')}</div>`
+            }),
+            settingsModal: () => ({
+                title: "설정",
+                content: `<div class="space-y-4">
+                    <div class="bg-black/30 p-4 rounded-lg">
+                        <h3 class="font-bold text-center text-lg mb-2">쿠폰 입력</h3>
+                        <div class="flex gap-2">
+                            <input type="password" id="couponInput" class="flex-grow bg-gray-900 text-white p-3 rounded-lg border border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-300" placeholder="쿠폰 코드를 입력하세요">
+                            <button onclick="window.gameAPI.useCoupon()" class="btn bg-green-600 border-green-400 p-3 rounded-lg">사용</button>
                         </div>
-                        <button onclick="toggleNumberFormat()" class="btn w-full bg-purple-600 border-purple-400 p-3 rounded-lg">숫자 표시 방식 변경: ${gameState.settings.numberFormat === 'full' ? '전체' : '단위'}</button>
-                        <button onclick="resetGame()" class="btn w-full bg-red-800 border-red-500 p-3 rounded-lg">게임 데이터 초기화</button>
+                    </div>
+                    <button onclick="window.gameAPI.toggleNumberFormat()" class="btn w-full bg-purple-600 border-purple-400 p-3 rounded-lg">숫자 표시 방식 변경: ${gameState.settings.numberFormat === 'full' ? '전체' : '단위'}</button>
+                    <button onclick="window.gameAPI.saveGame(true)" class="btn w-full bg-cyan-600 border-cyan-400 p-3 rounded-lg">수동 저장</button>
+                    <button onclick="window.gameAPI.resetGame()" class="btn w-full bg-red-800 border-red-500 p-3 rounded-lg">게임 데이터 초기화</button>
+                </div>`
+            }),
+            confirmationModal: ({ message, onConfirm }) => ({
+                title: "확인",
+                content: `<div class="text-center">
+                    <p class="text-lg mb-6">${message}</p>
+                    <div class="flex justify-center gap-4">
+                        <button id="confirmBtn" class="btn bg-green-600 border-green-400 px-8 py-2">예</button>
+                        <button onclick="window.gameAPI.closeModal()" class="btn bg-red-600 border-red-400 px-8 py-2">아니오</button>
+                    </div>
+                </div>`
+            }),
+            statsModal: () => ({
+                title: "상세 스탯",
+                content: `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-black/40 p-3 rounded-lg">
+                            <h3 class="font-bold text-lg">기본 정보</h3>
+                            <p>총 플레이 시간: ${new Date(gameState.stats.playTime * 1000).toISOString().substr(11, 8)}</p>
+                            <p>총 클릭 횟수: ${gameState.stats.totalClicks.toLocaleString()}</p>
+                            <p>총 획득 재화: ${formatNumber(gameState.stats.totalMoney)}</p>
+                        </div>
+                        <div class="bg-black/40 p-3 rounded-lg">
+                            <h3 class="font-bold text-lg">기록</h3>
+                            <p>최대 보유 재화: ${formatNumber(gameState.stats.maxMoney)}</p>
+                            <p>환생 횟수: ${gameState.stats.rebirths.toLocaleString()}</p>
+                            <p>뽑기 횟수: ${gameState.stats.gachaCount.toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-black/40 p-3 rounded-lg">
+                        <h3 class="font-bold text-lg text-center mb-2">최근 1분 재화 변동</h3>
+                        <canvas id="statsChartCanvas"></canvas>
+                    </div>
+                `
+            }),
+            storyBookModal: () => {
+                const storyHtml = Object.keys(STORY_BOOK_DATA).map(id => {
+                    const story = STORY_BOOK_DATA[id];
+                    const isUnlocked = !!gameState.storyBooks[id];
+                    return `<div class="bg-black/40 p-4 rounded-lg">
+                        <h3 class="text-xl font-bold ${isUnlocked ? 'text-cyan-300' : ''}">${story.name}</h3>
+                        ${isUnlocked ? `<p class="mt-2 text-gray-300">${story.content}</p>` : `<button onclick="window.gameAPI.unlockStory('${id}')" class="btn bg-blue-600 border-blue-400 w-full mt-2" ${gameState.money < story.cost ? 'disabled' : ''}>잠금 해제 (${formatNumber(story.cost)})</button>`}
                     </div>`;
-                break;
-        }
-        modalContent.innerHTML = `<h2 class="text-3xl font-bold mb-6 text-center">${modalTitle}</h2> ${contentHTML} <button onclick="closeModal()" class="btn mt-6 w-full bg-gray-600 border-gray-400 p-2 rounded-lg">닫기</button>`;
-        modalContainer.classList.remove('hidden');
-        if (modalId === 'shopModal' || modalId === 'missionModal') {
-            switchTab({currentTarget: modalContent.querySelector('.tab-button')}, modalId.replace('Modal', ''));
-        }
-    }
-    
-    function switchTab(event, group) {
-        const targetTab = event.currentTarget.dataset.tab;
-        modalContent.querySelectorAll(`.tab-content`).forEach(el => {
-            if (el.id.toLowerCase().includes(group.toLowerCase())) el.classList.add('hidden');
-        });
-        event.currentTarget.parentElement.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
-        document.getElementById(`${targetTab}Tab`).classList.remove('hidden');
-        event.currentTarget.classList.add('active');
-    }
-
-    function closeModal() { enhanceSelection = []; evolveSelection = []; modalContainer.classList.add('hidden'); }
-    function buyPet(type) { const petData=PET_DATA[type];if(gameState.money>=petData.cost){changeMoney(-petData.cost);addPet(type);showToast(`${petData.name} 구매 완료!`,"success");showModal("shopModal")}else{showToast("돈이 부족합니다.","error")}}
-    function buyBook(key) { const book = STORY_BOOK_DATA[key]; if (gameState.money >= book.cost) { changeMoney(-book.cost); gameState.storyBooks[key] = true; showToast(`'${book.name}' 구매 완료!`, 'success'); showModal('storyBookModal'); } else { showToast('돈이 부족합니다.', 'error'); } }
-    function toggleEquip(petId) { const index = gameState.equippedPetIds.indexOf(petId); if (index > -1) gameState.equippedPetIds.splice(index, 1); else if (gameState.equippedPetIds.length < gameState.petLimit) gameState.equippedPetIds.push(petId); else showToast('펫 장착 슬롯이 가득 찼습니다!', 'error'); showModal('petModal'); renderEquippedPets(); }
-    function doGacha(type) {
-        const cost = type === 'normal' ? 50000 : 0;
-        const goldCost = type === 'premium' ? 10 : 0;
-        if(gameState.money < cost || gameState.goldenAcorns < goldCost) { showToast('비용이 부족합니다.', 'error'); return; }
-        changeMoney(-cost);
-        changeGoldenAcorns(-goldCost);
-
-        const gachaBox = document.getElementById('gachaResultContainer');
-        gachaBox.innerHTML = `<div class="text-8xl animate-spin">🌀</div>`;
+                }).join('');
+                return {
+                    title: "스토리북",
+                    content: `<div class="space-y-4">${storyHtml}</div>`
+                };
+            },
+            craftingModal: () => {
+                const craftHtml = Object.keys(CRAFTING_DATA).map(id => {
+                    const craft = CRAFTING_DATA[id];
+                    const canCraft = Object.keys(craft.materials).every(mat => (gameState.inventory.materials[mat] || 0) >= craft.materials[mat]);
+                    return `<div class="bg-black/40 p-3 rounded-lg flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-lg">${craft.name}</h4>
+                            <p class="text-sm text-gray-300">재료: ${Object.entries(craft.materials).map(([mat, amt]) => `${mat} ${amt}`).join(', ')}</p>
+                        </div>
+                        <button onclick="window.gameAPI.doCraft('${id}')" class="btn bg-amber-600 border-amber-400 p-2" ${!canCraft ? 'disabled': ''}>제작</button>
+                    </div>`;
+                }).join('');
+                const inventoryHtml = Object.entries(gameState.inventory.materials).map(([mat, amt]) => `<p>${mat}: ${amt}</p>`).join('');
+                return {
+                    title: "제작",
+                    content: `
+                        <div class="mb-4 bg-black/30 p-3 rounded-lg">
+                            <h3 class="font-bold text-center">보유 재료</h3>
+                            <div class="text-center">${inventoryHtml || '없음'}</div>
+                        </div>
+                        <div class="space-y-3">${craftHtml}</div>
+                    `
+                }
+            },
+            dungeonModal: () => ({title:"던전", content:"<p>던전 기능은 곧 업데이트 됩니다!</p>"}),
+            worldBossModal: () => ({title:"월드보스", content:"<p>월드보스 기능은 곧 업데이트 됩니다!</p>"}),
+        };
         
-        setTimeout(() => {
-            const rates = GACHA_RATES[type];
-            const totalWeight = rates.reduce((sum, pet) => sum + pet.weight, 0);
-            let random = Math.random() * totalWeight;
-            let resultPetType = rates[rates.length - 1].type;
-            for (const pet of rates) {
-                if (random < pet.weight) { resultPetType = pet.type; break; }
-                random -= pet.weight;
-            }
-            
-            addPet(resultPetType, 'gacha');
-            
-            const petData = PET_DATA[resultPetType];
-            gachaBox.innerHTML = `<div class="text-center" style="animation: fadeIn 0.5s">
+        // --- Utilities & Helper Functions ---
+        function showConfirmationModal(message, onConfirm) {
+            showModal('confirmationModal', { message, onConfirm });
+            setTimeout(() => {
+                const confirmBtn = document.getElementById('confirmBtn');
+                if(confirmBtn) {
+                    confirmBtn.onclick = () => {
+                        onConfirm();
+                        closeModal();
+                    };
+                }
+            }, 0);
+        }
+        function switchTab(event, targetTabId){event.currentTarget.parentElement.querySelectorAll(".tab-button").forEach(el=>el.classList.remove("active"));event.currentTarget.classList.add("active");DOMElements.modalContent.querySelectorAll(".tab-content").forEach(el=>el.classList.add("hidden"));document.getElementById(targetTabId).classList.remove("hidden")}
+        function buyPet(type){const petData=PET_DATA[type];if(gameState.money>=petData.cost){changeMoney(-petData.cost);addPet(type);showToast(`${petData.name} 구매 완료!`,"success");showModal("shopModal")}else{showToast("돈이 부족합니다.","error")}}
+        function doGacha(type) {
+            let cost = 0, goldCost = 0, stardustCost = 0;
+            if (type === 'normal') cost = 50000;
+            else if (type === 'premium') goldCost = 10;
+            else if (type === 'stardust') stardustCost = 100;
+            if(gameState.money < cost || gameState.goldenAcorns < goldCost || gameState.stardust < stardustCost) { showToast('비용이 부족합니다.', 'error'); return; }
+            changeMoney(-cost); changeGoldenAcorns(-goldCost); changeStardust(-stardustCost);
+            gameState.stats.gachaCount++;
+            updateMissionProgress('gacha', 1);
+            const gachaBox = document.getElementById('gachaResultContainer');
+            gachaBox.innerHTML = `<div class="text-8xl animate-spin">🌀</div>`;
+            setTimeout(() => {
+                const rates = GACHA_RATES[type];
+                const totalWeight = rates.reduce((sum, pet) => sum + pet.weight, 0);
+                let random = Math.random() * totalWeight;
+                let resultPetType = rates[rates.length - 1].type;
+                for (const pet of rates) { if (random < pet.weight) { resultPetType = pet.type; break; } random -= pet.weight; }
+                addPet(resultPetType, 'gacha');
+                const petData = PET_DATA[resultPetType];
+                gachaBox.innerHTML = `<div class="text-center" style="animation: fadeIn 0.5s">
                     <div class="text-7xl">${petData.img}</div>
                     <div class="text-2xl font-bold mt-2 ${RARITY_COLORS[petData.rarity]}">${petData.name}</div>
-                    <div class="text-lg px-3 py-1 rounded-full mt-1">${petData.rarity}</div>
-                </div>`;
-        }, 1500);
-    }
-    
-    function renderAll() { renderMoney(); renderGoldenAcorns(); renderEquippedPets(); }
-    function renderMoney() { moneyDisplay.textContent = formatNumber(gameState.money); }
-    function renderGoldenAcorns() { goldenAcornAmount.textContent = gameState.goldenAcorns.toLocaleString(); }
-    function renderEquippedPets() {
-        gameScreen.innerHTML = '';
-        let equippedPets = gameState.equippedPetIds.map(id => findPetById(id)).filter(p => p);
-        if (equippedPets.length === 0 && gameState.pets.length > 0) equippedPets = [gameState.pets[0]];
-        if (equippedPets.length > 0) {
-             equippedPets.forEach(pet => {
-                const petData = PET_DATA[pet.type];
-                if (!petData) return;
-                const el = document.createElement('div');
-                el.className = 'text-center pet';
-                el.innerHTML = `<div class="text-7xl">${petData.img}</div><div class="text-sm font-bold">${petData.name}</div>`;
-                gameScreen.appendChild(el);
-            });
-            gameScreen.onclick = handlePetClick;
-        } else {
-            gameScreen.innerHTML = `<div class="text-2xl text-center text-gray-400">상점에서 첫 펫을 구매하세요!</div>`;
-            gameScreen.onclick = null;
+                    <div class="text-lg px-3 py-1 rounded-full mt-1">${petData.rarity}</div></div>`;
+            }, 1500);
         }
-    }
-    
-    function formatNumber(num) {
-        if (!isFinite(num)) return "0";
-        if (gameState.settings.numberFormat === 'korean' && num >= 10000) {
-            const units = ['', '만', '억', '조', '경'];
-            const order = Math.floor(Math.log10(num) / 4);
-            if(order >= units.length) return num.toExponential(2);
-            const value = (num / Math.pow(10, order * 4));
-            return `${value.toFixed(order > 0 ? 2 : 0)}${units[order]}`;
+        function formatNumber(num){if(!isFinite(num))return"0";if(num < 10000) return Math.floor(num).toLocaleString("en-US"); if(gameState.settings.numberFormat==="korean"&&num>=1e4){const units=["","만","억","조","경","해"];const order=Math.floor(Math.log10(num)/4);if(order>=units.length)return num.toExponential(2);const value=num/Math.pow(10,order*4);return`${value.toFixed(2)}${units[order]}`}return num.toExponential(2);}
+        function toggleNumberFormat(){gameState.settings.numberFormat=gameState.settings.numberFormat==="full"?"korean":"full";renderMoney(gameState.money, true);if(currentModal === 'settingsModal')showModal("settingsModal")}
+        function findPetById(id){return gameState.pets.find(p=>p.id===id)}
+        function showToast(message,type="default"){DOMElements.toastText.textContent=message;let colors={'default':'bg-gray-800/80 border-gray-500','success':'bg-green-600/80 border-green-400','error':'bg-red-600/80 border-red-400','info':'bg-cyan-500/80 border-cyan-300'};DOMElements.toast.className=`fixed bottom-10 left-1/2 px-6 py-3 rounded-lg shadow-xl text-lg ${colors[type]}`;gsap.fromTo(DOMElements.toast,{y:100,opacity:0,x:'-50%'},{y:0,opacity:1,duration:0.5,ease:'power4.out'});gsap.fromTo(DOMElements.toastProgress,{width:'100%'},{width:'0%',duration:3.5,ease:'linear',onComplete:()=>{gsap.to(DOMElements.toast,{opacity:0,y:100,duration:0.5,ease:'power4.in'})}})}
+        function handleOfflineProgress(){const timeOffline=Date.now()-(gameState.lastSaveTime||Date.now());const maxOfflineTime=8*60*60*1e3;let effectiveTime=Math.min(timeOffline,maxOfflineTime);let offlineBonus = (gameState.skills.levels['a002'] ? SKILL_DATA['a002'].effect(gameState.skills.levels['a002']) : 0);if(gameState.artifacts.timeCrystal)effectiveTime*=1+ARTIFACT_DATA.timeCrystal.effect(gameState.artifacts.timeCrystal.level)+offlineBonus;if(effectiveTime>6e4){const passiveIncomeRate=calculateCPS().auto*.2;const earned=Math.floor(passiveIncomeRate*effectiveTime/1e3);if(earned>0){showToast(`${(timeOffline/36e5).toFixed(1)}시간의 오프라인 보상으로 ${formatNumber(earned)}을 획득했습니다!`,"info");changeMoney(earned)}}}
+        
+        function useCoupon() {
+            const input = document.getElementById('couponInput');
+            if (!input) return;
+            const code = input.value.toUpperCase(); // Case-insensitive
+            
+            const coupon = COUPONS[code];
+
+            if (!coupon) {
+                showToast('잘못된 쿠폰 코드입니다.', 'error');
+                return;
+            }
+
+            if (gameState.couponsUsed.includes(code)) {
+                showToast('이미 사용한 쿠폰입니다.', 'error');
+                return;
+            }
+
+            // Grant rewards
+            if (coupon.reward.money) changeMoney(coupon.reward.money);
+            if (coupon.reward.goldenAcorns) changeGoldenAcorns(coupon.reward.goldenAcorns);
+            if (coupon.reward.stardust) changeStardust(coupon.reward.stardust);
+            
+            gameState.couponsUsed.push(code);
+            showToast(coupon.message, 'success');
+            input.value = ''; // Clear input
         }
-        return Math.floor(num).toLocaleString('en-US');
-    }
-    function toggleNumberFormat() { gameState.settings.numberFormat = gameState.settings.numberFormat === 'full' ? 'korean' : 'full'; renderMoney(); showModal('settingsModal'); }
-    function findPetById(id) { return gameState.pets.find(p => p.id === id); }
-    function showToast(message, type = 'default') {
-        toast.textContent = message;
-        toast.className = 'fixed bottom-10 right-10 px-6 py-3 rounded-lg shadow-xl text-lg opacity-0 transform translate-y-5 transition-all duration-500 z-[100]';
-        switch (type) {
-            case 'success': toast.classList.add('bg-green-600', 'text-white'); break;
-            case 'error': toast.classList.add('bg-red-600', 'text-white'); break;
-            case 'info': toast.classList.add('bg-cyan-500', 'text-white'); break;
-            default: toast.classList.add('bg-gray-800', 'text-white'); break;
+
+        // --- SAVE/LOAD ---
+        function saveGame(isManual = false) {    
+            gameState.lastSaveTime = Date.now();
+            localStorage.setItem('dotoriGameSave_FinalChapter', JSON.stringify(gameState));    
+            if(isManual) showToast('게임이 저장되었습니다.', 'success');
         }
-        toast.classList.remove('opacity-0', 'translate-y-5');
-        setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-5'); }, 3000);
-     }
-    function handleOfflineProgress() {
-        const timeOffline = Date.now() - (gameState.lastSaveTime || Date.now());
-        const maxOfflineTime = 8 * 60 * 60 * 1000;
-        let effectiveTime = Math.min(timeOffline, maxOfflineTime);
-        if(gameState.artifacts.timeCrystal) effectiveTime *= (1 + ARTIFACT_DATA.timeCrystal.effect(gameState.artifacts.timeCrystal));
-        if (effectiveTime > 60000) {
-            const passiveIncomeRate = (calculateCPS().auto * 0.2); // 20% effectiveness
-            const earned = Math.floor(passiveIncomeRate * (effectiveTime / 1000));
-            if (earned > 0) {
-                 showToast(`${(timeOffline/3600000).toFixed(1)}시간의 오프라인 보상으로 ${formatNumber(earned)}을 획득했습니다!`, 'info');
-                changeMoney(earned);
+        function loadGame() {
+            const savedGame = localStorage.getItem('dotoriGameSave_FinalChapter');
+            if (savedGame) {
+                const loadedState = JSON.parse(savedGame);
+                gameState = deepMerge(JSON.parse(JSON.stringify(initialGameState)), loadedState);
+                nextPetId = gameState.pets.length > 0 ? Math.max(0, ...gameState.pets.map(p => p.id || 0)) + 1 : 0;
+            } else {
+                gameState = JSON.parse(JSON.stringify(initialGameState));
             }
         }
-    }
-    
-    function saveGame() { localStorage.setItem('dotoriGameSave_v3_final', JSON.stringify(gameState)); }
-    function loadGame() {
-        const savedGame = localStorage.getItem('dotoriGameSave_v3_final');
-        if (savedGame) {
-            const loadedState = JSON.parse(savedGame);
-            gameState = Object.assign({}, JSON.parse(JSON.stringify(initialGameState)), loadedState);
-            nextPetId = gameState.pets.length > 0 ? Math.max(0, ...gameState.pets.map(p => p.id)) + 1 : 0;
-        } else {
-            gameState = JSON.parse(JSON.stringify(initialGameState));
+        function resetGame(){showConfirmationModal('정말로 게임 데이터를 초기화하시겠습니까?<br>모든 진행 상황이 사라집니다.', () => { localStorage.removeItem("dotoriGameSave_FinalChapter"); window.location.reload(); })}
+        
+        function deepMerge(target, source) {
+            for (const key in source) {
+                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                    if (!target[key] || typeof target[key] !== 'object') target[key] = {};
+                    deepMerge(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
+                }
+            }
+            return target;
         }
-    }
-    function resetGame() {
-        if(window.confirm('정말로 게임 데이터를 초기화하시겠습니까? 모든 진행 상황이 사라집니다.')) {
-            localStorage.removeItem('dotoriGameSave_v3_final');
-            window.location.reload();
+        
+        // --- Mission, Title, Rebirth, etc. Logic (Merged from original) ---
+        const MISSION_TIERS = [ { req: () => true, pool: [{id:'click', t:500}, {id:'earnMoney', t:1e4}, {id:'buyPet', t:1}] }, { req: gs => gs.stats.maxMoney > 1e5, pool: [{id:'gacha', t:5}, {id:'enhance', t:1}, {id:'earnMoney', t:1e6}] }, { req: gs => gs.stats.rebirths > 0, pool: [{id:'exploration', t:1}, {id:'collectPet', t:10}, {id:'rebirth', t:1}] } ];
+        const MISSION_TEXT = { click: t => `클릭 ${t}번 하기`, earnMoney: t => `재화 ${formatNumber(t)} 획득하기`, buyPet: t => `펫 ${t}마리 구매하기`, gacha: t => `펫 뽑기 ${t}번 하기`, enhance: t => `펫 강화 ${t}번 시도하기`, exploration: t => `탐험 ${t}번 완료하기`, collectPet: t => `펫 ${t}종류 수집하기`, rebirth: t => `환생 ${t}번 하기`, };
+        function generateMissions() {if(gameState.missions.filter(m=>!m.claimed).length>=3)return;const currentTier=MISSION_TIERS.slice().reverse().find(t=>t.req(gameState));if(!currentTier)return;while(gameState.missions.length<3){const missionTemplate=currentTier.pool[Math.floor(Math.random()*currentTier.pool.length)];if(gameState.missions.some(m=>m.id===missionTemplate.id&&!m.claimed))continue;gameState.missions.push({id:missionTemplate.id,target:missionTemplate.t,progress:0,claimed:false,reward:{goldenAcorns:5+(gameState.stats.rebirths*2)}})}}
+        function updateMissionProgress(missionId, value) {let missionCompleted=!1;gameState.missions.forEach(mission=>{if(mission.id===missionId&&!mission.claimed){mission.progress+=value;if(mission.progress>=mission.target)missionCompleted=!0}});if(missionCompleted&&currentModal==='missionModal')showModal('missionModal')}
+        function claimMissionReward(index) {const mission=gameState.missions[index];if(mission&&mission.progress>=mission.target&&!mission.claimed){mission.claimed=!0;if(mission.reward.goldenAcorns)changeGoldenAcorns(mission.reward.goldenAcorns);showToast('미션 보상 획득!','success');gameState.missions.splice(index,1);generateMissions();showModal('missionModal')}}
+        function renderMission(mission, index) {const progress=Math.min(mission.progress,mission.target);const percent=progress/mission.target*100;const canClaim=progress>=mission.target&&!mission.claimed;return`<div class="bg-black/40 p-3 rounded-lg"><p>${MISSION_TEXT[mission.id](mission.target)}</p><div class="flex items-center gap-4 mt-2"><div class="flex-grow progress-bar h-4"><div class="progress-bar-inner exp-bar" style="width: ${percent}%"></div></div><button onclick="window.gameAPI.claimMissionReward(${index})" class="btn text-sm px-4 py-1 rounded" ${!canClaim?"disabled":""}>보상 (+${mission.reward.goldenAcorns} <i class="fa-solid fa-cookie-bite"></i>)</button></div></div>`}
+        function checkTitleUnlocks() {Object.keys(TITLE_DATA).forEach(title=>{if(!gameState.titles.unlocked.includes(title)&&TITLE_DATA[title].unlock(gameState)){gameState.titles.unlocked.push(title);showToast(`칭호 획득: [${title}]`,'info')}})}
+        function equipTitle(title) {if(gameState.titles.unlocked.includes(title)){gameState.titles.equipped=title;showModal('titleModal')}}
+        function doRebirth() {const rebirthReq=1e9;if(gameState.money<rebirthReq)return;showConfirmationModal('정말로 환생하시겠습니까? 펫, 재화, 강화가 초기화됩니다.',()=>{const stardustGain=Math.floor(Math.log10(gameState.money)-7);if(stardustGain>0)changeStardust(stardustGain);const preserved={goldenAcorns:gameState.goldenAcorns,stardust:gameState.stardust,collection:gameState.collection,artifacts:gameState.artifacts,titles:gameState.titles,couponsUsed:gameState.couponsUsed,stats:{...gameState.stats,rebirths:gameState.stats.rebirths+1,totalMoney:0,maxMoney:0},settings:gameState.settings,storyBooks:gameState.storyBooks,skills:gameState.skills,boss:{...gameState.boss,team:[],activeBoss:null}};gameState={...JSON.parse(JSON.stringify(initialGameState)),...preserved};addPet('acorn','rebirth');generateMissions();showToast(`환생 완료! 스타더스트 ${stardustGain}개 획득!`,'success');renderAll();closeModal()})}
+        function buyArtifact(id) {const artifactData=ARTIFACT_DATA[id];if(!gameState.artifacts[id])gameState.artifacts[id]={level:0};const currentLevel=gameState.artifacts[id].level;if(currentLevel>=artifactData.maxLevel)return;const cost=artifactData.cost(currentLevel);if(gameState.stardust>=cost){changeStardust(-cost);gameState.artifacts[id].level++;showModal('rebirthModal')}}
+        function selectForEnhance(id){const pet=findPetById(id);if(pet&&pet.locked)return;if(selectionState.enhance.includes(id))selectionState.enhance=selectionState.enhance.filter(p=>p!==id);else selectionState.enhance.push(id);showModal("enhanceModal")}
+        function doEnhance(){if(selectionState.enhance.length!==2){showToast("강화할 펫 1, 재료 펫 1, 총 2마리 선택.","error");return}const p1=findPetById(selectionState.enhance[0]),p2=findPetById(selectionState.enhance[1]);if(!p1||!p2){selectionState.enhance=[];showModal("enhanceModal");return}const[base,mat]=p1.enhancement>=p2.enhancement?[p1,p2]:[p2,p1];if(base.type!==mat.type||base.enhancement!==mat.enhancement||base.evolution!==mat.evolution){showToast("동일 종류, 강화, 진화 펫만 재료 가능.","error");return}if(base.enhancement>=15){showToast("최대 강화.","error");return}const rate=Math.min(100,100-base.enhancement*6);if(Math.random()*100<rate){base.enhancement++;showToast("강화 성공!","success")}else{showToast("강화 실패...","error")}removePetById(mat.id);selectionState.enhance=[];updateMissionProgress("enhance",1);showModal("enhanceModal")}
+        function selectForEvolve(id){const pet=findPetById(id);if(pet&&pet.locked)return;if(selectionState.evolve.includes(id))selectionState.evolve=selectionState.evolve.filter(p=>p!==id);else selectionState.evolve.push(id);showModal("evolveModal")}
+        function doEvolve(){if(selectionState.evolve.length!==3){showToast("진화할 펫 1, 재료 펫 2, 총 3마리 선택.","error");return}const pets=selectionState.evolve.map(id=>findPetById(id));if(pets.some(p=>!p)){selectionState.evolve=[];showModal("evolveModal");return}const base=pets[0];if(pets.some(p=>p.type!==base.type)){showToast("모두 동일 종류 펫이어야 함.","error");return}if(base.evolution>=5){showToast("최대 진화.","error");return}const rate=Math.max(10,80-base.evolution*15);if(Math.random()*100<rate){base.evolution++;base.enhancement=0;showToast("진화 성공!","success")}else{showToast("진화 실패...","error")}removePetById(pets[1].id);removePetById(pets[2].id);selectionState.evolve=[];showModal("petModal")}
+        function toggleEquip(petId){const i=gameState.equippedPetIds.indexOf(petId);if(i>-1)gameState.equippedPetIds.splice(i,1);else if(gameState.equippedPetIds.length<gameState.petLimit)gameState.equippedPetIds.push(petId);else showToast('펫 장착 슬롯 초과.','error');renderEquippedPets();if(currentModal==='petModal')showModal('petModal')}
+        function toggleLock(petId){const p=findPetById(petId);if(p){p.locked=!p.locked;showToast(p.locked?'잠금 설정.':'잠금 해제.','info');if(currentModal==='petModal')showModal('petModal')}}
+        function toggleExplorationTeam(petId){const i=window.explorationTeam.indexOf(petId);if(i>-1)window.explorationTeam.splice(i,1);else window.explorationTeam.push(petId);showModal('explorationModal')}
+        function startExplorationWrapper(slotIndex, areaId){startExploration(slotIndex, areaId, [...window.explorationTeam]);window.explorationTeam=[]}
+        function buySkill(id){const s=SKILL_DATA[id];const l=gameState.skills.levels[id]||0;if(gameState.skills.points>=s.sp&&l<s.maxLevel){gameState.skills.points-=s.sp;gameState.skills.levels[id]=l+1;if(s.type==='active'&&!(gameState.skills.unlocked||[]).includes(id)){if(!gameState.skills.unlocked)gameState.skills.unlocked=[];gameState.skills.unlocked.push(id)}renderSkillBar();showModal('skillModal')}}
+        function activateSkill(id){const s=SKILL_DATA[id];if((gameState.skills.cooldowns[id]||0)>0)return;gameState.skills.cooldowns[id]=s.cooldown;const l=gameState.skills.levels[id]||1;if(id==='s001'){if(!gameState.skills.active)gameState.skills.active={};gameState.skills.active[id]=Date.now()+1e4}else if(id==='s002'){const income=calculateCPS().auto*60*(10+l);changeMoney(income,'skill');showToast(`${formatNumber(income)} 재화 획득`,'info')}else if(id==='s003'){changeGoldenAcorns(l);showToast(`황금 도토리 ${l}개 획득`,'info')}renderSkillBar()}
+        
+        // --- Boss Fight Logic ---
+        function buyWeapon(weaponId) {
+            const weapon = WEAPON_DATA[weaponId];
+            if (!weapon || gameState.weapons.owned.includes(weaponId) || gameState.money < weapon.cost) return;
+            changeMoney(-weapon.cost);
+            gameState.weapons.owned.push(weaponId);
+            showToast(`${weapon.name} 구매 완료!`, 'success');
+            if (currentModal === 'bossModal') showModal('bossModal');
         }
-    }
-    
-    window.onload = init;
+
+        function equipWeapon(petId, weaponId) {
+            if (weaponId === 'none') {
+                delete gameState.weapons.equipped[petId];
+            } else {
+                 // Unequip from any other pet that has it
+                for (const pId in gameState.weapons.equipped) {
+                    if (gameState.weapons.equipped[pId] === weaponId) {
+                        delete gameState.weapons.equipped[pId];
+                    }
+                }
+                gameState.weapons.equipped[petId] = weaponId;
+            }
+            if (currentModal === 'bossModal') showModal('bossModal');
+        }
+
+        function toggleBossTeam(petId){const i=gameState.boss.team.indexOf(petId);if(i>-1)gameState.boss.team.splice(i,1);else if(gameState.boss.team.length<5)gameState.boss.team.push(petId);showModal('bossModal')}
+        
+        function startBossFight(id){
+            if(gameState.boss.team.length===0){
+                showToast('보스전에 참여할 펫을 1마리 이상 선택하세요.','error');
+                return;
+            }
+            gameState.boss.activeBoss=id;
+            const bossData = BOSS_DATA[id];
+            gameState.boss.bossHp = bossData.hp;
+            gameState.boss.petHps={};
+            gameState.boss.team.forEach(pId=>{
+                const p = findPetById(pId);
+                if(p) {
+                    const petData = PET_DATA[p.type];
+                    const maxHp = (petData.cost / 10) * (1 + p.evolution * 0.5) || 100;
+                    gameState.boss.petHps[pId] = maxHp;
+                }
+            });
+            gameState.boss.isAttacking = false;
+            gameState.boss.attackTargetId = null;
+            gameState.boss.nextAttackTime = Date.now() + (bossData.attackSpeed * 1000);
+            
+            renderEquippedPets();
+            closeModal();
+        }
+
+        function updateBossFight() {
+            if (!gameState.boss.activeBoss) return;
+            
+            // Auto damage
+            const autoDps = calculateCPS().auto * 0.2;
+            if(autoDps > 0) {
+                 gameState.boss.bossHp = Math.max(0, gameState.boss.bossHp - autoDps);
+                 if(Math.random() < 0.1) { // Show floating text occasionally to reduce clutter
+                    const bossArea = document.getElementById('boss-area');
+                    if (bossArea) {
+                        const damageText = document.createElement('div');
+                        damageText.className = 'floating-text text-sm text-yellow-400';
+                        damageText.textContent = `-${formatNumber(autoDps)}`;
+                        damageText.style.left = `${Math.random() * 50 + 25}%`;
+                        damageText.style.top = `${Math.random() * 40 + 20}%`;
+                        bossArea.appendChild(damageText);
+                        setTimeout(() => damageText.remove(), 1200);
+                    }
+                 }
+                 renderBossFightScreen(); // Update HP bar
+            }
+
+
+            if (!gameState.boss.isAttacking && Date.now() >= gameState.boss.nextAttackTime) {
+                bossAttackWindUp();
+            }
+        }
+
+        function bossAttackWindUp() {
+            if (!gameState.boss.activeBoss) return;
+            const alivePets = gameState.boss.team.filter(pId => gameState.boss.petHps[pId] > 0);
+            if (alivePets.length === 0) return;
+
+            const targetId = alivePets[Math.floor(Math.random() * alivePets.length)];
+            gameState.boss.isAttacking = true;
+            gameState.boss.attackTargetId = targetId;
+            
+            const bossSprite = document.getElementById('boss-sprite');
+            if (bossSprite) {
+                const animType = BOSS_DATA[gameState.boss.activeBoss].animation;
+                if(animType === 'shake') gsap.fromTo(bossSprite, {x:0}, {x:10, duration: 0.1, repeat: 5, yoyo: true});
+                else if(animType === 'pulse') gsap.to(bossSprite, { scale: 1.2, duration: 0.2, yoyo: true, repeat: 2 });
+                else if(animType === 'lunge') gsap.to(bossSprite, { y: -30, scale: 1.1, duration: 0.2, yoyo: true, repeat: 1 });
+            }
+
+            renderBossFightScreen();
+            setTimeout(bossAttackExecute, 1500); // Dodge window
+        }
+
+        function bossAttackExecute() {
+            if (!gameState.boss.activeBoss || !gameState.boss.isAttacking) return;
+
+            const targetId = gameState.boss.attackTargetId;
+            const bossData = BOSS_DATA[gameState.boss.activeBoss];
+
+            if (targetId !== null) { // Attack was not dodged
+                const pet = findPetById(targetId);
+                gameState.boss.petHps[targetId] = Math.max(0, gameState.boss.petHps[targetId] - bossData.attack);
+                if(pet) showToast(`${PET_DATA[pet.type].name}이(가) ${formatNumber(bossData.attack)} 피해를 입었다!`, 'error');
+                
+                const alivePets = gameState.boss.team.filter(pId => gameState.boss.petHps[pId] > 0);
+                if (alivePets.length === 0) {
+                    showToast('모든 펫이 쓰러져 패배했습니다.', 'error');
+                    gameState.boss.activeBoss = null;
+                    renderEquippedPets();
+                    return;
+                }
+            }
+            
+            gameState.boss.isAttacking = false;
+            gameState.boss.attackTargetId = null;
+            gameState.boss.nextAttackTime = Date.now() + (bossData.attackSpeed * 1000);
+            renderBossFightScreen();
+        }
+
+        function handlePetAttackOnBoss(petId) {
+            if (!gameState.boss.activeBoss) return;
+            const pet = findPetById(petId);
+            if (!pet || gameState.boss.petHps[petId] <= 0) return;
+            
+            // Dodge attempt
+            if (gameState.boss.isAttacking && gameState.boss.attackTargetId === petId) {
+                const bossData = BOSS_DATA[gameState.boss.activeBoss];
+                const petData = PET_DATA[pet.type];
+                const grazeDamage = bossData.attack * 0.25; // Take 25% damage on successful dodge
+                gameState.boss.petHps[petId] = Math.max(0, gameState.boss.petHps[petId] - grazeDamage);
+                showToast(`${petData.name}이(가) 공격을 회피했지만, ${formatNumber(grazeDamage)}의 피해를 입었다!`, 'info');
+                gameState.boss.attackTargetId = null; // Mark as dodged
+                renderBossFightScreen();
+                return;
+            }
+            
+            // Normal attack
+            let damage = calculateCPS().click;
+            const equippedWeaponId = gameState.weapons.equipped[pet.id];
+            if (equippedWeaponId && WEAPON_DATA[equippedWeaponId]) {
+                damage *= (1 + WEAPON_DATA[equippedWeaponId].bonus);
+            }
+            damage = Math.floor(damage);
+
+            gameState.boss.bossHp = Math.max(0, gameState.boss.bossHp - damage);
+            SoundManager.play('bossHit');
+
+            const bossArea = document.getElementById('boss-area');
+            if (bossArea) {
+                const damageText = document.createElement('div');
+                damageText.className = 'floating-text text-2xl text-red-500';
+                damageText.textContent = `-${formatNumber(damage)}`;
+                damageText.style.left = `${Math.random() * 50 + 25}%`;
+                damageText.style.top = `${Math.random() * 40 + 20}%`;
+                bossArea.appendChild(damageText);
+                setTimeout(() => damageText.remove(), 1200);
+            }
+            
+            if (gameState.settings.animations) {
+                DOMElements.gameContainer.classList.add('screen-shake');
+                setTimeout(() => DOMElements.gameContainer.classList.remove('screen-shake'), 300);
+            }
+
+            if (gameState.boss.bossHp <= 0) {
+                const bossData = BOSS_DATA[gameState.boss.activeBoss];
+                if (bossData.reward.money) changeMoney(bossData.reward.money);
+                if (bossData.reward.stardust) changeStardust(bossData.reward.stardust);
+                showToast(`${bossData.name} 처치 완료!`, 'success');
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+                gameState.boss.cleared.push(gameState.boss.activeBoss);
+                checkTitleUnlocks();
+                gameState.boss.activeBoss = null;
+                renderEquippedPets();
+            } else {
+                renderBossFightScreen();
+            }
+        }
+        
+        // --- Expose functions to global scope for HTML onclick ---
+        window.gameAPI = {
+            closeModal, showModal, toggleNumberFormat, saveGame, resetGame,
+            switchTab, buyPet, doGacha, toggleEquip, toggleLock,
+            selectForEnhance, doEnhance, selectForEvolve, doEvolve,
+            claimMissionReward, equipTitle, doRebirth, buyArtifact,
+            claimExploration, startExplorationWrapper, toggleExplorationTeam,
+            buySkill, activateSkill, toggleBossTeam, startBossFight, handlePetAttackOnBoss,
+            doCraft, unlockStory, useCoupon, buyWeapon, equipWeapon
+        };
+
+        window.onload = init;
+    })();
     </script>
 </body>
 </html>
+
