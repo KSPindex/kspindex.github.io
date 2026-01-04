@@ -70,17 +70,35 @@
             pointer-events: none;
         }
 
-        /* 상단 우측 로고 */
-        .top-right {
-            position: absolute;
-            top: 40px;
-            right: 40px;
+        /* 상단 내비게이션 */
+        .nav-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: linear-gradient(to bottom, var(--bg-color) 0%, transparent 100%);
+        }
+
+        .logo {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 500;
             letter-spacing: 0.2em;
             font-size: 0.875rem;
-            color: white;
             opacity: 0.8;
+        }
+
+        .github-link {
+            transition: opacity 0.2s;
+            opacity: 0.6;
+        }
+
+        .github-link:hover {
+            opacity: 1;
         }
 
         /* 메인 콘텐츠 영역 */
@@ -92,9 +110,10 @@
             align-items: center;
             text-align: center;
             padding: 20px;
+            position: relative;
         }
 
-        /* 카운트다운 폰트 */
+        /* 카운트다운 */
         .countdown-container {
             font-family: 'JetBrains Mono', monospace;
             display: flex;
@@ -125,11 +144,43 @@
             margin-top: 0.5rem;
         }
 
+        /* 진행 바 */
+        .progress-wrapper {
+            width: 300px;
+            margin-top: 3rem;
+        }
+
+        .progress-bg {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-color);
+            width: 0%;
+            transition: width 1s ease-out;
+            box-shadow: 0 0 15px var(--accent-color);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+
         .divider {
             height: 1px;
             width: 80px;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            margin: 2.5rem 0;
+            margin: 2rem 0;
         }
 
         .main-text {
@@ -147,29 +198,49 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
-        /* 명언 섹션 확장 */
+        /* 명언 섹션 */
         .quotes-section {
             width: 100%;
             max-width: 800px;
             padding: 100px 40px;
             display: flex;
             flex-direction: column;
-            gap: 60px;
+            gap: 40px;
+        }
+
+        .section-header {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--accent-color);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-header::after {
+            content: "";
+            height: 1px;
+            flex-grow: 1;
+            background: var(--border-color);
         }
 
         .quote-card {
             border-top: 1px solid var(--border-color);
             padding-top: 30px;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .quote-card:hover {
             border-top-color: rgba(94, 106, 210, 0.5);
+            transform: translateX(10px);
         }
 
         .quote-text {
-            font-size: 1.5rem;
-            line-height: 1.4;
+            font-size: 1.25rem;
+            line-height: 1.6;
             color: #eceef2;
             margin-bottom: 15px;
             font-weight: 400;
@@ -177,7 +248,7 @@
 
         .quote-author {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             color: var(--accent-color);
             text-transform: uppercase;
             letter-spacing: 0.1em;
@@ -201,12 +272,21 @@
             60% {transform: translate(-50%, -5px);}
         }
 
-        /* 모바일 대응 */
+        /* 애니메이션 등장 효과 */
+        .fade-in {
+            animation: fadeIn 1.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         @media (max-width: 640px) {
+            .nav-header { padding: 20px; }
             .countdown-container { gap: 1rem; }
             .time-value { font-size: 2.2rem; }
-            .top-right { top: 20px; right: 20px; }
-            .quote-text { font-size: 1.25rem; }
+            .quote-text { font-size: 1.125rem; }
         }
     </style>
 </head>
@@ -216,72 +296,173 @@
     <div class="glow"></div>
 
     <!-- Header -->
-    <div class="top-right">RE:BOOT</div>
+    <header class="nav-header">
+        <div class="logo">RE:BOOT</div>
+        <a href="https://github.com/KSPindex/kspindex.github.io" target="_blank" class="github-link" title="Source Code">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.042-1.416-4.042-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+        </a>
+    </header>
 
     <!-- Main Countdown Section -->
     <section class="hero-section">
-        <div class="main-text">I will return in 6 years</div>
-        <div class="date-text">2026.01.04</div>
+        <div class="fade-in" style="display: flex; flex-direction: column; align-items: center;">
+            <div class="main-text">I will return in 6 years</div>
+            <div class="date-text">2026.01.04</div>
 
-        <div class="divider"></div>
+            <div class="divider"></div>
 
-        <div class="countdown-container" id="countdown">
-            <div class="time-block">
-                <span class="time-value" id="days">000</span>
-                <span class="time-label">Days</span>
+            <div class="countdown-container" id="countdown">
+                <div class="time-block">
+                    <span class="time-value" id="days">000</span>
+                    <span class="time-label">Days</span>
+                </div>
+                <div class="time-block">
+                    <span class="time-value" id="hours">00</span>
+                    <span class="time-label">Hours</span>
+                </div>
+                <div class="time-block">
+                    <span class="time-value" id="minutes">00</span>
+                    <span class="time-label">Minutes</span>
+                </div>
+                <div class="time-block">
+                    <span class="time-value" id="seconds">00</span>
+                    <span class="time-label">Seconds</span>
+                </div>
             </div>
-            <div class="time-block">
-                <span class="time-value" id="hours">00</span>
-                <span class="time-label">Hours</span>
-            </div>
-            <div class="time-block">
-                <span class="time-value" id="minutes">00</span>
-                <span class="time-label">Minutes</span>
-            </div>
-            <div class="time-block">
-                <span class="time-value" id="seconds">00</span>
-                <span class="time-label">Seconds</span>
+
+            <div class="progress-wrapper">
+                <div class="progress-bg">
+                    <div class="progress-fill" id="progress-bar"></div>
+                </div>
+                <div class="progress-info">
+                    <span>Process</span>
+                    <span id="progress-percent">0%</span>
+                </div>
             </div>
         </div>
 
-        <div class="scroll-indicator">Scroll to breathe</div>
+        <div class="scroll-indicator">Explore the wisdom</div>
     </section>
 
     <!-- Quotes Section -->
     <section class="quotes-section">
-        <div class="quote-card">
-            <p class="quote-text">"It does not matter how slowly you go as long as you do not stop."</p>
-            <p class="quote-author">— Confucius</p>
+        <div class="section-header">Patience & Persistence</div>
+        <div id="quotes-container">
+            <!-- 명언들이 여기에 셔플되어 삽입됩니다 -->
         </div>
-
-        <div class="quote-card">
-            <p class="quote-text">"When you feel like quitting, think about why you started."</p>
-            <p class="quote-author">— Unknown</p>
-        </div>
-
-        <div class="quote-card">
-            <p class="quote-text">"The two most powerful warriors are patience and time."</p>
-            <p class="quote-author">— Leo Tolstoy</p>
-        </div>
-
-        <div class="quote-card">
-            <p class="quote-text">"The future depends on what you do today."</p>
-            <p class="quote-author">— Mahatma Gandhi</p>
-        </div>
-
-        <div class="quote-card">
-            <p class="quote-text">"Don't watch the clock; do what it does. Keep going."</p>
-            <p class="quote-author">— Sam Levenson</p>
-        </div>
-        
-        <div style="height: 100px;"></div> <!-- Bottom Padding -->
+        <div style="height: 100px;"></div>
     </section>
 
     <script>
-        // 별 배경 생성
+        const quotesData = [
+            { t: "Success is not final, failure is not fatal: it is the courage to continue that counts.", a: "Winston Churchill" },
+            { t: "It does not matter how slowly you go as long as you do not stop.", a: "Confucius" },
+            { t: "When you feel like quitting, think about why you started.", a: "Unknown" },
+            { t: "The two most powerful warriors are patience and time.", a: "Leo Tolstoy" },
+            { t: "The future depends on what you do today.", a: "Mahatma Gandhi" },
+            { t: "Don't watch the clock; do what it does. Keep going.", a: "Sam Levenson" },
+            { t: "Everything you've ever wanted is on the other side of fear.", a: "George Addair" },
+            { t: "Hardships often prepare ordinary people for an extraordinary destiny.", a: "C.S. Lewis" },
+            { t: "Believe you can and you're halfway there.", a: "Theodore Roosevelt" },
+            { t: "Your time is limited, so don't waste it living someone else's life.", a: "Steve Jobs" },
+            { t: "If you're going through hell, keep going.", a: "Winston Churchill" },
+            { t: "The only way to do great work is to love what you do.", a: "Steve Jobs" },
+            { t: "Dream big and dare to fail.", a: "Norman Vaughan" },
+            { t: "It always seems impossible until it's done.", a: "Nelson Mandela" },
+            { t: "Don't be pushed around by the fears in your mind. Be led by the dreams in your heart.", a: "Roy T. Bennett" },
+            { t: "The only limit to our realization of tomorrow will be our doubts of today.", a: "Franklin D. Roosevelt" },
+            { t: "Do what you can, with what you have, where you are.", a: "Theodore Roosevelt" },
+            { t: "Be so good they can't ignore you.", a: "Steve Martin" },
+            { t: "Character is doing the right thing when nobody is looking.", a: "J.C. Watts" },
+            { t: "Action is the foundational key to all success.", a: "Pablo Picasso" },
+            { t: "Difficult roads often lead to beautiful destinations.", a: "Unknown" },
+            { t: "Everything comes to him who hustles while he waits.", a: "Thomas Edison" },
+            { t: "Stay hungry, stay foolish.", a: "Whole Earth Catalog" },
+            { t: "The purpose of our lives is to be happy.", a: "Dalai Lama" },
+            { t: "Life is what happens when you're making other plans.", a: "John Lennon" },
+            { t: "Get busy living or get busy dying.", a: "Stephen King" },
+            { t: "You only live once, but if you do it right, once is enough.", a: "Mae West" },
+            { t: "Many of life’s failures are people who did not realize how close they were to success when they gave up.", a: "Thomas Edison" },
+            { t: "If you want to live a happy life, tie it to a goal, not to people or things.", a: "Albert Einstein" },
+            { t: "Never let the fear of striking out keep you from playing the game.", a: "Babe Ruth" },
+            { t: "Money and success don’t change people; they merely amplify what is already there.", a: "Will Smith" },
+            { t: "Not how long, but how well you have lived is the main thing.", a: "Seneca" },
+            { t: "In order to write about life first you must live it.", a: "Ernest Hemingway" },
+            { t: "The big lesson in life, baby, is never be scared of anyone or anything.", a: "Frank Sinatra" },
+            { t: "Sing like no one’s listening, love like you’ve never been hurt, dance like nobody’s watching, and live like it’s heaven on earth.", a: "Mark Twain" },
+            { t: "Curiosity about life in all of its aspects, I think, is still the secret of great creative people.", a: "Leo Burnett" },
+            { t: "Life is not a problem to be solved, but a reality to be experienced.", a: "Soren Kierkegaard" },
+            { t: "The unexamined life is not worth living.", a: "Socrates" },
+            { t: "Turn your wounds into wisdom.", a: "Oprah Winfrey" },
+            { t: "The way I see it, if you want the rainbow, you gotta put up with the rain.", a: "Dolly Parton" },
+            { t: "Do all the good you can, for all the people you can, in all the ways you can, as long as ever you can.", a: "Hillary Clinton" },
+            { t: "Don’t settle for what life gives you; make life better and build something.", a: "Ashton Kutcher" },
+            { t: "Everything negative – pressure, challenges – is all an opportunity for me to rise.", a: "Kobe Bryant" },
+            { t: "I like criticism. It makes you strong.", a: "LeBron James" },
+            { t: "You never really learn much from hearing yourself speak.", a: "George Clooney" },
+            { t: "Life imposes things on you that you can’t control, but you still have the choice of how you’re going to live through this.", a: "Celine Dion" },
+            { t: "Life is never easy. There is work to be done and obligations to be met – obligations to truth, to justice, and to liberty.", a: "John F. Kennedy" },
+            { t: "Live for each second without hesitation.", a: "Elton John" },
+            { t: "Life is like riding a bicycle. To keep your balance, you must keep moving.", a: "Albert Einstein" },
+            { t: "Life is really simple, but men insist on making it complicated.", a: "Confucius" },
+            { t: "Life is a succession of lessons which must be lived to be understood.", a: "Helen Keller" },
+            { t: "My mission in life is not merely to survive, but to thrive.", a: "Maya Angelou" },
+            { t: "If you can’t make it good, at least make it look good.", a: "Bill Gates" },
+            { t: "Keep calm and carry on.", a: "Winston Churchill" },
+            { t: "Maybe that’s what life is… a wink of the eye and winking stars.", a: "Jack Kerouac" },
+            { t: "Life is a flower of which love is the honey.", a: "Victor Hugo" },
+            { t: "Keep smiling, because life is a beautiful thing and there’s so much to smile about.", a: "Marilyn Monroe" },
+            { t: "Health is the greatest gift, contentment the greatest wealth, faithfulness the best relationship.", a: "Buddha" },
+            { t: "You have brains in your head. You have feet in your shoes. You can steer yourself any direction you choose.", a: "Dr. Seuss" },
+            { t: "Good friends, good books, and a sleepy conscience: this is the ideal life.", a: "Mark Twain" },
+            { t: "Life would be tragic if it weren’t funny.", a: "Stephen Hawking" },
+            { t: "Live in the sunshine, swim the sea, drink the wild air.", a: "Ralph Waldo Emerson" },
+            { t: "The greatest pleasure of life is love.", a: "Euripides" },
+            { t: "Life is what we make it, always has been, always will be.", a: "Grandma Moses" },
+            { t: "Life’s tragedy is that we get old too soon and wise too late.", a: "Benjamin Franklin" },
+            { t: "Life is about making an impact, not making an income.", a: "Kevin Kruse" },
+            { t: "I’ve failed over and over and over again in my life. And that is why I succeed.", a: "Michael Jordan" },
+            { t: "Every strike brings me closer to the next home run.", a: "Babe Ruth" },
+            { t: "Definiteness of purpose is the starting point of all achievement.", a: "W. Clement Stone" },
+            { t: "Life is what happens to you while you’re busy making other plans.", a: "John Lennon" },
+            { t: "We become what we think about.", a: "Earl Nightingale" },
+            { t: "Life is 10% what happens to me and 90% of how I react to it.", a: "Charles Swindoll" },
+            { t: "The mind is everything. What you think you become.", a: "Buddha" },
+            { t: "The best time to plant a tree was 20 years ago. The second best time is now.", a: "Chinese Proverb" },
+            { t: "An unexamined life is not worth living.", a: "Socrates" },
+            { t: "Eighty percent of success is showing up.", a: "Woody Allen" },
+            { t: "Winning isn’t everything, but wanting to win is.", a: "Vince Lombardi" },
+            { t: "Your time is limited, so don’t waste it living someone else’s life.", a: "Steve Jobs" },
+            { t: "I am not a product of my circumstances. I am a product of my decisions.", a: "Stephen Covey" },
+            { t: "Every child is an artist. The problem is how to remain an artist once he grows up.", a: "Pablo Picasso" },
+            { t: "You can never cross the ocean until you have the courage to lose sight of the shore.", a: "Christopher Columbus" },
+            { t: "I’ve learned that people will forget what you said, but never how you made them feel.", a: "Maya Angelou" },
+            { t: "Either you run the day, or the day runs you.", a: "Jim Rohn" },
+            { t: "Whether you think you can or you think you can’t, you’re right.", a: "Henry Ford" },
+            { t: "The best revenge is massive success.", a: "Frank Sinatra" },
+            { t: "Motivation doesn’t last. Neither does bathing. That’s why we recommend it daily.", a: "Zig Ziglar" },
+            { t: "There is only one way to avoid criticism: do nothing, say nothing, and be nothing.", a: "Aristotle" },
+            { t: "Go confidently in the direction of your dreams.", a: "Henry David Thoreau" },
+            { t: "Believe you can and you’re halfway there.", a: "Theodore Roosevelt" },
+            { t: "Fall seven times and stand up eight.", a: "Japanese Proverb" },
+            { t: "Everything has beauty, but not everyone can see.", a: "Confucius" },
+            { t: "Nobody need wait a single moment before starting to improve the world.", a: "Anne Frank" }
+        ];
+
+        // 배열 셔플 함수
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
         function createStars() {
             const container = document.getElementById('stars');
-            const count = 200;
+            const count = 250;
             for (let i = 0; i < count; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
@@ -296,8 +477,24 @@
             }
         }
 
-        // 카운트다운 로직
+        function initQuotes() {
+            const container = document.getElementById('quotes-container');
+            const shuffledQuotes = shuffleArray([...quotesData]);
+            shuffledQuotes.forEach(q => {
+                const card = document.createElement('div');
+                card.className = 'quote-card';
+                card.innerHTML = `
+                    <p class="quote-text">"${q.t}"</p>
+                    <p class="quote-author">— ${q.a}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 카운트다운 및 진행률 로직
+        const startDate = new Date('2026-01-04T00:00:00').getTime();
         const targetDate = new Date('2032-01-04T00:00:00').getTime();
+        const totalDuration = targetDate - startDate;
 
         function updateCountdown() {
             const now = new Date().getTime();
@@ -305,6 +502,8 @@
 
             if (distance < 0) {
                 document.getElementById('countdown').innerHTML = "<div class='main-text'>REBOOT COMPLETE</div>";
+                document.getElementById('progress-bar').style.width = "100%";
+                document.getElementById('progress-percent').innerText = "100%";
                 return;
             }
 
@@ -317,11 +516,17 @@
             document.getElementById('hours').innerText = String(hours).padStart(2, '0');
             document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
             document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+
+            // 진행률 계산
+            const elapsed = now - startDate;
+            const progress = Math.max(0, Math.min(100, (elapsed / totalDuration) * 100));
+            document.getElementById('progress-bar').style.width = progress + "%";
+            document.getElementById('progress-percent').innerText = progress.toFixed(4) + "%";
         }
 
-        // 초기화
         window.onload = () => {
             createStars();
+            initQuotes();
             updateCountdown();
             setInterval(updateCountdown, 1000);
         };
