@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<script src="js/coin-persistence.js"></script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080a08">
+<title>에코리스토어 — 무기·도구 도감</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.i-card{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  display:flex;gap:12px;align-items:flex-start;
+  margin-bottom:8px;
+  cursor:pointer;
+}
+.i-card:active{transform:scale(.99)}
+.i-card.rare{border-left:3px solid #48f}
+.i-card.epic{border-left:3px solid #a6f}
+.i-card.legendary{border-left:3px solid var(--s)}
+.i-icon{
+  width:48px;height:48px;
+  background:rgba(0,0,0,.3);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;flex-shrink:0;
+}
+.i-info{flex:1;min-width:0}
+.i-name{font-size:13px;font-weight:700;color:var(--p-2)}
+.i-type{font-size:9px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1px;margin-top:1px}
+.i-desc{font-size:11px;color:var(--text-dim);line-height:1.5;margin-top:4px}
+.i-stats{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.i-stat{font-size:9px;padding:3px 7px;background:rgba(0,0,0,.3);border-radius:4px}
+.i-stat.dmg{color:#f88}.i-stat.rng{color:#6af}.i-stat.spd{color:var(--p-2)}
+.i-stat.pow{color:var(--s)}.i-stat.value{color:#fc0}
+.i-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.i-equipped{font-size:10px;color:var(--s);font-weight:700}
+.i-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.i-card.expanded .i-detail{display:block}
+.craft-info{background:rgba(0,0,0,.2);border-radius:6px;padding:10px;font-size:11px;color:#ca8;margin-top:6px}
+.craft-info b{color:var(--s)}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <h1>⚔️ 무기·도구 <span class="sub">도감</span></h1>
+  <a href="store.html" class="btn btn-primary btn-sm">상점</a>
+</header>
+<main class="container" style="padding-top:16px;padding-bottom:40px">
+
+<div class="nav-links">
+  <a class="nav-link" href="item1.html">🧪 소모품·재료</a>
+  <a class="nav-link" href="item2.html" style="color:var(--p-2);border-color:var(--border-strong)">⚔️ 무기·도구</a>
+  <a class="nav-link" href="item3.html">📚 환경 서적</a>
+  <a class="nav-link" href="item4.html">🔮 조합·특수</a>
+  <a class="nav-link" href="monster.html">👹 몬스터 도감</a>
+</div>
+
+<div id="main"></div>
+
+</main>
+<script src="core.js"></script>
+<script>
+'use strict';
+Save.load();
+const main=document.getElementById('main');
+
+const weapons=[
+  {id:'wood_stick',pp:0,rarity:'common',note:'시작 무기. 별다른 특징 없음.'},
+  {id:'water_gun',pp:30,rarity:'rare',note:'원거리 공격 가능. 물 기반이라 오염 물약 효과 추가.'},
+  {id:'eco_blade',pp:60,rarity:'rare',note:'재활용 금속으로 만든 검. 정화 효율 상승.'},
+  {id:'thorn_whip',pp:70,rarity:'epic',note:'넓은 범위 공격. 식물성 재료로 제작.'},
+  {id:'thunder_hammer',pp:120,rarity:'epic',note:'강력한 단일 타격. 보스전에 유효.'},
+  {id:'crystal_staff',pp:180,rarity:'legendary',note:'정화 수정으로 만든 마법 지팡이. 최강 성능.'},
+];
+
+const tools=[
+  {id:'broom',pp:0,rarity:'common',note:'기본 청소 도구.'},
+  {id:'vacuum',pp:50,rarity:'rare',note:'강력한 흡입력으로 대량의 정화 가능.'},
+  {id:'nano',pp:150,rarity:'legendary',note:'나노 로봇 군단. 최고 효율.'},
+];
+
+function renderCategory(title,icon,items,kind){
+  const h=document.createElement('div');
+  h.className='section-title';
+  h.innerHTML=`${icon} ${title}`;
+  main.appendChild(h);
+  items.forEach(it=>{
+    const item=ItemDB[it.id];
+    if(!item)return;
+    const equipped=Save.eq(kind)===it.id;
+    let statsHTML='';
+    if(item.dmg!==undefined)statsHTML+=`<span class="i-stat dmg">DMG ${item.dmg}</span>`;
+    if(item.range!==undefined)statsHTML+=`<span class="i-stat rng">범위 ${item.range}</span>`;
+    if(item.speed!==undefined)statsHTML+=`<span class="i-stat spd">속도 ×${item.speed.toFixed(1)}</span>`;
+    if(item.power!==undefined)statsHTML+=`<span class="i-stat pow">정화력 ×${item.power.toFixed(1)}</span>`;
+    if(item.energy!==undefined)statsHTML+=`<span class="i-stat spd">효율 ×${item.energy.toFixed(1)}</span>`;
+    if(it.pp>0)statsHTML+=`<span class="i-stat value">구매: ${it.pp} PP</span>`;
+    const card=document.createElement('div');
+    card.className='i-card '+it.rarity;
+    card.innerHTML=`
+      <div class="i-icon">${item.icon}</div>
+      <div class="i-info">
+        <div class="i-name">${item.name} ${equipped?'⭐':''}</div>
+        <div class="i-type">${item.type}</div>
+        <div class="i-desc">${item.desc}</div>
+        <div class="i-stats">${statsHTML}</div>
+        <div class="i-detail"><div class="craft-info"><b>설명:</b> ${it.note}</div></div>
+      </div>
+      <div class="i-right">
+        ${equipped?'<div class="i-equipped">장착중</div>':''}
+      </div>`;
+    card.addEventListener('click',()=>card.classList.toggle('expanded'));
+    main.appendChild(card);
+  });
+}
+
+renderCategory('무기 (Weapons)','⚔️',weapons,'weapon');
+renderCategory('도구 (Tools)','🧹',tools,'tool');
+</script>
+</body>
+</html>

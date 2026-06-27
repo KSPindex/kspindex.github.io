@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<script src="js/coin-persistence.js"></script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080a08">
+<title>에코리스토어 — 트로피</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.summary{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.sum-card{
+  flex:1; min-width:90px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  text-align:center;
+}
+.sum-card .sv{font-size:24px;font-weight:700;color:var(--s)}
+.sum-card .sl{font-size:10px;color:var(--text-faint);margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.t-card{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+  display:flex;gap:10px;align-items:center;
+  transition:all .2s;
+}
+.t-card.locked{opacity:.4}
+.t-card.locked .t-icon{filter:grayscale(1)}
+.t-icon{font-size:28px;flex-shrink:0;width:42px;text-align:center}
+.t-info{flex:1;min-width:0}
+.t-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+.t-desc{font-size:10px;color:var(--text-faint);line-height:1.4}
+.t-check{color:#4c4;font-size:16px;flex-shrink:0}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <h1>🏆 트로피</h1>
+  <a href="index.html" class="btn btn-primary btn-sm">← 게임</a>
+</header>
+<main class="container" style="padding-top:16px;padding-bottom:40px">
+  <div class="summary">
+    <div class="sum-card"><div class="sv" id="sUnlocked">0</div><div class="sl">획득</div></div>
+    <div class="sum-card"><div class="sv" id="sTotal">0</div><div class="sl">전체</div></div>
+    <div class="sum-card"><div class="sv" id="sPct">0%</div><div class="sl">달성률</div></div>
+  </div>
+  <div class="grid" id="tGrid"></div>
+</main>
+<script src="core.js"></script>
+<script>
+'use strict';
+// Use TrophyDB from core.js and the unified Save bridge.
+Save.load();
+let unlocked=Save.g('trophies')||[];
+
+const total=Object.keys(TrophyDB).length;
+document.getElementById('sUnlocked').textContent=unlocked.length;
+document.getElementById('sTotal').textContent=total;
+document.getElementById('sPct').textContent=Math.floor(unlocked.length/total*100)+'%';
+
+const grid=document.getElementById('tGrid');
+const sorted=[...Object.entries(TrophyDB)].sort((a,b)=>{
+  const aU=unlocked.includes(a[0]),bU=unlocked.includes(b[0]);
+  if(aU&&!bU)return -1;if(!aU&&bU)return 1;return 0;
+});
+sorted.forEach(([id,tr])=>{
+  const has=unlocked.includes(id);
+  const card=document.createElement('div');
+  card.className='t-card'+(has?'':' locked');
+  card.innerHTML=`
+    <div class="t-icon">${tr.icon}</div>
+    <div class="t-info">
+      <div class="t-name">${has?tr.name:'???'}</div>
+      <div class="t-desc">${has?tr.desc:'아직 획득하지 못했습니다.'}</div>
+      <span class="rarity-chip rarity-${tr.rarity}">${tr.rarity}</span>
+    </div>
+    ${has?'<div class="t-check">✓</div>':''}`;
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>

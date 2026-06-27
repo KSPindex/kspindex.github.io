@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<script src="js/coin-persistence.js"></script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080a08">
+<title>에코리스토어 — 조합·특수 도감</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.recipe-card{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-left:3px solid var(--s);
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:10px;
+}
+.r-name{font-size:13px;font-weight:700;color:var(--s);display:flex;align-items:center;gap:8px}
+.r-desc{font-size:11px;color:var(--text-dim);line-height:1.5;margin-top:6px}
+.r-mats{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:8px;
+}
+.r-mat{
+  padding:6px 10px;
+  background:rgba(0,0,0,.3);
+  border-radius:6px;
+  font-size:11px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.r-arrow{
+  text-align:center;
+  font-size:14px;
+  color:var(--s);
+  margin:6px 0;
+}
+.r-result{
+  background:rgba(74,170,136,.1);
+  border:1px solid var(--border-strong);
+  border-radius:8px;
+  padding:10px;
+  margin-top:8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.r-result-icon{font-size:20px}
+.r-result-name{font-size:12px;font-weight:700;color:var(--p-2)}
+.special-card{
+  background:linear-gradient(135deg,rgba(74,170,136,.1),rgba(68,170,255,.1));
+  border:1px solid var(--border-strong);
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:10px;
+}
+.special-name{font-size:13px;font-weight:700;color:var(--s)}
+.special-desc{font-size:11px;color:var(--text-dim);line-height:1.6;margin-top:6px}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <h1>🔮 조합·특수 <span class="sub">도감</span></h1>
+  <a href="store.html" class="btn btn-primary btn-sm">상점</a>
+</header>
+<main class="container" style="padding-top:16px;padding-bottom:40px">
+
+<div class="nav-links">
+  <a class="nav-link" href="item1.html">🧪 소모품·재료</a>
+  <a class="nav-link" href="item2.html">⚔️ 무기·도구</a>
+  <a class="nav-link" href="item3.html">📚 환경 서적</a>
+  <a class="nav-link" href="item4.html" style="color:var(--p-2);border-color:var(--border-strong)">🔮 조합·특수</a>
+  <a class="nav-link" href="monster.html">👹 몬스터 도감</a>
+</div>
+
+<div id="main"></div>
+
+</main>
+<script src="core.js"></script>
+<script>
+'use strict';
+const main=document.getElementById('main');
+
+function section(t,i){const h=document.createElement('div');h.className='section-title';h.innerHTML=i+' '+t;main.appendChild(h);}
+
+section('기본 조합법','⚒️');
+
+const recipes=[
+  {
+    name:'고급 체력 물약',
+    desc:'슬라임 젤과 정화수를 혼합하여 강력한 회복 물약을 만듭니다.',
+    mats:[{n:'🟢 슬라임 젤',q:3},{n:'💧 정화수',q:1}],
+    result:{i:'❤️','n':'고급 체력 물약','d':'HP 100 회복'}
+  },
+  {
+    name:'보호막 구슬',
+    desc:'독성 결정을 정화 에너지로 가공하여 보호막을 만듭니다.',
+    mats:[{n:'💎 독성 결정',q:3}],
+    result:{i:'🛡️','n':'보호막 구슬','d':'30초 무적'}
+  },
+  {
+    name:'천둥 망치',
+    desc:'녹슨 핵과 고철을 용광로에서 합쳐 강력한 망치를 만듭니다.',
+    mats:[{n:'⚙️ 녹슨 핵',q:2},{n:'🔩 고철 조각',q:3}],
+    result:{i:'🔨','n':'천둥 망치','d':'DMG 35의 강력한 무기'}
+  },
+  {
+    name:'에코 블레이드 강화',
+    desc:'고철 조각을 녹여 에코 블레이드의 강도를 높입니다.',
+    mats:[{n:'🔩 고철 조각',q:5}],
+    result:{i:'⚔️','n':'강화 에코 블레이드','d':'DMG 25, 속도 ×1.5'}
+  },
+  {
+    name:'공기 정화기',
+    desc:'스모그 정수를 추출하여 공기 정화 장치를 만듭니다.',
+    mats:[{n:'💨 스모그 정수',q:4}],
+    result:{i:'🌀','n':'공기 정화기','d':'정화력 ×2.0'}
+  },
+];
+
+recipes.forEach(r=>{
+  const card=document.createElement('div');
+  card.className='recipe-card';
+  card.innerHTML=`
+    <div class="r-name">⚒️ ${r.name}</div>
+    <div class="r-desc">${r.desc}</div>
+    <div class="r-mats">${r.mats.map(m=>`<div class="r-mat">${m.n} ×${m.q}</div>`).join('')}</div>
+    <div class="r-arrow">⬇ 조합 ⬇</div>
+    <div class="r-result">
+      <div class="r-result-icon">${r.result.i}</div>
+      <div>
+        <div class="r-result-name">${r.result.n}</div>
+        <div style="font-size:11px;color:var(--text-dim)">${r.result.d}</div>
+      </div>
+    </div>`;
+  main.appendChild(card);
+});
+
+section('특수 능력','✨');
+
+const specials=[
+  {
+    name:'🌍 생태계 복원',
+    desc:'맵 정화율이 70% 이상일 때, 주변 정화 효과가 2배로 증가합니다. 대장로로부터 보상을 받습니다.'
+  },
+  {
+    name:'💨 정화의 바람',
+    desc:'15콤보 이상 시, 다음 정화 행동이 자동으로 2번 실행됩니다.'
+  },
+  {
+    name:'🔮 수정의 가호',
+    desc:'정화 수정 10개 수집 시, 다음 보스전에서 데미지 2배.'
+  },
+  {
+    name:'🌱 나무의 축복',
+    desc:'맵에 나무 30그루 이상이면, 물과 종자가 자동으로 회복됩니다.'
+  },
+];
+
+specials.forEach(s=>{
+  const card=document.createElement('div');
+  card.className='special-card';
+  card.innerHTML=`
+    <div class="special-name">${s.name}</div>
+    <div class="special-desc">${s.desc}</div>`;
+  main.appendChild(card);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<script src="js/coin-persistence.js"></script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#000">
+<title>에코리스토어 — 엔딩</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+body{
+  background:#000;
+  color:#ccc;
+  font-family:-apple-system,BlinkMacSystemFont,"Pretendard",sans-serif;
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100dvh;
+}
+#wrap{width:100%;max-width:700px;text-align:center;padding:20px}
+#credits{position:relative;height:100dvh;overflow:hidden}
+#scroll{
+  position:absolute;
+  left:0;right:0;
+  animation:scrollUp 70s linear forwards;
+  padding:0 20px;
+}
+@keyframes scrollUp{
+  0%{top:100dvh}
+  100%{top:-3500px}
+}
+.gap{height:60px}
+.gap-sm{height:30px}
+h1{font-size:clamp(22px,5vw,36px);color:#5c5;text-shadow:0 0 30px rgba(0,255,80,.3);margin-bottom:10px}
+h2{font-size:clamp(16px,3.5vw,24px);color:#fa8;margin-bottom:8px}
+h3{font-size:clamp(13px,2.5vw,18px);color:#4a8;margin-bottom:6px}
+p{font-size:clamp(10px,2vw,14px);line-height:1.8;color:#999;margin-bottom:16px;max-width:500px;margin-left:auto;margin-right:auto}
+.highlight{color:#5c5;font-weight:bold}
+.warn{color:#e86;font-weight:bold}
+.stat{color:#4af}
+.quote{
+  font-style:italic;
+  color:#a98;
+  border-left:3px solid rgba(180,150,100,.3);
+  padding:10px 16px;
+  margin:20px auto;
+  max-width:450px;
+  text-align:left;
+  font-size:clamp(10px,1.8vw,13px);
+  line-height:1.8;
+}
+.divider{
+  width:60px;height:2px;
+  background:linear-gradient(90deg,transparent,#4a8,transparent);
+  margin:20px auto;
+}
+.earth{font-size:clamp(50px,10vw,80px);margin:20px 0}
+#returnBtn{
+  position:fixed;
+  bottom:max(20px,env(safe-area-inset-bottom));
+  right:20px;
+  padding:12px 24px;
+  background:rgba(74,170,136,.15);
+  border:2px solid var(--p);
+  color:var(--p-2);
+  font-family:inherit;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  border-radius:8px;
+  z-index:100;
+  opacity:0;
+  animation:fadeIn 2s 5s forwards;
+  text-decoration:none;
+  min-height:44px;
+  display:flex;
+  align-items:center;
+}
+@keyframes fadeIn{to{opacity:1}}
+#returnBtn:hover{background:rgba(74,170,136,.3)}
+.thanks{font-size:clamp(18px,4vw,28px);color:#5c5;margin:30px 0}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="credits">
+<div id="scroll">
+
+<div class="gap"></div>
+<div class="earth">🌍</div>
+<h1>에코리스토어</h1>
+<h2>오염된 세계의 구원자</h2>
+<p class="highlight">축하합니다! 세계를 구원하셨습니다.</p>
+<div class="divider"></div>
+
+<h3>🎬 THE END</h3>
+<p class="highlight">해낸 당신이 진정한 영웅입니다.</p>
+
+<div class="gap"></div>
+<h3>📜 당신의 모험 기록</h3>
+<p id="finalStats">통계 로딩 중...</p>
+
+<div class="gap"></div>
+<div class="divider"></div>
+
+<h2>🌱 환경 데이터</h2>
+<p>전 세계적으로 <span class="warn">매년 800만 톤</span>의 플라스틱이 바다로 유입됩니다.</p>
+<p>미세먼지 농도는 <span class="warn">WHO 권고 기준의 7배</span>에 달합니다.</p>
+<p>전 세계 <span class="warn">100만 종</span>의 동식물이 멸종 위기에 처해 있습니다.</p>
+<p>지구 평균 기온은 산업화 이후 <span class="warn">약 1.2°C</span> 상승했습니다.</p>
+
+<div class="divider"></div>
+<h2>💚 하지만, 희망이 있습니다</h2>
+<p>전 세계 <span class="highlight">재생에너지 사용</span>이 역대 최고 수준입니다.</p>
+<p>산림 복원 프로젝트로 <span class="highlight">매년 수백만 헥타르</span>의 숲이 돌아오고 있습니다.</p>
+<p>개인 실천으로 <span class="highlight">연간 1톤 이상의 CO2</span>를 줄일 수 있습니다.</p>
+
+<div class="divider"></div>
+
+<div class="quote">
+"우리가 매일 하는 작은 선택들이 모여 미래를 만든다.<br>
+  재활용 한 번, 텀블러 사용 한 번, 대중교통 한 번.<br>
+  그 작은 행동이 10년 후 지구의 모습이 된다."
+</div>
+
+<div class="gap"></div>
+<h3>🌍 게임 속 교훈</h3>
+<p>이 게임은 가상 세계의 이야기이지만, <span class="highlight">현실에서도 우리는 모두 환경의 수호자</span>입니다.</p>
+<p>한 사람의 작은 실천이 모여 <span class="highlight">세상을 변화시킬 수 있다</span>는 것을, 당신은 게임을 통해 증명했습니다.</p>
+
+<div class="gap"></div>
+<h3>🎮 플레이 통계</h3>
+<p>정화한 타일: <span class="stat" id="statClean">0</span></p>
+<p>심은 식물: <span class="stat" id="statPlant">0</span></p>
+<p>잡은 쓰레기: <span class="stat" id="statCatch">0</span></p>
+<p>처치한 몬스터: <span class="stat" id="statKills">0</span></p>
+<p>획득 트로피: <span class="stat" id="statTrophies">0</span></p>
+<p>총 플레이 시간: <span class="stat" id="statTime">0</span></p>
+
+<div class="gap"></div>
+<div class="divider"></div>
+<div class="gap"></div>
+
+<h1 class="thanks">🌿 감사합니다 🌿</h1>
+<p>에코리스토어를 플레이해 주셔서 감사합니다.</p>
+<p>현실 세계에서도 작은 실천을 시작해 보세요.</p>
+<p>당신의 다음 행동이 지구의 내일을 만듭니다.</p>
+
+<div class="gap"></div>
+<div class="gap"></div>
+<div class="earth">🌍🌱🌿🌳🌻</div>
+<div class="gap"></div>
+<div class="gap"></div>
+
+</div>
+</div>
+</div>
+
+<a href="index.html" id="returnBtn">← 메뉴로 돌아가기</a>
+
+<script src="core.js"></script>
+<script>
+// Load final stats from save through the unified Save bridge.
+(function(){
+  try{
+    Save.load();
+    const d=Save.d||{};
+    document.getElementById('statClean').textContent=d.totalCleaned||0;
+    document.getElementById('statPlant').textContent=d.totalPlanted||0;
+    document.getElementById('statCatch').textContent=d.totalTrashCaught||0;
+    document.getElementById('statKills').textContent=d.totalKills||0;
+    document.getElementById('statTrophies').textContent=(d.trophies||[]).length;
+    const t=d.playTimeSeconds||0;
+    const h=Math.floor(t/3600),m=Math.floor((t%3600)/60);
+    document.getElementById('statTime').textContent=h>0?`${h}시간 ${m}분`:`${m}분`;
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

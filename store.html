@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko">
+<script src="js/coin-persistence.js"></script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080a08">
+<title>에코리스토어 — 상점</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.nav-links{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.pp-info{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:16px;
+}
+.pp-info h3{font-size:13px;color:var(--p-2);margin-bottom:6px}
+.pp-info p{font-size:11px;color:var(--text-dim);line-height:1.6}
+.pp-rates{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pp-rate{padding:4px 8px;background:rgba(0,0,0,.3);border-radius:6px;font-size:9px;color:var(--p-2)}
+.upgrade-bar{height:6px;background:rgba(0,0,0,.3);border-radius:3px;overflow:hidden;margin-top:6px}
+.upgrade-fill{height:100%;background:linear-gradient(90deg,var(--p),var(--p-2));border-radius:3px;transition:width .3s}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <h1>🛒 상점 <span class="sub">Shop</span></h1>
+  <div class="currency-bar">
+    <div class="coin-pill coins">🪙 <b id="hCoins">0</b></div>
+    <div class="coin-pill pp">🌿 <b id="hPP">0</b> PP</div>
+    <div class="coin-pill gems">💎 <b id="hGems">0</b></div>
+  </div>
+  <a href="index.html" class="btn btn-primary btn-sm">← 게임</a>
+</header>
+<main class="container" style="padding-top:16px;padding-bottom:40px">
+
+<div class="nav-links">
+  <a class="nav-link" href="item1.html">🧪 소모품·재료</a>
+  <a class="nav-link" href="item2.html">⚔️ 무기·도구</a>
+  <a class="nav-link" href="item3.html">📚 환경 서적</a>
+  <a class="nav-link" href="item4.html">🔮 조합·특수</a>
+  <a class="nav-link" href="monster.html">👹 몬스터 도감</a>
+</div>
+
+<div class="pp-info">
+  <h3>🌿 정화 포인트 (PP) 시스템</h3>
+  <p>정화 활동으로 얻는 <b style="color:var(--p-2)">정화 포인트(PP)</b>는 상점의 핵심 화폐입니다. 코인과 별개로 획득되며, 특별한 장비와 업그레이드를 구매할 수 있습니다.</p>
+  <div class="pp-rates">
+    <div class="pp-rate">🧹 정화 1회 = 1 PP</div>
+    <div class="pp-rate">🌱 심기 1회 = 2 PP</div>
+    <div class="pp-rate">⚔️ 몬스터 처치 = 3~10 PP</div>
+    <div class="pp-rate">🫳 쓰레기 잡기 = 1 PP</div>
+  </div>
+</div>
+
+<div class="tabs" role="tablist">
+  <button class="tab active" data-p="buy">🛒 구매</button>
+  <button class="tab" data-p="sell">💰 판매</button>
+  <button class="tab" data-p="weapons">⚔️ 무기</button>
+  <button class="tab" data-p="tools">🧹 도구</button>
+  <button class="tab" data-p="upgrade">⬆️ 강화</button>
+</div>
+
+<div class="panel" id="p-buy">
+  <div class="section-title">🧪 소모품 구매</div>
+  <div class="section-desc">코인으로 즉시 사용 가능한 아이템을 구매합니다.</div>
+  <div class="shop-grid" id="buyGrid"></div>
+</div>
+
+<div class="panel" id="p-sell" style="display:none">
+  <div class="section-title">💰 재료 판매</div>
+  <div class="section-desc">인벤토리의 재료를 코인으로 변환합니다.</div>
+  <div class="shop-grid" id="sellGrid"></div>
+</div>
+
+<div class="panel" id="p-weapons" style="display:none">
+  <div class="section-title">⚔️ 무기 구매 (PP)</div>
+  <div class="section-desc">정화 활동으로 얻은 PP를 사용하여 강력한 무기를 구매합니다.</div>
+  <div class="shop-grid" id="weaponGrid"></div>
+</div>
+
+<div class="panel" id="p-tools" style="display:none">
+  <div class="section-title">🧹 도구 구매 (PP)</div>
+  <div class="section-desc">더 효율적인 정화 도구를 PP로 구매합니다.</div>
+  <div class="shop-grid" id="toolGrid"></div>
+</div>
+
+<div class="panel" id="p-upgrade" style="display:none">
+  <div class="section-title">⬆️ 영구 강화</div>
+  <div class="section-desc">PP를 사용하여 영구적으로 능력치를 향상시킵니다. (최대 10레벨, 레벨당 +10%)</div>
+  <div class="shop-grid" id="upgradeGrid"></div>
+</div>
+
+</main>
+
+<div class="toast" id="notif">구매 완료!</div>
+
+<script src="core.js"></script>
+<script>
+'use strict';
+Save.load();
+
+function calcPP(){
+  const cleaned = Save.g('totalCleaned')||0;
+  const planted = Save.g('totalPlanted')||0;
+  const kills = Save.g('totalKills')||0;
+  const caught = Save.g('totalTrashCaught')||0;
+  const spent = Save.g('ppSpent')||0;
+  return Math.floor(cleaned*1 + planted*2 + kills*5 + caught*1) - spent;
+}
+function spendPP(amount){
+  Save.load();
+  if(calcPP()>=amount){
+    Save.s('ppSpent',(Save.g('ppSpent')||0)+amount);
+    return true;
+  }
+  return false;
+}
+function updateCurrency(){
+  document.getElementById('hCoins').textContent=typeof getCoins==='function'?getCoins():Save.g('coins');
+  document.getElementById('hPP').textContent=calcPP();
+  document.getElementById('hGems').textContent=Save.g('gems')||0;
+}
+function notify(msg,type){
+  const n=document.getElementById('notif');
+  n.textContent=msg;
+  n.classList.toggle('error',type==='error');
+  n.classList.add('show');
+  clearTimeout(n._t);
+  n._t=setTimeout(()=>n.classList.remove('show'),2200);
+}
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.style.display='none');
+    t.classList.add('active');
+    document.getElementById('p-'+t.dataset.p).style.display='block';
+  });
+});
+
+const buyItems=[
+  {id:'potion_hp',price:40},
+  {id:'potion_energy',price:35},
+  {id:'potion_water',price:30},
+  {id:'seed_pack',price:25},
+  {id:'shield_orb',price:100},
+];
+
+function renderBuy(){
+  const grid=document.getElementById('buyGrid');
+  grid.innerHTML='';
+  buyItems.forEach(bi=>{
+    const item=ItemDB[bi.id];
+    if(!item)return;
+    const owned=Inventory.count(bi.id);
+    const canBuy=Save.g('coins')>=bi.price;
+    const card=document.createElement('div');
+    card.className='item-card';
+    card.innerHTML=`
+      <div class="item-icon">${item.icon}</div>
+      <div class="item-info">
+        <div class="item-name">${item.name}</div>
+        <div class="item-desc">${item.desc}</div>
+        ${owned>0?`<div class="item-desc" style="color:var(--p-2)">보유: ${owned}개</div>`:''}
+      </div>
+      <div class="item-right">
+        <div class="coin-pill coins" style="font-size:11px">🪙 ${bi.price}</div>
+        <button class="btn ${canBuy?'btn-primary':'btn-ghost'} btn-sm" ${canBuy?'':'disabled'}>구매</button>
+      </div>`;
+    card.querySelector('button').addEventListener('click',()=>{
+      Save.load();
+      if(typeof spendCoins === 'function' ? spendCoins(bi.price) : (Save.d.coins>=bi.price && (Save.d.coins-=bi.price, Save.save(), true))){
+        Inventory.add(bi.id);
+        notify(`${item.name} 구매 완료!`);
+        updateCurrency();
+        renderBuy();
+      }else notify('코인이 부족합니다','error');
+    });
+    grid.appendChild(card);
+  });
+}
+
+function renderSell(){
+  const grid=document.getElementById('sellGrid');
+  grid.innerHTML='';
+  const sellable=['slime_gel','scrap_metal','toxic_shard','smog_essence','rust_core','pure_crystal'];
+  let hasItems=false;
+  sellable.forEach(id=>{
+    const item=ItemDB[id];
+    if(!item)return;
+    const qty=Inventory.count(id);
+    if(qty<=0)return;
+    hasItems=true;
+    const card=document.createElement('div');
+    card.className='item-card';
+    card.innerHTML=`
+      <div class="item-icon">${item.icon}</div>
+      <div class="item-info">
+        <div class="item-name">${item.name} ×${qty}</div>
+        <div class="item-desc">${item.desc}</div>
+      </div>
+      <div class="item-right">
+        <div class="coin-pill coins" style="font-size:11px">🪙 ${item.price}/개</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" data-id="${id}" data-n="1">1개</button>
+          <button class="btn btn-secondary btn-sm" data-id="${id}" data-n="${qty}">전부</button>
+        </div>
+      </div>`;
+    card.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const sellId=btn.dataset.id;
+        const sellN=parseInt(btn.dataset.n);
+        const sellItem=ItemDB[sellId];
+        const actual=Math.min(sellN,Inventory.count(sellId));
+        if(actual>0){
+          Inventory.remove(sellId,actual);
+          typeof addCoins === 'function' ? addCoins(sellItem.price*actual) : Save.addCoins(sellItem.price*actual);
+          notify(`${sellItem.name} ${actual}개 판매 → ${sellItem.price*actual}🪙`);
+          updateCurrency();
+          renderSell();
+        }
+      });
+    });
+    grid.appendChild(card);
+  });
+  if(!hasItems){
+    grid.innerHTML='<div class="empty">판매할 재료가 없습니다.<br>몬스터를 처치하여 재료를 모으세요!</div>';
+  }
+}
+
+const weaponShop=[
+  {id:'water_gun',pp:30},
+  {id:'eco_blade',pp:60},
+  {id:'thorn_whip',pp:70},
+  {id:'thunder_hammer',pp:120},
+  {id:'crystal_staff',pp:180},
+];
+
+function renderWeapons(){
+  const grid=document.getElementById('weaponGrid');
+  grid.innerHTML='';
+  const eqW=Save.eq('weapon');
+  weaponShop.forEach(wi=>{
+    const item=ItemDB[wi.id];
+    if(!item)return;
+    const owned=Inventory.has(wi.id);
+    const equipped=eqW===wi.id;
+    const canBuy=!owned&&calcPP()>=wi.pp;
+    const card=document.createElement('div');
+    card.className='item-card'+(owned?' owned':'');
+    card.innerHTML=`
+      <div class="item-icon">${item.icon}</div>
+      <div class="item-info">
+        <div class="item-name">${item.name} ${equipped?'⭐':''}</div>
+        <div class="item-desc">${item.desc}</div>
+        <div class="item-stats">
+          <span class="stat-chip dmg">DMG ${item.dmg}</span>
+          <span class="stat-chip rng">범위 ${item.range}</span>
+          <span class="stat-chip spd">속도 ×${item.speed.toFixed(1)}</span>
+        </div>
+      </div>
+      <div class="item-right">
+        ${owned?
+          `<button class="btn ${equipped?'btn-ghost':'btn-secondary'} btn-sm" ${equipped?'disabled':''}>${equipped?'장착중':'장착'}</button>`:
+          `<div class="coin-pill pp" style="font-size:11px">🌿 ${wi.pp} PP</div>
+           <button class="btn ${canBuy?'btn-primary':'btn-ghost'} btn-sm" ${canBuy?'':'disabled'}>구매</button>`
+        }
+      </div>`;
+    const btn=card.querySelector('button');
+    if(owned&&!equipped){
+      btn.addEventListener('click',()=>{
+        Save.s('equippedWeapon',wi.id);
+        Save.save();
+        notify(`${item.name} 장착!`);
+        renderWeapons();
+      });
+    }else if(!owned){
+      btn.addEventListener('click',()=>{
+        if(spendPP(wi.pp)){
+          Inventory.add(wi.id);
+          notify(`${item.name} 구매 완료! (${wi.pp} PP 사용)`);
+          updateCurrency();
+          renderWeapons();
+        }else notify('PP가 부족합니다','error');
+      });
+    }
+    grid.appendChild(card);
+  });
+}
+
+const toolShop=[
+  {id:'vacuum',pp:50},
+  {id:'nano',pp:150},
+];
+
+function renderTools(){
+  const grid=document.getElementById('toolGrid');
+  grid.innerHTML='';
+  const eqT=Save.eq('tool')||'broom';
+  [{id:'broom',pp:0},...toolShop].forEach(ti=>{
+    const item=ItemDB[ti.id];
+    if(!item)return;
+    const owned=ti.pp===0||Inventory.has(ti.id);
+    const equipped=eqT===ti.id;
+    const canBuy=!owned&&calcPP()>=ti.pp;
+    const card=document.createElement('div');
+    card.className='item-card'+(owned&&ti.pp>0?' owned':'');
+    card.innerHTML=`
+      <div class="item-icon">${item.icon}</div>
+      <div class="item-info">
+        <div class="item-name">${item.name} ${equipped?'⭐':''}</div>
+        <div class="item-desc">${item.desc}</div>
+        <div class="item-stats">
+          <span class="stat-chip pow">정화력 ×${item.power.toFixed(1)}</span>
+          <span class="stat-chip spd">효율 ×${item.energy.toFixed(1)}</span>
+        </div>
+      </div>
+      <div class="item-right">
+        ${owned||ti.pp===0?
+          `<button class="btn ${equipped?'btn-ghost':'btn-secondary'} btn-sm" ${equipped?'disabled':''}>${equipped?'장착중':'장착'}</button>`:
+          `<div class="coin-pill pp" style="font-size:11px">🌿 ${ti.pp} PP</div>
+           <button class="btn ${canBuy?'btn-primary':'btn-ghost'} btn-sm" ${canBuy?'':'disabled'}>구매</button>`
+        }
+      </div>`;
+    const btn=card.querySelector('button');
+    if((owned||ti.pp===0)&&!equipped){
+      btn.addEventListener('click',()=>{
+        Save.s('equippedTool',ti.id);
+        Save.save();
+        notify(`${item.name} 장착!`);
+        renderTools();
+      });
+    }else if(!owned&&ti.pp>0){
+      btn.addEventListener('click',()=>{
+        if(spendPP(ti.pp)){
+          Inventory.add(ti.id);
+          notify(`${item.name} 구매 완료!`);
+          updateCurrency();
+          renderTools();
+        }else notify('PP가 부족합니다','error');
+      });
+    }
+    grid.appendChild(card);
+  });
+}
+
+const upgrades=[
+  {key:'Health',name:'최대 체력',icon:'❤️',basePP:15},
+  {key:'Energy',name:'최대 에너지',icon:'⚡',basePP:12},
+  {key:'Speed',name:'이동 속도',icon:'👟',basePP:18},
+  {key:'CleanPower',name:'정화력',icon:'🧹',basePP:15},
+  {key:'PlantSpeed',name:'심기 속도',icon:'🌿',basePP:12},
+  {key:'CoinBonus',name:'코인 보너스',icon:'🪙',basePP:20},
+  {key:'WeaponDmg',name:'무기 공격력',icon:'⚔️',basePP:25},
+  {key:'Luck',name:'행운',icon:'🍀',basePP:30},
+];
+
+function renderUpgrades(){
+  const grid=document.getElementById('upgradeGrid');
+  grid.innerHTML='';
+  upgrades.forEach(ug=>{
+    const lv=Save.g('upgrade'+ug.key)||0;
+    const maxed=lv>=10;
+    const pp=Math.floor(ug.basePP*Math.pow(1.4,lv));
+    const canBuy=!maxed&&calcPP()>=pp;
+    const pct=lv*10;
+    const card=document.createElement('div');
+    card.className='item-card';
+    card.innerHTML=`
+      <div class="item-icon">${ug.icon}</div>
+      <div class="item-info">
+        <div class="item-name">${ug.name} <span style="color:#888;font-size:11px">Lv.${lv}/10</span></div>
+        <div class="item-desc">레벨당 +10% 보너스 (현재: +${lv*10}%)</div>
+        <div class="upgrade-bar"><div class="upgrade-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="item-right">
+        ${maxed?
+          '<div style="font-size:11px;color:var(--s);font-weight:700">MAX</div>':
+          `<div class="coin-pill pp" style="font-size:11px">🌿 ${pp} PP</div>
+           <button class="btn ${canBuy?'btn-primary':'btn-ghost'} btn-sm" ${canBuy?'':'disabled'}>강화</button>`
+        }
+      </div>`;
+    if(!maxed){
+      const btn=card.querySelector('button');
+      if(btn){
+        btn.addEventListener('click',()=>{
+          if(spendPP(pp)){
+            Save.load();
+            Save.d['upgrade'+ug.key]=lv+1;
+            Save.save();
+            notify(`${ug.name} Lv.${lv+1} 달성! (+${(lv+1)*10}%)`);
+            updateCurrency();
+            renderUpgrades();
+          }else notify('PP가 부족합니다','error');
+        });
+      }
+    }
+    grid.appendChild(card);
+  });
+}
+
+updateCurrency();
+renderBuy();
+renderSell();
+renderWeapons();
+renderTools();
+renderUpgrades();
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<script src="js/coin-persistence.js"></script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080a08">
+<title>에코리스토어 — 환경 서적 도감</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.b-card{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-left:3px solid #ca8;
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:10px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  cursor:pointer;
+}
+.b-card:active{transform:scale(.99)}
+.b-card.collected{border-left-color:var(--p)}
+.b-icon{
+  width:48px;height:48px;
+  background:rgba(0,0,0,.3);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+  flex-shrink:0;
+}
+.b-info{flex:1;min-width:0}
+.b-name{font-size:13px;font-weight:700;color:#ca8}
+.b-card.collected .b-name{color:var(--p-2)}
+.b-desc{font-size:11px;color:var(--text-dim);line-height:1.5;margin-top:6px}
+.b-lore{
+  display:none;
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--border);
+  font-size:11px;
+  color:#998070;
+  line-height:1.7;
+  font-style:italic;
+}
+.b-card.expanded .b-lore{display:block}
+.b-status{
+  font-size:9px;
+  padding:3px 8px;
+  background:rgba(0,0,0,.3);
+  border-radius:4px;
+  font-weight:700;
+}
+.b-status.have{color:var(--p-2);background:rgba(74,170,136,.15)}
+.b-status.lack{color:#888}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <h1>📚 환경 서적 <span class="sub">도감</span></h1>
+  <a href="store.html" class="btn btn-primary btn-sm">상점</a>
+</header>
+<main class="container" style="padding-top:16px;padding-bottom:40px">
+
+<div class="nav-links">
+  <a class="nav-link" href="item1.html">🧪 소모품·재료</a>
+  <a class="nav-link" href="item2.html">⚔️ 무기·도구</a>
+  <a class="nav-link" href="item3.html" style="color:var(--p-2);border-color:var(--border-strong)">📚 환경 서적</a>
+  <a class="nav-link" href="item4.html">🔮 조합·특수</a>
+  <a class="nav-link" href="monster.html">👹 몬스터 도감</a>
+</div>
+
+<div id="main"></div>
+
+</main>
+<script src="core.js"></script>
+<script>
+'use strict';
+Save.load();
+const main=document.getElementById('main');
+
+const collected=new Set(Save.g('booksCollected')||[]);
+
+const books=[
+  {id:'book_ocean',realName:'바다의 눈물',theme:'해양 오염'},
+  {id:'book_air',realName:'숨 쉴 수 없는 하늘',theme:'대기오염'},
+  {id:'book_forest',realName:'잃어버린 숲',theme:'산림 벌채'},
+  {id:'book_waste',realName:'쓰레기 문명',theme:'산업 폐기물'},
+  {id:'book_future',realName:'2050년의 편지',theme:'미래 세대'},
+];
+
+books.forEach(b=>{
+  const item=ItemDB[b.id];
+  if(!item)return;
+  const has=collected.has(b.id);
+  const card=document.createElement('div');
+  card.className='b-card'+(has?' collected':'');
+  card.innerHTML=`
+    <div class="b-icon">${item.icon}</div>
+    <div class="b-info">
+      <div class="b-name">${item.name} <span style="color:#888;font-size:10px">· ${b.theme}</span></div>
+      <div class="b-desc">${item.desc}</div>
+      <div class="b-lore">${item.lore||''}</div>
+    </div>
+    <div class="b-status ${has?'have':'lack'}">${has?'✓ 수집':'🔒 미수집'}</div>`;
+  card.addEventListener('click',()=>card.classList.toggle('expanded'));
+  main.appendChild(card);
+});
+
+// Completion summary
+const summary=document.createElement('div');
+summary.className='card';
+summary.style.marginTop='20px';
+summary.innerHTML=`
+  <div class="card-title">📊 수집 현황</div>
+  <p style="font-size:12px;color:var(--text-dim)">수집: <b style="color:var(--p-2)">${collected.size}</b> / 5권</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px">5권을 모두 수집하면 <b style="color:var(--s)">"지식의 수호자"</b> 트로피 획득!</p>`;
+main.appendChild(summary);
+</script>
+</body>
+</html>
