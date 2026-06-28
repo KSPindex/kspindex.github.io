@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<script src="coin-persistence.js"></script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080a08">
+<title>에코리스토어 — 소모품·재료 도감</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.i-card{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  margin-bottom:8px;
+  transition:all .2s;
+  cursor:pointer;
+}
+.i-card:active{transform:scale(.99)}
+.i-card.rare{border-left:3px solid #48f}
+.i-card.epic{border-left:3px solid #a6f}
+.i-card.legendary{border-left:3px solid var(--s)}
+.i-icon{
+  width:48px;height:48px;
+  background:rgba(0,0,0,.3);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;flex-shrink:0;
+}
+.i-info{flex:1;min-width:0}
+.i-name{font-size:13px;font-weight:700;color:var(--p-2);display:flex;align-items:center;gap:6px}
+.i-type{font-size:8px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1px;margin-top:1px}
+.i-desc{font-size:11px;color:var(--text-dim);line-height:1.5;margin-top:4px}
+.i-stats{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.i-stat{font-size:9px;padding:3px 7px;background:rgba(0,0,0,.3);border-radius:4px}
+.i-stat.heal{color:#f88}.i-stat.energy{color:#48f}.i-stat.value{color:#fc0}
+.i-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;flex-shrink:0}
+.i-price{font-size:12px;font-weight:700;color:#fc0}
+.i-owned{font-size:9px;color:var(--p-2)}
+.i-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.i-card.expanded .i-detail{display:block}
+.craft-info{background:rgba(0,0,0,.2);border-radius:6px;padding:10px;font-size:11px;color:#ca8;margin-top:6px}
+.craft-info b{color:var(--s)}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <h1>🧪 소모품·재료 <span class="sub">도감</span></h1>
+  <a href="store.html" class="btn btn-primary btn-sm">상점</a>
+</header>
+<main class="container" style="padding-top:16px;padding-bottom:40px">
+
+<div class="nav-links">
+  <a class="nav-link" href="item1.html" style="color:var(--p-2);border-color:var(--border-strong)">🧪 소모품·재료</a>
+  <a class="nav-link" href="item2.html">⚔️ 무기·도구</a>
+  <a class="nav-link" href="item3.html">📚 환경 서적</a>
+  <a class="nav-link" href="item4.html">🔮 조합·특수</a>
+  <a class="nav-link" href="monster.html">👹 몬스터 도감</a>
+</div>
+
+<div id="main"></div>
+
+</main>
+<script src="core.js"></script>
+<script>
+'use strict';
+Save.load();
+const main=document.getElementById('main');
+
+const consumables=['potion_hp','potion_energy','potion_water','seed_pack','shield_orb'];
+const materials=['slime_gel','scrap_metal','toxic_shard','smog_essence','rust_core','pure_crystal'];
+
+function renderCategory(title,icon,ids,rarity){
+  const h=document.createElement('div');
+  h.className='section-title';
+  h.innerHTML=`${icon} ${title}`;
+  main.appendChild(h);
+
+  ids.forEach(id=>{
+    const item=ItemDB[id];
+    if(!item)return;
+    const owned=Inventory.count(id);
+    const card=document.createElement('div');
+    card.className='i-card '+(rarity||'common');
+
+    let statsHTML='';
+    if(item.effect==='heal')statsHTML=`<span class="i-stat heal">HP +${item.value}</span>`;
+    else if(item.effect==='energy')statsHTML=`<span class="i-stat energy">에너지 +${item.value}</span>`;
+    else if(item.effect==='water')statsHTML=`<span class="i-stat energy">물 +${item.value}</span>`;
+    else if(item.effect==='seeds')statsHTML=`<span class="i-stat heal">종자 +${item.value}</span>`;
+    else if(item.effect==='shield')statsHTML=`<span class="i-stat energy">무적 15초</span>`;
+    if(item.price)statsHTML+=`<span class="i-stat value">판매: ${item.price}🪙</span>`;
+
+    let detailHTML='';
+    if(item.type==='material'){
+      const recipes={
+        slime_gel:'슬라임 젤 3개 + 정화수 1개 → 고급 체력 물약',
+        scrap_metal:'고철 조각 5개 → 에코 블레이드 강화 재료',
+        toxic_shard:'독성 결정 3개 → 보호막 구슬 제작',
+        smog_essence:'스모그 정수 4개 → 공기 정화 도구 업그레이드',
+        rust_core:'녹슨 핵 2개 + 고철 조각 3개 → 천둥 망치 재료',
+        pure_crystal:'정화 수정은 모든 고급 제작의 핵심 재료입니다.',
+      };
+      detailHTML=`<div class="i-detail"><div class="craft-info"><b>조합법:</b> ${recipes[id]||'특수 조합법은 추후 업데이트 예정'}</div></div>`;
+    }
+
+    card.innerHTML=`
+      <div class="i-icon">${item.icon}</div>
+      <div class="i-info">
+        <div class="i-name">${item.name}</div>
+        <div class="i-type">${item.type}</div>
+        <div class="i-desc">${item.desc}</div>
+        <div class="i-stats">${statsHTML}</div>
+        ${detailHTML}
+      </div>
+      <div class="i-right">
+        ${owned>0?`<div class="i-owned">보유 ×${owned}</div>`:''}
+        ${item.price?`<div class="i-price">${item.price}🪙</div>`:''}
+      </div>`;
+    card.addEventListener('click',()=>card.classList.toggle('expanded'));
+    main.appendChild(card);
+  });
+}
+
+renderCategory('소모품 (Consumables)','🧪',consumables,'rare');
+renderCategory('재료 (Materials)','🔩',materials,'common');
+</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<script src="coin-persistence.js"></script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080a08">
+<title>에코리스토어 — 게임 설명</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.hero{
+  background:linear-gradient(180deg,rgba(74,170,136,.15),rgba(0,0,0,0));
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:24px 20px;
+  text-align:center;
+  margin-bottom:16px;
+}
+.hero-icon{font-size:64px;margin-bottom:8px}
+.hero-title{font-size:22px;color:var(--p-2);font-weight:700;margin-bottom:4px}
+.hero-sub{font-size:13px;color:var(--s);margin-bottom:12px}
+.hero-desc{font-size:12px;color:var(--text-dim);line-height:1.7;max-width:400px;margin:0 auto}
+.feature{
+  display:flex;gap:12px;
+  padding:14px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  margin-bottom:10px;
+}
+.feature-icon{
+  width:44px;height:44px;
+  background:rgba(74,170,136,.15);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+.feature-info{flex:1;min-width:0}
+.feature-name{font-size:13px;font-weight:700;color:var(--p-2);margin-bottom:4px}
+.feature-desc{font-size:11px;color:var(--text-dim);line-height:1.6}
+.quote-block{
+  background:rgba(0,0,0,.3);
+  border-left:3px solid var(--s);
+  padding:14px 18px;
+  border-radius:0 10px 10px 0;
+  font-size:12px;
+  color:#ca8;
+  line-height:1.7;
+  font-style:italic;
+  margin:14px 0;
+}
+.stat-row{
+  display:flex;justify-content:space-between;
+  padding:6px 0;
+  border-bottom:1px solid var(--border);
+  font-size:11px;
+}
+.stat-row:last-child{border-bottom:none}
+.stat-row .lbl{color:var(--text-dim)}
+.stat-row .val{color:var(--p-2);font-weight:700}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <h1>📖 게임 설명 <span class="sub">About</span></h1>
+  <a href="index.html" class="btn btn-primary btn-sm">← 게임</a>
+</header>
+<main class="container" style="padding-top:16px;padding-bottom:40px">
+
+<div class="hero">
+  <div class="hero-icon">🌿</div>
+  <div class="hero-title">에코리스토어</div>
+  <div class="hero-sub">오염된 세계의 구원자</div>
+  <div class="hero-desc">
+    환경 파괴로 오염된 세계를 정화하고, 오염 괴물들을 물리쳐 세계를 구원하는 모바일 RPG 게임입니다.
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">🎮 게임 소개</div>
+  <p style="font-size:12px;color:var(--text-dim);line-height:1.7">
+    인류의 무분별한 개발로 인해 아름다운 자연은 오염된 폐허로 변했습니다.
+    <br><br>
+    이제 마지막 희망인 당신이 오염된 대지를 정화하고, 오염 괴물들을 물리쳐 세계를 구원해야 합니다.
+    <br><br>
+    4개의 독특한 맵을 정화하고, 4명의 강력한 보스를 물리치고, 최종 보스 <b style="color:#f88">오염왕</b>을 처치하면 게임이 클리어됩니다!
+  </p>
+  <div class="quote-block">
+    "한 사람의 작은 행동이 세상을 바꿀 수 있다."<br>
+    — 대장로 아론
+  </div>
+</div>
+
+<div class="section-title">✨ 주요 특징</div>
+
+<div class="feature">
+  <div class="feature-icon">🧹</div>
+  <div class="feature-info">
+    <div class="feature-name">정화와 재식생</div>
+    <div class="feature-desc">오염된 타일을 정화하고, 종자를 심어 숲을 복원하세요. 자연이 돌아오면 생태계도 회복됩니다.</div>
+  </div>
+</div>
+
+<div class="feature">
+  <div class="feature-icon">⚔️</div>
+  <div class="feature-info">
+    <div class="feature-name">전투 시스템</div>
+    <div class="feature-desc">오염이 만들어낸 괴물들과 보스들을 물리치세요. 다양한 무기와 도구로 전략적으로 싸우세요.</div>
+  </div>
+</div>
+
+<div class="feature">
+  <div class="feature-icon">🗺️</div>
+  <div class="feature-info">
+    <div class="feature-name">4개의 독특한 맵</div>
+    <div class="feature-desc">폐허 분지 → 미세먼지 협곡 → 플라스틱 해안 → 오염의 심장. 각 맵마다 다른 환경과 괴물들.</div>
+  </div>
+</div>
+
+<div class="feature">
+  <div class="feature-icon">🛒</div>
+  <div class="feature-info">
+    <div class="feature-name">상점 & 강화</div>
+    <div class="feature-desc">수집한 재료로 무기와 도구를 구매하고, PP로 능력치를 영구 강화할 수 있습니다.</div>
+  </div>
+</div>
+
+<div class="feature">
+  <div class="feature-icon">📚</div>
+  <div class="feature-info">
+    <div class="feature-name">환경 서적</div>
+    <div class="feature-desc">맵 곳곳에 숨겨진 환경 서적을 수집하세요. 해양 오염, 대기오염, 산림 벌채 등 실제 환경 문제.</div>
+  </div>
+</div>
+
+<div class="feature">
+  <div class="feature-icon">🏆</div>
+  <div class="feature-info">
+    <div class="feature-name">트로피 & 도전</div>
+    <div class="feature-desc">12개 이상의 트로피와 다양한 도전 과제로 게임의 모든 면을 즐기세요.</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">📊 게임 정보</div>
+  <div class="stat-row"><span class="lbl">장르</span><span class="val">모바일 RPG</span></div>
+  <div class="stat-row"><span class="lbl">플랫폼</span><span class="val">모바일 / PC 웹</span></div>
+  <div class="stat-row"><span class="lbl">맵 수</span><span class="val">4개 + 엔딩</span></div>
+  <div class="stat-row"><span class="lbl">몬스터</span><span class="val">20+ 종</span></div>
+  <div class="stat-row"><span class="lbl">보스</span><span class="val">4명</span></div>
+  <div class="stat-row"><span class="lbl">트로피</span><span class="val">12개</span></div>
+  <div class="stat-row"><span class="lbl">서적</span><span class="val">5권</span></div>
+  <div class="stat-row"><span class="lbl">예상 플레이 시간</span><span class="val">2~4시간</span></div>
+</div>
+
+<div class="card">
+  <div class="card-title">🎯 게임의 의의</div>
+  <p style="font-size:12px;color:var(--text-dim);line-height:1.7">
+    에코리스토어는 단순한 게임을 넘어 <b style="color:var(--p-2)">환경 보호에 대한 메시지</b>를 전달합니다.
+    <br><br>
+    게임을 플레이하면서 다음을 배울 수 있습니다:
+  </p>
+  <ul style="font-size:12px;color:var(--text-dim);line-height:1.8;margin-top:10px;padding-left:20px">
+    <li>🌊 해양 오염의 심각성</li>
+    <li>💨 대기오염의 건강 영향</li>
+    <li>🌳 산림 벌채의 생태계 파괴</li>
+    <li>♻️ 폐기물 처리의 중요성</li>
+    <li>🌍 개인 실천의 의미</li>
+  </ul>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:10px">
+    작은 실천이 모여 큰 변화를 만듭니다.
+  </p>
+</div>
+
+<div style="text-align:center;margin-top:20px">
+  <a href="index.html" class="btn btn-primary btn-lg btn-block" style="max-width:300px">▶ 게임 시작</a>
+</div>
+
+</main>
+</body>
+</html>

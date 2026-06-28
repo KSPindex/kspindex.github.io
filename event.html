@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<script src="coin-persistence.js"></script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080a08">
+<title>에코리스토어 — 보스 이벤트 도감</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.intro{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  margin-bottom:16px;
+}
+.intro h2{color:var(--s);font-size:15px;margin-bottom:8px;font-weight:700}
+.intro p{color:var(--text-dim);font-size:11px;line-height:1.7}
+.event-card{
+  background:var(--surface-2);
+  border:2px solid var(--d);
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.event-header{display:flex;align-items:center;gap:12px}
+.event-icon{
+  width:56px;height:56px;
+  background:rgba(0,0,0,.4);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;
+  flex-shrink:0;
+}
+.event-info{flex:1;min-width:0}
+.event-name{font-size:14px;font-weight:700;color:#f88}
+.event-map{font-size:10px;color:var(--text-faint);margin-top:2px}
+.event-desc{font-size:11px;color:var(--text-dim);line-height:1.6}
+.event-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.estat{
+  background:rgba(0,0,0,.3);
+  border-radius:8px;
+  padding:8px 4px;
+  text-align:center;
+}
+.estat .val{font-size:16px;font-weight:700;color:#fc4}
+.estat .lbl{font-size:9px;color:var(--text-faint);margin-top:2px}
+.event-status{
+  font-size:10px;padding:4px 8px;border-radius:6px;font-weight:700;
+  text-align:center;
+  margin-top:4px;
+}
+.event-status.defeated{background:rgba(74,170,136,.2);color:var(--p-2)}
+.event-status.alive{background:rgba(255,68,68,.2);color:#f88}
+.attack-section{margin-top:8px}
+.attack-title{font-size:11px;color:var(--s);font-weight:700;margin-bottom:6px}
+.attack-chip{
+  display:inline-block;
+  font-size:10px;
+  padding:4px 8px;
+  background:rgba(255,68,68,.15);
+  border:1px solid rgba(255,68,68,.3);
+  border-radius:4px;
+  margin:2px;
+  color:#f88;
+}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <h1>💀 보스 이벤트 <span class="sub">도감</span></h1>
+  <a href="store.html" class="btn btn-primary btn-sm">상점</a>
+</header>
+<main class="container" style="padding-top:16px;padding-bottom:40px">
+
+<div class="nav-links">
+  <a class="nav-link" href="monster.html">👹 몬스터 도감</a>
+  <a class="nav-link" href="bossmonster.html">💀 보스 도감</a>
+  <a class="nav-link" href="map.html">🗺️ 맵 정보</a>
+  <a class="nav-link" href="firstguide.html">📖 초보 가이드</a>
+</div>
+
+<div class="intro">
+  <h2>⚔️ 보스 이벤트 안내</h2>
+  <p>각 맵의 정화율이 <b style="color:var(--p-2)">70%</b> 이상에 도달하면 강력한 보스가 출현합니다.</p>
+  <p>보스는 일반 몬스터보다 훨씬 강한 HP와 다양한 공격 패턴을 가지고 있어, 충분한 준비가 필요합니다.</p>
+  <p>최종 보스 <b style="color:#f88">오염왕</b>을 격파하면 게임이 클리어됩니다!</p>
+</div>
+
+<div id="main"></div>
+
+</main>
+<script src="core.js"></script>
+<script src="mapData.js"></script>
+<script>
+'use strict';
+const main=document.getElementById('main');
+Save.load();
+const d=Save.d||{};
+const defeated=new Set(d.bossesDefeated||[]);
+
+const bosses=[
+  {id:'sludge_titan',mapName:'Ch.1 — 폐허 분지',mapNum:1},
+  {id:'smog_colossus',mapName:'Ch.2 — 미세먼지 협곡',mapNum:2},
+  {id:'plastic_leviathan',mapName:'Ch.3 — 플라스틱 해안',mapNum:3},
+  {id:'pollution_king',mapName:'Ch.4 — 오염의 심장',mapNum:4},
+];
+
+const attackNames={
+  sludge_pool:'독성 웅덩이',toxic_spit:'독액 발사',pollution_wave:'오염 파동',
+  smog_cloud:'독성 안개',acid_rain:'산성비',cyclone:'회오리',
+  wave_crash:'파도 충돌',debris_storm:'잔해 폭풍',plastic_tentacle:'촉수 공격',microplastic_cloud:'미세플라스틱 구름',
+  corruption_beam:'오염 광선',trash_rain:'쓰레기 폭풍',toxic_nova:'독성 노바',summon_minions:'하수인 소환',final_wrath:'최후의 분노',
+};
+
+bosses.forEach(b=>{
+  const md=MonsterDB[b.id]||ExtMonsters?.[b.id];
+  if(!md)return;
+  const isDefeated=defeated.has(b.id);
+  const card=document.createElement('div');
+  card.className='event-card';
+  card.innerHTML=`
+    <div class="event-header">
+      <div class="event-icon">${md.icon}</div>
+      <div class="event-info">
+        <div class="event-name">${md.name}</div>
+        <div class="event-map">${b.mapName}</div>
+      </div>
+    </div>
+    <div class="event-desc">${md.desc}</div>
+    <div class="event-stats">
+      <div class="estat"><div class="val">${md.hp}</div><div class="lbl">HP</div></div>
+      <div class="estat"><div class="val">${md.dmg}</div><div class="lbl">DMG</div></div>
+      <div class="estat"><div class="val">${md.xp}</div><div class="lbl">XP</div></div>
+    </div>
+    <div class="attack-section">
+      <div class="attack-title">⚔️ 특수 공격 패턴</div>
+      <div>${(md.attacks||[]).map(a=>`<span class="attack-chip">${attackNames[a]||a}</span>`).join('')}</div>
+    </div>
+    <div class="event-status ${isDefeated?'defeated':'alive'}">${isDefeated?'✓ 격파됨':'● 대기 중 (정화율 70% 도달 시 출현)'}</div>`;
+  main.appendChild(card);
+});
+</script>
+</body>
+</html>
