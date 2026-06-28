@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05080a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>ECOSPHERE: ORBITAL COLLAPSE — 환경 파괴와 재생의 기록</title>
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+<div id="app-wrapper">
+  <canvas id="game-canvas" width="960" height="540"></canvas>
+  <canvas id="fx-canvas" width="960" height="540"></canvas>
+  <div id="ui-layer"></div>
+  <div id="loading-screen">
+    <div class="loader-content">
+      <div class="loader-ring"></div>
+      <div class="loader-title">ECOSPHERE</div>
+      <div class="loader-sub">ORBITAL COLLAPSE</div>
+      <div class="loader-hint">환경 데이터 스트림을 불러오는 중...</div>
+      <div class="loader-bar"><div class="loader-progress" id="loader-progress"></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/data/story_data.js"></script>
+<script src="js/data/map_data.js"></script>
+<script src="js/data/weapons_data.js"></script>
+<script src="js/data/enemies_data.js"></script>
+<script src="js/config.js"></script>
+<script src="js/save_system.js"></script>
+<script src="js/shaders.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/input.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/player.js"></script>
+<script src="js/weapons.js"></script>
+<script src="js/enemies.js"></script>
+<script src="js/trash_rain.js"></script>
+<script src="js/achievements.js"></script>
+<script src="js/story.js"></script>
+<script src="js/game.js"></script>
+<script>
+// Boot the game when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => Game.init());
+} else {
+  Game.init();
+}
+</script>
+</body>
+</html>
