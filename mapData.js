@@ -24,12 +24,13 @@ const MapData = {
     startPos:[10,7],
     portalPos:[18,1], // where portal appears after boss
     animals:['bird','butterfly','rabbit'],
-    trashRate:70, trashTypes:['bottle','bag','tire','can','barrel'],
+    trashRate:85, trashTypes:['bottle','bag','tire','can','barrel'],
     // Simplified: just monster types with population cap
     monsters:['slime','plastic_wraith','smog_spirit','trash_golem'],
-    monsterMax:{slime:2,plastic_wraith:2,smog_spirit:1,trash_golem:1},
+    monsterMax:{slime:4,plastic_wraith:3,smog_spirit:3,trash_golem:2},
+    activeMonsterCap:4, spawnInterval:110, spawnBudget:24,
     // CLEAR MAP GOAL — simple, single objective
-    goal:{type:'kill',target:5,label:'몬스터 5마리 처치',icon:'⚔️'},
+    goal:{type:'mixed',target:18,label:'폐허 분지 안정화: 몬스터 처치 + 오염 정화',icon:'🛰️'},
     boss:{type:'sludge_titan',purity:0},
     // Ruins/POIs
     ruins:[
@@ -59,10 +60,11 @@ const MapData = {
     startPos:[2,13],
     portalPos:[17,2],
     animals:['bird','butterfly'],
-    trashRate:55, trashTypes:['bottle','bag','ewaste','can','barrel'],
+    trashRate:75, trashTypes:['bottle','bag','ewaste','can','barrel'],
     monsters:['smog_spirit','dust_phantom','ash_crawler','smog_golem','acid_wisp'],
-    monsterMax:{smog_spirit:2,dust_phantom:2,ash_crawler:1,smog_golem:1,acid_wisp:1},
-    goal:{type:'kill',target:6,label:'몬스터 6마리 처치',icon:'⚔️'},
+    monsterMax:{smog_spirit:3,dust_phantom:3,ash_crawler:2,smog_golem:2,acid_wisp:3},
+    activeMonsterCap:5, spawnInterval:95, spawnBudget:32,
+    goal:{type:'mixed',target:24,label:'협곡 대기질 회복: 위협 제거 + 정화 작전',icon:'🌫️'},
     boss:{type:'smog_colossus',purity:0},
     ruins:[
       {name:'무너진 공장',icon:'🏭',col:14,row:2,w:4,h:3,tile:T.ROK},
@@ -90,10 +92,11 @@ const MapData = {
     startPos:[10,12],
     portalPos:[10,1],
     animals:['bird','butterfly','rabbit','squirrel'],
-    trashRate:45, trashTypes:['bottle','bag','tire','can','barrel','ewaste'],
+    trashRate:65, trashTypes:['bottle','bag','tire','can','barrel','ewaste'],
     monsters:['plastic_wraith','microplastic_swarm','bottle_golem','oil_crawler','coral_ghost'],
-    monsterMax:{plastic_wraith:2,microplastic_swarm:2,bottle_golem:1,oil_crawler:1,coral_ghost:1},
-    goal:{type:'kill',target:7,label:'몬스터 7마리 처치',icon:'⚔️'},
+    monsterMax:{plastic_wraith:3,microplastic_swarm:4,bottle_golem:2,oil_crawler:2,coral_ghost:3},
+    activeMonsterCap:6, spawnInterval:85, spawnBudget:42,
+    goal:{type:'mixed',target:32,label:'해안 생태계 복구: 플라스틱 위협 수습',icon:'🌊'},
     boss:{type:'plastic_leviathan',purity:0},
     ruins:[
       {name:'좌초된 배',icon:'🚢',col:15,row:6,w:4,h:3,tile:T.ROK},
@@ -121,10 +124,11 @@ const MapData = {
     startPos:[10,13],
     portalPos:[10,1],
     animals:['bird'],
-    trashRate:35, trashTypes:['bottle','bag','tire','can','barrel','ewaste'],
+    trashRate:55, trashTypes:['bottle','bag','tire','can','barrel','ewaste'],
     monsters:['slime','trash_golem','smog_spirit','oil_crawler','corruption_knight'],
-    monsterMax:{slime:2,trash_golem:2,smog_spirit:1,oil_crawler:1,corruption_knight:1},
-    goal:{type:'kill_boss',target:1,label:'오염왕을 처치하라!',icon:'👹'},
+    monsterMax:{slime:3,trash_golem:3,smog_spirit:3,oil_crawler:2,corruption_knight:3},
+    activeMonsterCap:6, spawnInterval:75, spawnBudget:48,
+    goal:{type:'mixed',target:40,label:'오염의 심장 안정화 후 오염왕 대면',icon:'☢️'},
     boss:{type:'pollution_king',purity:0},
     ruins:[
       {name:'오염의 제단',icon:'⛩️',col:8,row:2,w:4,h:3,tile:T.LAV},
@@ -288,21 +292,24 @@ const BossAttacks = {
 // ─── MAP TRANSITION DIALOGUES ──────────────────────────────────────────────
 const MapDialogues = {
   map1_complete: [
-    {speaker:'대장로 아론',text:'훌륭하다! 폐허 분지를 정화했구나!'},
-    {speaker:'대장로 아론',text:'하지만 아직 갈 길이 멀다. 다음은 미세먼지 협곡이다.'},
-    {speaker:'대장로 아론',text:'대기오염이 집중된 곳이니 더욱 조심해야 한다.'},
+    {speaker:'현장 기록',text:'폐허 분지의 주요 오염체 활동이 멈췄다.'},
+    {speaker:'현장 기록',text:'좋다. 하지만 깨끗해졌다는 말은 아직 이르다. 불법 매립의 흔적은 비가 올 때마다 다시 드러난다.'},
+    {speaker:'현장 기록',text:'다음 지역은 미세먼지 협곡이다. 그곳의 위험은 눈으로 확인하기 어렵다.'},
+    {speaker:'현장 기록',text:'숨을 쉬는 일 자체가 부담이 되는 곳이다. 장비를 점검하고 이동해라.'},
     {speaker:'',text:'[ 미세먼지 협곡으로 이동합니다... ]'},
   ],
   map2_complete: [
-    {speaker:'대장로 아론',text:'대기를 정화했어! 하늘이 맑아지고 있다!'},
-    {speaker:'대장로 아론',text:'다음 목적지는 플라스틱 해안이다.'},
-    {speaker:'대장로 아론',text:'분해되지 않는 플라스틱의 저주가 기다리고 있을 것이다.'},
+    {speaker:'현장 기록',text:'협곡의 고농도 오염 입자 흐름이 약화되었다.'},
+    {speaker:'현장 기록',text:'하늘이 조금 밝아졌다고 끝난 것은 아니다. 공기는 회복이 느리고, 피해는 몸 안에 남는다.'},
+    {speaker:'현장 기록',text:'다음은 플라스틱 해안이다. 그곳에서는 버린 물건이 잘게 부서져 생태계 안으로 들어간다.'},
+    {speaker:'현장 기록',text:'큰 쓰레기보다 작은 조각이 더 멀리 간다는 사실을 기억해라.'},
     {speaker:'',text:'[ 플라스틱 해안으로 이동합니다... ]'},
   ],
   map3_complete: [
-    {speaker:'대장로 아론',text:'해안을 정화했구나! 바다가 다시 맑아지고 있어!'},
-    {speaker:'대장로 아론',text:'이제 마지막이다. 오염의 심장으로 가야 한다.'},
-    {speaker:'대장로 아론',text:'오염왕이 기다리고 있다. 모든 준비를 마치고 가거라.'},
+    {speaker:'현장 기록',text:'해안의 대형 플라스틱 오염체가 침묵했다.'},
+    {speaker:'현장 기록',text:'해안선은 잠시 숨을 돌렸다. 하지만 바다에 들어간 플라스틱은 완전히 사라지지 않는다.'},
+    {speaker:'현장 기록',text:'마지막 지역은 오염의 심장이다. 지금까지 확인한 모든 문제가 그곳에 모여 있다.'},
+    {speaker:'현장 기록',text:'오염왕은 신화가 아니다. 우리가 미뤄온 비용의 이름이다.'},
     {speaker:'',text:'[ 오염의 심장으로 이동합니다... ]'},
   ],
 };
@@ -386,7 +393,10 @@ function generateMap(mapId) {
 function getMonstersForMap(mapId, purityPct) {
   const md = MapData[mapId];
   if (!md) return [];
-  return md.monsterWaves.filter(w => purityPct >= w.purity);
+  // Older code expected monsterWaves, but the current data uses md.monsters.
+  // Return concrete monster database entries and never throw when waves are absent.
+  if (Array.isArray(md.monsterWaves)) return md.monsterWaves.filter(w => purityPct >= (w.purity || 0));
+  return (md.monsters || []).map(type => ({ type, ...(MonsterDB[type] || ExtMonsters?.[type] || {}) }));
 }
 
 // ─── GET CURRENT MAP DATA ──────────────────────────────────────────────────

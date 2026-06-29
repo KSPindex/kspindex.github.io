@@ -46,17 +46,20 @@ const Combat = {
   attack(game) {
     if (game.plAtkCD > 0) return;
 
+    // Equipped weapons are the only source of attack range/speed/damage.
+    // Store purchases place the item in Inventory and Save.equippedWeapon selects it.
     const weaponId = Save.eq('weapon');
-    const weapon = weaponId ? ItemDB[weaponId] : null;
-    const baseDmg = weapon ? weapon.dmg : Save.g('basePower');
-    const baseRange = weapon ? weapon.range * 15 : 25;
-    const baseSpeed = weapon ? weapon.speed : 1.0;
+    const weapon = (weaponId && Inventory.has(weaponId)) ? ItemDB[weaponId] : null;
+    const baseDmg = weapon ? Number(weapon.dmg || 0) : Number(Save.g('basePower') || 10);
+    const baseRange = weapon ? Number(weapon.range || 1) * 15 : 25;
+    const baseSpeed = weapon ? Number(weapon.speed || 1) : 1.0;
     const dmgMult = 1 + Save.ub('WeaponDmg');
     const spdMult = 1 + Save.ub('WeaponSpd');
+    const luckMult = 1 + Save.ub('Luck') * 0.25;
 
-    const finalDmg = baseDmg * dmgMult;
+    const finalDmg = Math.max(1, baseDmg * dmgMult);
     const finalRange = baseRange;
-    const cooldown = Math.max(8, Math.floor(20 / (baseSpeed * spdMult)));
+    const cooldown = Math.max(6, Math.floor(20 / Math.max(0.2, baseSpeed * spdMult * luckMult)));
 
     game.plAtkCD = cooldown;
     game.plAttackAnim = 8;  // Attack swing animation frames
@@ -230,7 +233,8 @@ const Combat = {
 
     // === BOSS KILL — special handling ===
     if (m.isBoss || md.isBoss) {
-      Save.d.bossesDefeated.push(m.type);
+      if (!Array.isArray(Save.d.bossesDefeated)) Save.d.bossesDefeated = [];
+      if (!Save.d.bossesDefeated.includes(m.type)) Save.d.bossesDefeated.push(m.type);
       Save.setFlag('bossDefeated_' + m.type);
       const mapData = getCurrentMapData();
       if (mapData.nextMap) {
@@ -283,20 +287,26 @@ const MonsterAI = {
     if (game._lastMapId !== mapData.id) {
       game._lastMapId = mapData.id;
       game._mapSpawnedCount = 0;
-      game._spawnClock = 150;
+      game._spawnClock = 999;
       game._initialSpawnDone = true;
     }
 
     if (game.state === 'playing' && !game.monsters.some(m => m.isBoss)) {
-      if (typeof game._spawnClock !== 'number') game._spawnClock = 0;
-      game._spawnClock++;
-      if (game._spawnClock >= 180) {
-        game._spawnClock = 0;
-        const aliveNormals = game.monsters.filter(m => !m.isBoss).length;
-        const tg = mapData?.goal?.target || 5;
-        if ((game._mapSpawnedCount || 0) < tg && aliveNormals < 2) {
-          this.spawnOneSequential(game, mapData);
-          game._mapSpawnedCount = (game._mapSpawnedCount || 0) + 1;
+      const finalBossGoal = mapData?.goal?.type === 'kill_boss';
+      const normalGoalDone = !finalBossGoal && typeof MapProgress !== 'undefined' && MapProgress.isGoalComplete && MapProgress.isGoalComplete();
+      if (!finalBossGoal && !normalGoalDone) {
+        if (typeof game._spawnClock !== 'number') game._spawnClock = 0;
+        game._spawnClock++;
+        const interval = Math.max(45, Number(mapData.spawnInterval || 120));
+        if (game._spawnClock >= interval) {
+          game._spawnClock = 0;
+          const aliveNormals = game.monsters.filter(m => !m.isBoss).length;
+          const tg = mapData?.spawnBudget || Math.ceil((mapData?.goal?.target || 5) * 1.35);
+          const activeCap = mapData?.activeMonsterCap || Math.max(3, Math.min(6, Math.ceil((mapData?.goal?.target || 5) / 6)));
+          if ((game._mapSpawnedCount || 0) < tg && aliveNormals < activeCap) {
+            this.spawnOneSequential(game, mapData);
+            game._mapSpawnedCount = (game._mapSpawnedCount || 0) + 1;
+          }
         }
       }
     }
@@ -304,16 +314,28 @@ const MonsterAI = {
     const isNight = game.dayT < 0.25 || game.dayT > 0.75;
     const aggressionMod = isNight ? 1.4 : 1.0;
 
-    if (typeof MapProgress !== 'undefined' && !game.portal) {
-      const goalDone = MapProgress.isGoalComplete();
+    if (typeof MapProgress !== 'undefined' && !game.portal && mapData.boss) {
+      const goal = mapData.goal || {};
+      const bossType = mapData.boss.type;
+      const bossDefeated = Save.flag('bossDefeated_' + bossType);
       const bossAlready = game.monsters.some(m => m.isBoss);
-      const bossFlag = 'bossSpawned_' + mapData.id;
-      if (goalDone && !bossAlready && !Save.flag(bossFlag)) {
-        Save.setFlag(bossFlag);
-        if (mapData.boss) {
-          this.spawnMonster(game, mapData.boss.type);
-          setTimeout(() => game.startVN('boss_intro'), 800);
+
+      // Normal maps: spawn their own map boss after the kill goal.
+      // All maps, including final map, spawn the boss only after the widened stabilization goal.
+      const goalDone = goal.type === 'kill_boss' ? true : MapProgress.isGoalComplete();
+      if (goalDone && !bossAlready && !bossDefeated) {
+        const bossDb = MonsterDB[bossType] || ExtMonsters[bossType] || { name: bossType, icon: '💀' };
+        this.spawnMonster(game, bossType);
+        if (game.ftext) game.ftext.add(game.plx, game.ply - 28, `${bossDb.icon || '💀'} ${bossDb.name || bossType} 등장!`, '#f88', 1.5);
+        if (typeof StoryDialogues !== 'undefined') {
+          StoryDialogues.boss_intro = [
+            { speaker:'현장 경보', text:`대형 오염체 ${bossDb.name || '보스'} 활동 확인.` },
+            { speaker:'주인공 기록', text:'이 개체는 갑자기 생긴 적이 아니다. 이 지역에 남은 오염이 한곳으로 모인 결과다.' },
+            { speaker:'시스템', text:'무리하게 끝내려 하지 마라. 낙하 폐기물, 체력, 에너지 상태를 계속 확인해라.' },
+            { speaker:'', text:`[ ${bossDb.name || '보스'} 대응 작전 시작 ]` },
+          ];
         }
+        setTimeout(() => { if (game.state === 'playing' && typeof game.startVN === 'function') game.startVN('boss_intro'); }, 800);
       }
     }
 
@@ -333,13 +355,17 @@ const MonsterAI = {
     const mapData = getCurrentMapData();
     if (!mapData || !mapData.monsters) return;
     const max = mapData.monsterMax || {};
-    mapData.monsters.forEach(type => {
+    const activeCap = mapData.activeMonsterCap || 4;
+    let spawned = 0;
+    for (const type of mapData.monsters) {
+      if (spawned >= Math.max(2, Math.ceil(activeCap * 0.6))) break;
       const cap = max[type] || 1;
-      const initialCount = Math.ceil(cap / 2) || 1;
-      for (let i = 0; i < initialCount; i++) {
+      const initialCount = Math.min(cap, 1);
+      for (let i = 0; i < initialCount && spawned < Math.max(2, Math.ceil(activeCap * 0.6)); i++) {
         this.spawnMonster(game, type);
+        spawned++;
       }
-    });
+    }
     console.log(`[MonsterAI] Initial spawn: ${game.monsters.length} monsters for ${mapData.id}`);
   },
 

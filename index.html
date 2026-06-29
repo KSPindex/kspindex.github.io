@@ -1103,6 +1103,39 @@ body {
   .abtn { width: 44px; height: 44px; font-size: 16px; }
   .abtn .al { font-size: 7px; }
 }
+
+
+/* ── MODERN ATMOSPHERIC UI PATCH ── */
+#hud{
+  background:linear-gradient(180deg,rgba(7,12,14,.78),rgba(7,12,14,.42));
+  border-bottom:1px solid rgba(170,255,220,.14);
+  box-shadow:0 10px 35px rgba(0,0,0,.35);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.hpan{
+  background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:7px 9px;
+}
+#goalTracker{
+  background:linear-gradient(145deg,rgba(8,15,18,.94),rgba(11,22,20,.86));
+  border:1px solid rgba(150,255,200,.20);border-left:3px solid rgba(120,255,180,.55);
+  box-shadow:0 12px 38px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.gt-mapname{letter-spacing:.08em;text-transform:uppercase;color:#9ee7c0}.gt-label{font-size:12px}.gt-bar{height:12px;background:rgba(255,255,255,.06)}
+.gt-fill{background:linear-gradient(90deg,#50d48b,#b1e66d,#ffd166);box-shadow:0 0 12px rgba(100,255,180,.25)}
+#topTools .tt-btn{background:rgba(5,10,12,.72);border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 24px rgba(0,0,0,.28)}
+#vnOverlay{background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.74));backdrop-filter:blur(2px)}
+#vnBox{background:linear-gradient(180deg,rgba(11,18,22,.97),rgba(6,10,12,.98));border-top:1px solid rgba(170,255,220,.22);box-shadow:0 -18px 50px rgba(0,0,0,.45)}
+#vnSpeaker{letter-spacing:.04em;color:#9ee7c0}#vnText{font-size:13px;line-height:1.75;color:#e5eee8}
+
+#choiceOverlay{position:absolute;inset:0;z-index:235;display:none;align-items:center;justify-content:center;padding:16px;background:radial-gradient(circle at 50% 20%,rgba(80,120,100,.12),rgba(0,0,0,.86));backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+#choiceOverlay.show{display:flex;animation:fadeIn .18s ease-out}.choice-card{width:min(560px,96vw);max-height:88dvh;overflow:auto;background:linear-gradient(160deg,rgba(13,20,24,.98),rgba(8,12,14,.98));border:1px solid rgba(180,255,220,.18);border-radius:22px;box-shadow:0 22px 80px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,255,255,.06);padding:22px}.choice-kicker{font-size:11px;color:#8fb5a4;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px}.choice-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:12px}.choice-icon{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}.choice-title{font-size:20px;font-weight:900;color:#eef8f1;margin-bottom:4px}.choice-sub{font-size:12px;color:#9fb0a8}.choice-body{font-size:14px;line-height:1.8;color:#d8e1dc;margin:15px 0 18px}.choice-options{display:flex;flex-direction:column;gap:10px}.choice-btn{text-align:left;border:1px solid rgba(180,255,220,.14);background:rgba(255,255,255,.045);border-radius:14px;padding:13px 14px;color:#eef8f1;font:inherit;cursor:pointer;transition:.15s}.choice-btn:hover,.choice-btn:focus{border-color:rgba(160,255,200,.42);background:rgba(120,220,170,.10);transform:translateY(-1px)}.choice-btn b{display:block;font-size:13px;margin-bottom:4px}.choice-btn span{display:block;font-size:11px;color:#9daea5;line-height:1.5}.choice-result{display:none;margin-top:16px;border-left:3px solid rgba(255,190,120,.6);padding:12px 13px;background:rgba(255,180,90,.07);border-radius:10px;color:#ffd8b1;line-height:1.65;font-size:13px}.choice-continue{display:none;margin-top:14px;width:100%;border:1px solid rgba(180,255,220,.2);border-radius:12px;padding:12px;background:rgba(120,220,170,.12);color:#dfffea;font-weight:800;cursor:pointer}
+
+
+
+/* ── EXCLUSION-ZONE ATMOSPHERE UI ── */
+#zonePanel{position:absolute;right:8px;top:92px;z-index:15;width:178px;padding:10px 11px;background:linear-gradient(150deg,rgba(6,9,10,.88),rgba(22,18,13,.78));border:1px solid rgba(230,210,150,.18);border-right:3px solid rgba(255,195,90,.34);border-radius:14px;box-shadow:0 14px 45px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.05);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);font-size:10px;pointer-events:none;color:#d7d2c4}.zp-title{font-size:9px;letter-spacing:.16em;color:#d7b66d;margin-bottom:8px;font-weight:900}.zp-row{display:flex;justify-content:space-between;gap:8px;margin:6px 0 3px;color:#aaa}.zp-row b{font-size:10px;color:#efe7d1}.zp-meter{height:5px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}.zp-meter i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#91d67b,#e8d16d,#e36d45);border-radius:99px;transition:width .25s}.zp-meter.warn i{background:linear-gradient(90deg,#6fb7ff,#d2a7ff,#ff7b5c)}.zp-status{margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,.08);color:#9fb5aa;letter-spacing:.04em}.zp-status.danger{color:#ffad76;text-shadow:0 0 8px rgba(255,120,70,.25)}
+#game:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;background:linear-gradient(180deg,rgba(255,210,120,.035),transparent 25%,rgba(0,0,0,.16));mix-blend-mode:screen}.zone-storm #game:after{background:linear-gradient(180deg,rgba(180,120,80,.11),transparent 40%,rgba(0,0,0,.25))}
+
 </style>
 </head>
 <body>
@@ -1151,6 +1184,25 @@ body {
     <div id="vnNext">▼ 터치/클릭</div>
   </div>
 </div>
+
+<!-- Choice Event Overlay -->
+<div id="choiceOverlay">
+  <div class="choice-card">
+    <div class="choice-kicker" id="choiceKicker">FIELD EVENT</div>
+    <div class="choice-head">
+      <div class="choice-icon" id="choiceIcon">☢️</div>
+      <div>
+        <div class="choice-title" id="choiceTitle">현장 상황</div>
+        <div class="choice-sub" id="choiceSub">결정을 내려야 합니다</div>
+      </div>
+    </div>
+    <div class="choice-body" id="choiceBody">...</div>
+    <div class="choice-options" id="choiceOptions"></div>
+    <div class="choice-result" id="choiceResult"></div>
+    <button class="choice-continue" id="choiceContinue">현장으로 돌아가기</button>
+  </div>
+</div>
+
 
 <!-- Inventory Overlay (mobile-friendly bottom sheet) -->
 <div id="invOverlay">
@@ -1352,14 +1404,14 @@ body {
         <p>💧 <b>물</b> — 파란 타일 근처에서 자동 수집. 비 오면 빠르게 채워집니다.</p>
         <p>🌱 <b>종자</b> — 쓰레기 더미 정화 시 확률 획득. 나무가 자라면 자동 생산.</p>
         <p>⚡ <b>에너지</b> — 정화 시 소모. 시간 경과로 자동 회복.</p>
-        <p>🪙 <b>코인</b> — 모든 활동에서 획득. 상점에서 아이템 구매!</p>
+        <p>🪙 <b>코인</b> — 수거, 조사, 전투 보상으로 획득. 상점에서 장비와 소모품을 준비합니다.</p>
       </div>
       <div class="g-sec red">
         <h3>⚠️ 위험 요소</h3>
-        <p>🗑️ 하늘에서 쓰레기가 떨어집니다! 닿으면 자동 수거되며, <b>보스전 및 마지막 맵</b>에서만 데미지를 입으니 주의하세요.</p>
-        <p>👹 정화율이 올라가면 오염 몬스터가 출현합니다. F키/⚔️로 공격!</p>
+        <p>🗑️ 하늘에서 폐기물이 떨어집니다. 이제 닿아도 자동 수거되지 않습니다. Q/잡기로 직접 수거하지 않으면 피해를 입거나 땅이 다시 오염됩니다.</p>
+        <p>👹 지역 안정화가 진행되는 동안 오염 생물이 계속 출현합니다. 전투만으로는 보스가 나오지 않으며, 정화·수거·조사도 필요합니다.</p>
         <p>☠️ 오염 타일은 시간이 지나면 주변으로 퍼집니다.</p>
-        <div class="g-tip">💡 연속 행동으로 콤보를 쌓으면 코인 보너스! 나무를 모아 심으면 자원 자동 생산!</div>
+        <div class="g-tip">💡 폐공장, 연구소, 마을, 제단 근처에서 SPACE를 누르면 현장 조사가 진행됩니다. 선택 이벤트에서는 자원과 위험을 계산해야 합니다.</div>
       </div>
       <button class="guide-close-btn" id="guideCloseBtn">✓ 이해했어요! 게임 시작</button>
     </div>
@@ -1371,7 +1423,7 @@ body {
   <h1>🌿 에코리스토어</h1>
   <h2>오염된 세계의 구원자</h2>
   <p style="font-size:11px;color:#666;margin-bottom:16px;text-align:center;max-width:320px;line-height:1.5">
-    환경 파괴로 오염된 세계를 정화하고, 오염 괴물을 물리치세요.<br>4개의 맵을 넘어 오염왕을 처치하면 세계가 구원됩니다!
+    2033년 이후, 버려진 것들이 하늘에서 다시 떨어집니다.<br>정화·수거·조사·선택으로 오염 지역을 천천히 복구하세요.
   </p>
   <div class="mn-btns">
     <button class="mnb pr" id="btnPlay">▶ 새 게임</button>
@@ -1379,12 +1431,15 @@ body {
     <button class="mnb tr" id="btnTrophy">🏆 트로피</button>
     <button class="mnb sc" onclick="location.href='store.html'">🛒 상점</button>
     <button class="mnb sc" id="btnMenuGuide">📖 가이드</button>
+    <button class="mnb sc" onclick="location.href='project-summary.html'">📌 프로젝트 소개</button>
+    <button class="mnb sc" onclick="location.href='fieldlog.html'">🗂 현장 기록</button>
+    <button class="mnb sc" onclick="location.href='incident-report.html'">📑 사고 보고서</button>
   </div>
   <div class="mn-sub">
     <label><input type="checkbox" id="sndT" checked>🔊효과음</label>
     <label><input type="checkbox" id="musT" checked>🎵음악</label>
   </div>
-  <div style="margin-top:12px;font-size:9px;color:#444;text-align:center">v2.0 Mobile — ⚙ 설정은 게임 중 톱니바퀴 버튼</div>
+  <div style="margin-top:12px;font-size:9px;color:#444;text-align:center">v3.0 Field Story — 선택 이벤트 / 현장 기록 / 장기 복구 패치</div>
 </div>
 
 <!-- PAUSE -->
@@ -1410,20 +1465,21 @@ body {
 
 <!-- KEY HINTS (PC only) -->
 <div id="keyHints">
-  WASD:이동 · SPACE:정화 · E:심기 · Q:잡기 · F:공격 · I:가방 · M:맵 · P:정지 · ~:콘솔
+  WASD:이동 · SPACE:정화/조사 · E:심기 · Q:낙하 폐기물 수거 · F:공격 · I:가방 · M:맵 · P:정지
 </div>
 
-<!-- DEV TOOLS -->
-<div id="devPanel">
-  <div class="dv-close"><button class="dv-btn" id="devClose">✕ 닫기 (~)</button></div>
-  <div style="text-align:center;color:#f80;font-size:13px;margin-bottom:10px;font-weight:700">🔧 개발자 도구</div>
-  <div id="devContent"></div>
-</div>
+<!-- Production build: developer tools removed for classroom submission. -->
 </div>
 
 <script src="core.js"></script>
 <script src="mapData.js"></script>
+<script src="storyData.js"></script>
+<script src="storylineExpansion.js"></script>
+<script src="storyEvents.js"></script>
+<script src="atmosphere.js"></script>
 <script src="ui.js"></script>
+<script src="texturePack.js"></script>
+<script src="dlcOps.js"></script>
 <script src="mobile.js"></script>
 <script src="saveload.js"></script>
 <script>
@@ -1688,11 +1744,7 @@ function dot(x,y,c){cx.fillStyle=c;cx.fillRect(Math.floor(x),Math.floor(y),1,1)}
 function drawTile(x,y,t,f){Draw.tile(cx,x,y,t,PAL,f)}
 
 let devOpen=false;
-function toggleDev(){
-  devOpen=!devOpen;
-  document.getElementById('devPanel').classList.toggle('show',devOpen);
-  if(devOpen)renderDev();
-}
+function toggleDev(){ return; }
 function renderDev(){
   Save.load();
   const d=Save.d;
@@ -1750,7 +1802,7 @@ function renderDev(){
       ${Object.entries(d.storyFlags||{}).map(([k,v])=>`<div class="dv-row"><span class="dv-k">${k}</span><span class="dv-v">${v}</span></div>`).join('')||'<div class="dv-row"><span class="dv-k">없음</span></div>'}</div>`;
   document.getElementById('devContent').innerHTML=html;
 }
-document.getElementById('devClose').addEventListener('click',toggleDev);
+
 
 function drawPlayer(x,y,dir,frm,inv,cols,atkAnim){
   if(inv>0&&Math.floor(inv/3)%2)return;
@@ -1893,6 +1945,69 @@ const G={
     if(Save.g('coins')>=1000)Trophies.unlock('rich');
     return {coins,stage:md?.chapter||1,purity:Math.floor(purityPct||0),mapName:md?.name||'스테이지'};
   },
+  applyPlayerStats(){
+    Save.load();
+    const d=Save.d;
+    const hpBoost=1+Save.ub('Health');
+    const enBoost=1+Save.ub('Energy');
+    const spdBoost=1+Save.ub('Speed');
+    const waterBoost=1+Save.ub('WaterCap');
+    const seedBoost=1+Save.ub('SeedCap');
+    this.plMaxHP=Math.floor((Number(d.maxHP)||100)*hpBoost);
+    this.plMaxEn=Math.floor((Number(d.maxEnergy)||100)*enBoost);
+    this.plMaxWater=Math.floor((Number(d.maxWater)||80)*waterBoost);
+    this.plMaxSeeds=Math.floor((Number(d.maxSeeds)||20)*seedBoost);
+    this.plSpd=(Number(d.baseSpeed)||1.8)*spdBoost;
+  },
+  getEquippedTool(){
+    const toolId=Save.eq('tool')||'broom';
+    const valid=(toolId==='broom'||Inventory.has(toolId))?toolId:'broom';
+    return ItemDB[valid]||ItemDB.broom||{power:1,energy:1};
+  },
+  getCleanCost(base=8){
+    const tool=this.getEquippedTool();
+    const energyEff=Math.max(0.25, Number(tool.energy)||1);
+    return Math.max(2, base*energyEff);
+  },
+  getCleanPower(){
+    const tool=this.getEquippedTool();
+    return Math.max(1, Number(tool.power)||1) * (1+Save.ub('CleanPower')*0.6);
+  },
+  getNearbyPOI(){
+    const md=this.currentMapData||((typeof getCurrentMapData==='function')?getCurrentMapData():null);
+    if(!md||!Array.isArray(md.ruins))return null;
+    for(let i=0;i<md.ruins.length;i++){
+      const r=md.ruins[i];
+      const cx=(r.col+r.w/2)*TS, cy=(r.row+r.h/2)*TS;
+      if(CoreUtil.dist(this.plx,this.ply,cx,cy)<24){
+        const flag=`poi_${md.id}_${i}`;
+        if(!Save.flag(flag))return {idx:i,flag,ruin:r,map:md,cx,cy};
+      }
+    }
+    return null;
+  },
+  resolvePOI(){
+    const poi=this.getNearbyPOI();
+    if(!poi)return false;
+    if(this.plEnergy<14){this.ftext.add(this.plx,this.ply-18,'조사 에너지 부족','#f88',1);return true;}
+    this.plEnergy-=14;
+    Save.setFlag(poi.flag,true);
+    const rn=String(poi.ruin.name||'');
+    let key=poi.map.id==='map4'?'final':(rn.includes('공장')||rn.includes('가스'))?'factory':(rn.includes('마을'))?'village':(rn.includes('분수')||rn.includes('샘'))?'water':(rn.includes('관측')||rn.includes('저장'))?'air':(rn.includes('배')||rn.includes('연구소')||rn.includes('플라스틱'))?'ocean':'factory';
+    const log=(typeof pickFieldLog==='function')?pickFieldLog('poi',key):'오염 기록을 확보했다.';
+    const lines=[
+      `${poi.ruin.icon||'📍'} ${poi.ruin.name}: 현장 조사 완료`,
+      log,
+      '기록을 저장했다. 복구는 기억하는 일에서 시작된다.'
+    ];
+    this.ftext.add(this.plx,this.ply-22,lines[0],'#8ff',1.15);
+    setTimeout(()=>{if(this.ftext)this.ftext.add(this.plx,this.ply-30,lines[1],'#ffb45c',0.9)},250);
+    if(typeof MapProgress!=='undefined')MapProgress.addClean(3);
+    this.earnCoins(4);
+    this.parts.emit(poi.cx,poi.cy,10,{xa:-2,xb:2,ya:-2,yb:1,la:14,lb:28,sa:1,sb:2,cs:['#8ff','#fff','#fa8'],g:0.01});
+    playBeep(420,.12,'triangle');
+    return true;
+  },
   startGame(){
     try{getAudioCtx()}catch(e){}
     Save.load();
@@ -1904,9 +2019,12 @@ const G={
     PAL=md.palette;
     const[sc,sr]=md.startPos;
     this.plx=sc*TS+TS/2;this.ply=sr*TS+TS/2;
-    this.plSpd=Save.g('baseSpeed');this.plMaxHP=Save.g('maxHP');this.plHP=this.plMaxHP;
-    this.plMaxEn=Save.g('maxEnergy');this.plEnergy=this.plMaxEn;
-    this.plWater=50;this.plSeeds=10;this.plInv=0;this.plDir=0;this.plFrm=0;this.plCD=0;this.plAtkCD=0;
+    this.applyPlayerStats();
+    this.plHP=this.plMaxHP;
+    this.plEnergy=this.plMaxEn;
+    this.plWater=Math.min(this.plMaxWater, Math.max(50, Math.floor(this.plMaxWater*0.6)));
+    this.plSeeds=Math.min(this.plMaxSeeds, Math.max(10, Math.floor(this.plMaxSeeds*0.5)));
+    this.plInv=0;this.plDir=0;this.plFrm=0;this.plCD=0;this.plAtkCD=0;
     this.trash=[];this.trTimer=0;this.trDodged=0;this.trCaught=0;this.trWarns=[];
     this.monsters=[];this.monsterSpawnT=0;this._lastMapId=null;
     this.books=[];this.bookSpawnT=0;
@@ -1918,6 +2036,7 @@ const G={
     this.kills=0;this.killsByType={};this.killsLastUpdate=0;  // Reset kill counters
     this.parts=new Parts();this.ftext=new FText();
     this.targetX=null;this.targetY=null;
+    if(typeof ZoneAtmosphere!=='undefined')ZoneAtmosphere.initMap(this);
 
     this.state='playing';
     document.getElementById('menuScr').classList.add('hidden');
@@ -1938,6 +2057,15 @@ const G={
     }
     this._lastShownKills=this.kills||0;
     this._lastShownGoalCurrent=0;
+    if(typeof MonsterAI!=='undefined'&&MonsterAI&&MonsterAI.spawnInitial){
+      MonsterAI.spawnInitial(this);
+      this._mapSpawnedCount=this.monsters.filter(m=>!m.isBoss).length;
+    }
+    const briefId=mapId+'_briefing';
+    if(Save.g('chapter')>0 && typeof StoryDialogues!=='undefined' && StoryDialogues[briefId] && !Save.flag('brief_'+mapId)){
+      Save.setFlag('brief_'+mapId,true);
+      setTimeout(()=>{ if(this.state==='playing') this.startVN(briefId); },650);
+    }
     // Trigger visibility refresh for mobile controls
     if(typeof Mobile!=='undefined')Mobile.applyVisibility();
   },
@@ -1977,6 +2105,12 @@ const G={
       Save.s('chapter',1);Save.s('introSeen',true);
       Inventory.add('seed_pack');
       this.startChapterQuests();
+      const mapId=Save.g('currentMap')||'map1';
+      const briefId=mapId+'_briefing';
+      if(typeof StoryDialogues!=='undefined' && StoryDialogues[briefId] && !Save.flag('brief_'+mapId)){
+        Save.setFlag('brief_'+mapId,true);
+        setTimeout(()=>{ if(this.state==='playing') this.startVN(briefId); },500);
+      }
     }
     if(Save.flag('bossDefeated')&&!Save.flag('victoryDialogueSeen')){
       Save.setFlag('victoryDialogueSeen');
@@ -2002,7 +2136,8 @@ const G={
   showItemDetail(id){
     const item=ItemDB[id];if(!item)return;
     document.getElementById('invDetail').style.display='block';
-    document.getElementById('idName').textContent=`${item.icon||''} ${item.name}`;
+    const equipped = (item.type==='weapon' && Save.eq('weapon')===id) || (item.type==='tool' && (Save.eq('tool')||'broom')===id);
+    document.getElementById('idName').textContent=`${item.icon||''} ${item.name}${equipped?' ⭐':''}`;
     document.getElementById('idDesc').textContent=item.desc||'';
     const acts=document.getElementById('idActions');acts.innerHTML='';
     if(item.type==='consumable'){
@@ -2010,27 +2145,35 @@ const G={
       btn.addEventListener('click',()=>{this.useItem(id);this.openInv()});acts.appendChild(btn);
     }
     if(item.type==='weapon'){
-      const btn=document.createElement('button');btn.className='ibtn-equip';btn.textContent='장착';
-      btn.addEventListener('click',()=>{Save.s('equippedWeapon',id);Save.save();this.openInv()});acts.appendChild(btn);
+      const btn=document.createElement('button');btn.className='ibtn-equip';btn.textContent=equipped?'장착중':'장착';btn.disabled=equipped;
+      btn.addEventListener('click',()=>{Save.s('equippedWeapon',id);Save.save();this.ftext.add(this.plx,this.ply-14,`${item.name} 장착`,'#ff8',1.1);this.openInv()});acts.appendChild(btn);
+    }
+    if(item.type==='tool'){
+      const btn=document.createElement('button');btn.className='ibtn-equip';btn.textContent=equipped?'장착중':'장착';btn.disabled=equipped;
+      btn.addEventListener('click',()=>{Save.s('equippedTool',id);Save.save();this.ftext.add(this.plx,this.ply-14,`${item.name} 장착`,'#8ff',1.1);this.openInv()});acts.appendChild(btn);
     }
     if(item.type==='book'){
       const btn=document.createElement('button');btn.className='ibtn-use';btn.textContent='읽기';
       btn.addEventListener('click',()=>{this.closeInv();this.readBook(id)});acts.appendChild(btn);
     }
     const dropBtn=document.createElement('button');dropBtn.className='ibtn-drop';dropBtn.textContent='버리기';
-    dropBtn.addEventListener('click',()=>{Inventory.remove(id);this.openInv()});acts.appendChild(dropBtn);
+    dropBtn.addEventListener('click',()=>{Inventory.remove(id);if(Save.eq('weapon')===id)Save.s('equippedWeapon',null);if(Save.eq('tool')===id)Save.s('equippedTool','broom');this.openInv()});acts.appendChild(dropBtn);
   },
   useItem(id){
     const item=ItemDB[id];if(!item||!Inventory.has(id))return;
+    this.applyPlayerStats();
+    let msg='사용!';
     switch(item.effect){
-      case'heal':this.plHP=Math.min(this.plMaxHP,this.plHP+item.value);break;
-      case'energy':this.plEnergy=Math.min(this.plMaxEn,this.plEnergy+item.value);break;
-      case'water':this.plWater=Math.min(100,this.plWater+item.value);break;
-      case'seeds':this.plSeeds=Math.min(30,this.plSeeds+item.value);break;
-      case'shield':this.plInv=item.value;break;
+      case'heal':this.plHP=Math.min(this.plMaxHP,this.plHP+item.value);msg=`HP +${item.value}`;break;
+      case'energy':this.plEnergy=Math.min(this.plMaxEn,this.plEnergy+item.value);msg=`에너지 +${item.value}`;break;
+      case'water':this.plWater=Math.min(this.plMaxWater||100,this.plWater+item.value);msg=`물 +${item.value}`;break;
+      case'seeds':this.plSeeds=Math.min(this.plMaxSeeds||30,this.plSeeds+item.value);msg=`종자 +${item.value}`;break;
+      case'shield':this.plInv=Math.max(this.plInv,item.value);msg='보호막 발동!';break;
+      default: msg='효과 없음'; break;
     }
     Inventory.remove(id);playBeep(800,.1);
-    this.ftext.add(this.plx,this.ply-10,'사용!','#8ff');
+    this.ftext.add(this.plx,this.ply-10,msg,'#8ff');
+    this.updateHUD(this.mapStats());
   },
   readBook(id){
     const item=ItemDB[id];if(!item)return;
@@ -2044,6 +2187,55 @@ const G={
       Quests.progress('book');
       if(Save.g('booksCollected').length>=5)Trophies.unlock('all_books');
     }
+  },
+
+  openChoiceEvent(ev=null){
+    if(this.state!=='playing')return false;
+    const mapId=Save.g('currentMap')||'map1';
+    ev=ev||((typeof pickChoiceEvent==='function')?pickChoiceEvent(mapId):null);
+    if(!ev)return false;
+    this._choiceEvent=ev;
+    this.state='choice';
+    const ov=document.getElementById('choiceOverlay');
+    const opts=document.getElementById('choiceOptions');
+    const res=document.getElementById('choiceResult');
+    const cont=document.getElementById('choiceContinue');
+    document.getElementById('choiceKicker').textContent='FIELD EVENT / '+(mapId.toUpperCase());
+    document.getElementById('choiceIcon').textContent=ev.image||'☢️';
+    document.getElementById('choiceTitle').textContent=ev.title||'현장 상황';
+    document.getElementById('choiceSub').textContent=ev.subtitle||'선택이 필요합니다';
+    document.getElementById('choiceBody').textContent=ev.body||'';
+    opts.innerHTML='';res.style.display='none';res.textContent='';cont.style.display='none';
+    (ev.choices||[]).forEach((ch,idx)=>{
+      const b=document.createElement('button');b.className='choice-btn';
+      b.innerHTML=`<b>${idx+1}. ${ch.label}</b><span>${ch.hint||''}</span>`;
+      b.addEventListener('click',()=>this.resolveChoiceEvent(idx));
+      opts.appendChild(b);
+    });
+    ov.classList.add('show');
+    if(typeof Mobile!=='undefined')Mobile.applyVisibility();
+    return true;
+  },
+  resolveChoiceEvent(idx){
+    const ev=this._choiceEvent;if(!ev||!ev.choices||!ev.choices[idx])return;
+    const ch=ev.choices[idx];
+    const opts=document.getElementById('choiceOptions');
+    opts.querySelectorAll('button').forEach(b=>b.disabled=true);
+    try{ if(typeof applyChoiceEffect==='function')applyChoiceEffect(this,ch.effect||{}); }catch(e){console.warn('[choice effect]',e)}
+    const res=document.getElementById('choiceResult');
+    res.textContent=ch.result||'결과를 기록했다.';res.style.display='block';
+    document.getElementById('choiceContinue').style.display='block';
+    Save.load();
+    Save.d.choiceEventsSeen=(Save.d.choiceEventsSeen||0)+1;
+    Save.save();
+    playBeep(360,.12,'triangle',.08);
+  },
+  closeChoiceEvent(){
+    document.getElementById('choiceOverlay')?.classList.remove('show');
+    this._choiceEvent=null;
+    this.state='playing';
+    this._lastChoiceT=this.gameT||0;
+    if(typeof Mobile!=='undefined')Mobile.applyVisibility();
   },
 
   spawnBooks(){
@@ -2089,15 +2281,17 @@ const G={
     document.getElementById('invClose').addEventListener('click',()=>this.closeInv());
     document.getElementById('bookClose').addEventListener('click',()=>document.getElementById('bookOverlay').classList.remove('show'));
     document.getElementById('vnBox').addEventListener('click',()=>{if(this.vnActive)this.advanceVN()});
+    const chCont=document.getElementById('choiceContinue');
+    if(chCont)chCont.addEventListener('click',()=>this.closeChoiceEvent());
 
     window.addEventListener('keydown',e=>{this.keys[e.code]=true;
-      if(e.code==='Backquote'||e.key==='`'||e.key==='~'){e.preventDefault();e.stopPropagation();toggleDev();return}
+      if(e.code==='Backquote'||e.key==='`'||e.key==='~'){e.preventDefault();return}
       if(e.code==='Escape'){
-        if(devOpen){toggleDev();return}
         if(document.getElementById('slotOverlay').classList.contains('show')){SlotUI.close();return}
         if(document.getElementById('mapViewOv').classList.contains('show')){MapView.close();return}
         if(document.getElementById('settingsOv').classList.contains('show')){Settings.close();return}
         if(document.getElementById('guideOv').classList.contains('show')){GuideUI.close();return}
+        if(document.getElementById('choiceOverlay')?.classList.contains('show')){return}
         return}
       if(e.code==='KeyP'&&this.state==='playing')this.pause();
       else if(e.code==='KeyP'&&this.state==='paused')this.resume();
@@ -2152,7 +2346,7 @@ const G={
     if(this.combo>=10)Trophies.unlock('combo_10');
     playBeep(500+this.combo*30,.08,'triangle');return 1+Math.floor(this.combo/3)*.5},
 
-  earnCoins(n){const a=Math.floor(n);this.coins+=a;typeof addCoins==='function'?addCoins(a):Save.addCoins(a);
+  earnCoins(n){const a=Math.max(0,Math.floor((Number(n)||0)*(1+Save.ub('CoinBonus')*0.5)));this.coins+=a;typeof addCoins==='function'?addCoins(a):Save.addCoins(a);
     if(Save.g('coins')>=1000)Trophies.unlock('rich');playBeep(800,.06)},
   // Single-source kill registration: HUD + goal tracker + boss spawn all read the same counter.
   registerKill(monsterType, options={}){
@@ -2208,59 +2402,51 @@ const G={
     }
     if(options.playSound!==false&&typeof playBeep==='function')playBeep(440,.08,'square',.1);
 
-    const mdAuto = typeof getCurrentMapData === 'function' ? getCurrentMapData() : null;
-    if(mdAuto && (mdAuto.id === 'map1' || mdAuto.id === 'map2')) {
-      let dirty = [];
-      for(let r=0; r<ROWS; r++) {
-        for(let c=0; c<COLS; c++) {
-          if(this.tiles && this.tiles[r] && (this.tiles[r][c] === T.POL || this.tiles[r][c] === T.TRS)) {
-            dirty.push({r, c});
-          }
-        }
-      }
-      if(dirty.length > 0) {
-        dirty.sort(() => Math.random() - 0.5);
-        const amtClean = Math.min(dirty.length, Math.max(45, Math.floor(dirty.length * 0.45)));
-        for(let i=0; i<amtClean; i++) {
-          this.tiles[dirty[i].r][dirty[i].c] = T.CLN;
-          if(Math.random() < 0.2) {
-            this.parts.emit(dirty[i].c*TS+TS/2, dirty[i].r*TS+TS/2, 2, {xa:-1,xb:1,ya:-1,yb:1,la:10,lb:20,sa:1,sb:2,cs:['#4f8','#8ff']});
-          }
-        }
-        if(typeof MapProgress !== 'undefined' && MapProgress) {
-          MapProgress.addClean(amtClean);
-        }
-        if(this.ftext) {
-          const fx = options.x ?? this.plx;
-          const fy = (options.y ?? this.ply) - 35;
-          this.ftext.add(fx, fy, `✨ 대지 자동 정화! (+${amtClean}칸)`, '#4f8', 1.5);
-        }
-      }
-    }
+
+    // Balance patch: monster kills no longer auto-clean huge areas.
+    // Restoring land should require field work: cleaning, planting, catching sky waste, and clearing POIs.
 
     return currentKills;
   },
 
   doClean(){
-    if(this.plCD>0)return;const c=this.pCol(),r=this.pRow(),t=this.tileAt(c,r);
-    const cost=8;let ok=false;
-    if(t===T.POL&&this.plEnergy>=cost){this.plEnergy-=cost;this.setTile(c,r,T.CLN);this.plCD=10;ok=true;
-      Save.s('totalCleaned',Save.g('totalCleaned')+1);
+    if(this.plCD>0)return;
+    if(this.resolvePOI()){this.plCD=18;return;}
+    const c=this.pCol(),r=this.pRow(),t=this.tileAt(c,r);
+    const tool=this.getEquippedTool();
+    const cost=this.getCleanCost(8);let ok=false,cleaned=0;
+    const power=this.getCleanPower();
+    const radius=power>=2.35?1:0;
+    const cleanTile=(cc,rr)=>{const tt=this.tileAt(cc,rr);if(tt===T.POL){this.setTile(cc,rr,T.CLN);cleaned++;return true} if(tt===T.TRS){this.setTile(cc,rr,T.POL);return true} return false};
+    if((t===T.POL||t===T.TRS)&&this.plEnergy>=cost*(t===T.TRS?1.5:1)){
+      this.plEnergy-=cost*(t===T.TRS?1.5:1);
+      if(t===T.POL){
+        cleanTile(c,r); // the selected tile must always be cleaned
+        for(let dr=-radius;dr<=radius;dr++)for(let dc=-radius;dc<=radius;dc++){
+          if(dc===0&&dr===0)continue;
+          if(Math.abs(dr)+Math.abs(dc)<=radius+0.01 && Math.random()<Math.min(1,power/(radius?1.8:1))) cleanTile(c+dc,r+dr);
+        }
+      }else{
+        cleanTile(c,r);
+        if(Math.random()<.3)this.plSeeds=Math.min(this.plMaxSeeds||30,this.plSeeds+2);
+      }
+      this.plCD=Math.max(5,Math.floor((t===T.TRS?14:10)/(1+Save.ub('PlantSpeed')*0.5)));
+      ok=true;
+      for(let i=0;i<Math.max(1,cleaned);i++)Save.s('totalCleaned',Save.g('totalCleaned')+1);
       if(Save.g('totalCleaned')===1)Trophies.unlock('first_clean');
       if(Save.g('totalCleaned')>=100)Trophies.unlock('clean_100');
-    }else if(t===T.TRS&&this.plEnergy>=cost*1.5){this.plEnergy-=cost*1.5;this.setTile(c,r,T.POL);this.plCD=14;ok=true;
-      if(Math.random()<.3)this.plSeeds=Math.min(30,this.plSeeds+2)}
-    if(ok){const m=this.comboAdd(),pts=Math.floor(15*m);this.score+=pts;
-      this.earnCoins(Math.floor(2*m));
-      if(typeof MapProgress!=='undefined')MapProgress.addClean();
-      this.ftext.add(this.plx,this.ply-10,'+'+pts,'#8f8');
-      this.parts.emit(this.plx,this.ply,4,{xa:-2,xb:2,ya:-2,yb:-.5,la:12,lb:25,sa:1,sb:2,cs:['#8f8','#af8','#6d6']});
+    }
+    if(ok){const m=this.comboAdd(),pts=Math.floor(15*m*Math.max(1,cleaned));this.score+=pts;
+      this.earnCoins(Math.floor(2*m*Math.max(1,cleaned)));
+      if(typeof MapProgress!=='undefined')MapProgress.addClean(Math.max(1,cleaned));
+      this.ftext.add(this.plx,this.ply-10,`${tool.icon||'🧹'} +${pts}`,'#8f8');
+      this.parts.emit(this.plx,this.ply,4+Math.min(8,cleaned*2),{xa:-2,xb:2,ya:-2,yb:-.5,la:12,lb:25,sa:1,sb:2,cs:['#8f8','#af8','#6d6']});
       playBeep(520,.1)}},
 
   doPlant(){
     if(this.plCD>0)return;const c=this.pCol(),r=this.pRow(),t=this.tileAt(c,r);
     if(t===T.CLN&&this.plSeeds>=1&&this.plWater>=5){
-      this.plSeeds--;this.plWater-=5;this.setTile(c,r,T.GRS);this.gTim[r][c]=0;this.plCD=14;
+      this.plSeeds--;this.plWater-=5;this.setTile(c,r,T.GRS);this.gTim[r][c]=0;this.plCD=Math.max(5,Math.floor(14/(1+Save.ub('PlantSpeed'))));
       const m=this.comboAdd(),pts=Math.floor(25*m);this.score+=pts;this.earnCoins(Math.floor(3*m));
       Save.s('totalPlanted',Save.g('totalPlanted')+1);
       if(Save.g('totalPlanted')>=50)Trophies.unlock('plant_50');
@@ -2290,6 +2476,19 @@ const G={
   update(){
     if(this.state!=='playing')return;
     this.gameT++;this.frame++;
+    if(this.gameT%120===0){const hpPct=this.plMaxHP?this.plHP/this.plMaxHP:1,enPct=this.plMaxEn?this.plEnergy/this.plMaxEn:1;this.applyPlayerStats();this.plHP=Math.min(this.plMaxHP,Math.max(1,this.plHP));this.plEnergy=Math.min(this.plMaxEn,this.plEnergy);}
+    if(this.gameT%900===0&&this.ftext){
+      const alert=(typeof pickFieldLog==='function')?pickFieldLog('skyWaste'):['하늘에서 폐기물이 떨어진다. 방치하면 땅이 다시 죽는다.','오염은 기다려주지 않는다. 낙하 폐기물을 즉시 수거하라.','정화된 구역도 안전하지 않다. 쓰레기는 계속 떨어진다.'][Math.floor(Math.random()*3)];
+      this.ftext.add(this.plx,this.ply-28,alert,'#ffb45c',1.05);
+    }
+    if(this.gameT>700 && this.gameT%1250===0 && typeof pickChoiceEvent==='function'){
+      const invOpen=document.getElementById('invOverlay')?.classList.contains('show');
+      const bossAlive=this.monsters&&this.monsters.some(m=>m.isBoss);
+      if(!invOpen&&!bossAlive&&Math.random()<0.68)this.openChoiceEvent();
+    }
+    if(typeof ZoneAtmosphere!=='undefined')ZoneAtmosphere.update(this);
+    if(typeof StorylineRuntime!=='undefined')StorylineRuntime.update(this);
+    if(typeof DlcOps!=='undefined')DlcOps.update(this);
     // Hit-stop (frame freeze on impact)
     if(this._hitStopFrames>0){this._hitStopFrames--;return;}
     // Slow-mo
@@ -2317,7 +2516,11 @@ const G={
     const pc=this.pCol(),pr=this.pRow();
     for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
       const nr=pr+dr,nc=pc+dc;if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&this.tiles[nr][nc]===T.WAT)
-        this.plWater=Math.min(100,this.plWater+.12)}
+        this.plWater=Math.min(this.plMaxWater||100,this.plWater+.12)}
+    if(this.gameT%150===0){
+      const poi=this.getNearbyPOI&&this.getNearbyPOI();
+      if(poi&&this.ftext)this.ftext.add(this.plx,this.ply-20,`조사 가능: ${poi.ruin.name} (SPACE)`, '#8ff', .95);
+    }
 
     for(let i=this.books.length-1;i>=0;i--){
       const b=this.books[i];
@@ -2334,7 +2537,9 @@ const G={
         this.ftext.add(b.x,b.y-10,'📖 책 획득!','#ca8');playBeep(500,.15,'triangle');
         this.books.splice(i,1)}}
 
-    const rate=Math.max(15,70/(1+this.gameT*.00004));
+    const mdRate=(this.currentMapData&&this.currentMapData.trashRate)||70;
+    const stormMod=this._blackRainFrames>0?0.55:1;
+    const rate=Math.max(12,mdRate*stormMod/(1+this.gameT*.00004));
     if(++this.trTimer>=rate){this.trTimer=0;const tp=TRASH[CoreUtil.randInt(0,TRASH.length-1)];
       const x=CoreUtil.rand(10,W-10);
       this.trash.push({x,y:-tp.h,w:tp.w,h:tp.h,s:tp.s*CoreUtil.rand(.8,1.2),d:tp.d,c:tp.c,n:tp.n,wb:CoreUtil.rand(0,6.28)});
@@ -2349,20 +2554,13 @@ const G={
         const mdCurr = typeof getCurrentMapData === 'function' ? getCurrentMapData() : null;
         const isBossAlive = this.monsters && this.monsters.some(m => m && (m.isBoss || m.behavior === 'boss'));
         const isFinalMap = mdCurr && mdCurr.id === 'map4';
-        const isHarmful = isFinalMap || isBossAlive;
-        if(isHarmful){
-          if(this.plInv<=0){
-            this.plHP=Math.max(0,this.plHP-it.d);this.plInv=50;/* shake removed */this.combo=0;
-            this.parts.emit(this.plx,this.ply,6,{xa:-3,xb:3,ya:-3,yb:3,la:10,lb:20,sa:1,sb:3,cs:['#f44','#ff8','#fff']});
-            playBeep(150,.1,'sawtooth');this.trash.splice(i,1);
-          }
-        } else {
-          const m=this.comboAdd(), cn=Math.floor((it.c||1)*1.5*m);this.score+=cn;this.earnCoins(cn);this.trCaught++;
-          Save.s('totalTrashCaught', (Save.g('totalTrashCaught')||0)+1);
-          if(Save.g('totalTrashCaught')>=10)Trophies.unlock('catch_trash');
-          this.ftext.add(it.x,it.y,'+'+cn+'🪙','#fc0');
-          this.parts.emit(it.x,it.y,4,{xa:-2,xb:2,ya:-2,yb:1,la:10,lb:20,sa:1,sb:2,cs:['#4f4','#8f8','#fff']});
-          playBeep(600,.08,'square');this.trash.splice(i,1);
+        const impactDmg = isFinalMap || isBossAlive ? it.d : Math.max(3, Math.floor((it.d||6)*0.45));
+        // Falling waste is no longer a free auto-catch. Use Q/잡기 before impact.
+        if(this.plInv<=0){
+          this.plHP=Math.max(0,this.plHP-impactDmg);this.plInv=42;this.combo=0;
+          this.ftext.add(this.plx,this.ply-16,'폐기물 충돌 -'+impactDmg,'#f88',1.1);
+          this.parts.emit(this.plx,this.ply,6,{xa:-3,xb:3,ya:-3,yb:3,la:10,lb:20,sa:1,sb:3,cs:['#f44','#ff8','#fff']});
+          playBeep(120,.12,'sawtooth');this.trash.splice(i,1);
         }
       }
     }
@@ -2408,7 +2606,7 @@ const G={
     if(--this.rainT<=0){this.rain=!this.rain;this.rainT=this.rain?CoreUtil.randInt(300,700):CoreUtil.randInt(500,1500);this.rainDrops=[]}
     if(this.rain){for(let i=0;i<3;i++)this.rainDrops.push({x:CoreUtil.rand(0,W),y:CoreUtil.rand(-10,-2),s:CoreUtil.rand(3,6),l:CoreUtil.rand(4,8)});
       for(let i=this.rainDrops.length-1;i>=0;i--){this.rainDrops[i].y+=this.rainDrops[i].s;if(this.rainDrops[i].y>H)this.rainDrops.splice(i,1)}
-      if(this.gameT%25===0)this.plWater=Math.min(100,this.plWater+1)}
+      if(this.gameT%25===0)this.plWater=Math.min(this.plMaxWater||100,this.plWater+1)}
 
     const maxA=Math.floor(st.pct*8);
     if(++this.aniTimer>150&&this.animals.length<maxA&&st.pct>.1){this.aniTimer=0;
@@ -2420,7 +2618,7 @@ const G={
     for(const a of this.animals){if(--a.mt<=0){a.mt=CoreUtil.randInt(50,160);a.vx=CoreUtil.rand(-.4,.4);a.vy=CoreUtil.rand(-.4,.4)}
       a.x=CoreUtil.clamp(a.x+a.vx,6,W-6);a.y=CoreUtil.clamp(a.y+a.vy,6,H-6);a.af+=.04}
 
-    if(this.gameT%100===0&&st.trees>0){this.plSeeds=Math.min(30,this.plSeeds+Math.ceil(st.trees*.06));
+    if(this.gameT%100===0&&st.trees>0){this.plSeeds=Math.min(this.plMaxSeeds||30,this.plSeeds+Math.ceil(st.trees*.06));
       this.plEnergy=Math.min(this.plMaxEn,this.plEnergy+st.trees*.15)}
 
     /* shake removed */
@@ -2606,6 +2804,7 @@ const G={
       cx.restore();return}
 
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)drawTile(c*TS,r*TS,this.tiles[r][c],this.frame);
+    if(typeof ZoneAtmosphere!=='undefined')ZoneAtmosphere.drawUnder(cx,this);
 
     if(this.portal)drawPortal(this.portal.col*TS,this.portal.row*TS,this.frame);
 
@@ -2634,6 +2833,7 @@ const G={
       cx.strokeStyle=this.frame%20<10?'rgba(255,255,100,.25)':'rgba(255,255,100,.1)';
       cx.lineWidth=1;cx.strokeRect(this.pCol()*TS,this.pRow()*TS,TS,TS)}
 
+    if(typeof ZoneAtmosphere!=='undefined')ZoneAtmosphere.drawOver(cx,this);
     cx.restore();
 
     // === ENVIRONMENTAL TENSION (DOM overlays) ===

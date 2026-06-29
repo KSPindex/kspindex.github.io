@@ -143,11 +143,11 @@ document.querySelectorAll('.tab').forEach(t=>{
 });
 
 const buyItems=[
-  {id:'potion_hp',price:40},
-  {id:'potion_energy',price:35},
-  {id:'potion_water',price:30},
-  {id:'seed_pack',price:25},
-  {id:'shield_orb',price:100},
+  {id:'potion_hp',price:60},
+  {id:'potion_energy',price:55},
+  {id:'potion_water',price:50},
+  {id:'seed_pack',price:45},
+  {id:'shield_orb',price:160},
 ];
 
 function renderBuy(){
@@ -233,11 +233,11 @@ function renderSell(){
 }
 
 const weaponShop=[
-  {id:'water_gun',pp:30},
-  {id:'eco_blade',pp:60},
-  {id:'thorn_whip',pp:70},
-  {id:'thunder_hammer',pp:120},
-  {id:'crystal_staff',pp:180},
+  {id:'water_gun',pp:45},
+  {id:'eco_blade',pp:85},
+  {id:'thorn_whip',pp:100},
+  {id:'thunder_hammer',pp:170},
+  {id:'crystal_staff',pp:240},
 ];
 
 function renderWeapons(){
@@ -293,8 +293,8 @@ function renderWeapons(){
 }
 
 const toolShop=[
-  {id:'vacuum',pp:50},
-  {id:'nano',pp:150},
+  {id:'vacuum',pp:75},
+  {id:'nano',pp:220},
 ];
 
 function renderTools(){
@@ -316,7 +316,7 @@ function renderTools(){
         <div class="item-desc">${item.desc}</div>
         <div class="item-stats">
           <span class="stat-chip pow">정화력 ×${item.power.toFixed(1)}</span>
-          <span class="stat-chip spd">효율 ×${item.energy.toFixed(1)}</span>
+          <span class="stat-chip spd">에너지 소모 ×${item.energy.toFixed(1)}</span>
         </div>
       </div>
       <div class="item-right">
